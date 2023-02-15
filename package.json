@@ -1,0 +1,15 @@
+{
+  "name": "bouncer",
+  "version": "0.0.1",
+  "description": "Ridiculously configurable website limiter.",
+  "main": "manifest.json",
+  "scripts": {
+    "dev": "web-ext run",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Noah Pauls <noahmpauls@gmail.com>",
+  "license": "ISC",
+  "devDependencies": {
+    "web-ext": "^7.5.0"
+  }
+}
