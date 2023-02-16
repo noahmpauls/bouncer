@@ -15,6 +15,10 @@
     }
   ],
   
+  "web_accesible_resources": [
+    "blocked.html"
+  ],
+  
   "browser_specific_settings": {
     "gecko": {
       "id": "bouncer@noahpauls.com"

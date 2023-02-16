@@ -62,8 +62,7 @@ function activate() {
         if (viewTime + additionalTime >= limit) {
           pause();
           console.log(`LIMIT REACHED FOR THIS SITE`);
-          setBlockPage(host, limit);
-          // window.location = "https://developer.mozilla.org";
+          blockSite();
         }
       });
   }, 1000);
@@ -78,20 +77,8 @@ function pause() {
   checker = undefined;
 }
 
-// Replace page content with block page.
-// TODO: find a better way to create a block page that is unaffected by
-// existing styles on the page.
-function setBlockPage(host, limit) {
-  document.body.style.all = "unset";
-  document.body.style.fontFamily = "sans-serif";
-  document.body.style.display = "flex";
-  document.body.style.flexDirection = "column";
-  document.body.style.justifyContent = "center";
-  document.body.style.alignItems = "center";
-  document.body.style.height = "100%";
-  document.body.innerHTML = 
-`<h1>Blocked!</h1>
-<p>You can only browse ${host} for ${parseFloat((limit / 1000).toFixed(2))} seconds.</p>`
+function blockSite() {
+  window.location = browser.runtime.getURL("blocked.html");
 }
 
 function setViewStartTime() {
