@@ -11,6 +11,12 @@
   "host_permissions": [
     "<all_urls>"
   ],
+  
+  "action": {
+    "default_title": "Bouncer",
+    "default_icon": "assets/code.svg",
+    "default_popup": "pages/popup/popup.html"
+  },
 
   "content_scripts": [
     {
