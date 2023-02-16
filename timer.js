@@ -78,7 +78,7 @@ function pause() {
 }
 
 function blockSite() {
-  window.location = browser.runtime.getURL("blocked.html");
+  window.location = browser.runtime.getURL("pages/blocked/blocked.html");
 }
 
 function setViewStartTime() {

@@ -22,7 +22,7 @@
   
   "web_accessible_resources": [
     {
-      "resources": ["blocked.html"],
+      "resources": ["pages/blocked/*"],
       "matches": ["<all_urls>"]
     }
   ],
