@@ -1,6 +1,6 @@
-// Using an IIFE, as content scripts don't appear to support JS modules or
-// top-level await.
-(async () => {
+import { getStorage, setStorage, updateStorage, doSetInterval } from "./utils.mjs";
+
+async function initializeBouncer() {
   const rules = await browser.storage.local.get({ rules: [] })
     .then(data => {
       ruleData = data.rules;
@@ -55,7 +55,7 @@
       const currentTime = Date.now();
       const minAway = 10000; // minimum milliseconds to wait after block
       if (lastVisit < 0 || currentTime - lastVisit >= minAway) {
-        await modifyStorage(`viewTime:${host}`, 0, () => 0);
+        await setStorage(`viewTime:${host}`, 0);
         await resetLastBlockTime(host);
       } else {
         await block(host);
@@ -97,11 +97,11 @@
   }
   
   async function setLastBlockTime(host) {
-    await modifyStorage(`lastVisitTime:${host}`, -1, () => Date.now());
+    await setStorage(`lastVisitTime:${host}`, Date.now());
   }
 
   async function resetLastBlockTime(host) {
-    await modifyStorage(`lastVisitTime:${host}`, -1, () => -1);
+    await setStorage(`lastVisitTime:${host}`, -1);
   }
   
   async function getLastBlockTime(host) {
@@ -109,11 +109,11 @@
   }
 
   async function recordLastSite(site) {
-    await modifyStorage("lastSite", [], prev => {
+    await updateStorage("lastSite", prev => {
       let next = [...prev];
       next.push(site);
       return next;
-    })
+    }, []);
   }
 
   function blockSite() {
@@ -132,37 +132,10 @@
 
     const viewTime = Date.now() - viewStartTime;
 
-    await modifyStorage(`viewTime:${host}`, 0, prev => {
+    await updateStorage(`viewTime:${host}`, prev => {
       return prev + viewTime;
-    });
+    }, 0);
   }
+}
 
-  async function modifyStorage(key, defaultValue = null, update) {
-    let getArg = key;
-    if (defaultValue !== null) {
-      getArg = { [key]: defaultValue };
-    }
-    await browser.storage.local.get(getArg)
-      .then(value => {
-        value[key] = update(value[key]);
-        return value;
-      })
-      .then(value => {
-        browser.storage.local.set(value);
-      });
-  }
-  
-  async function getStorage(key, defaultValue = null) {
-    let getArg = key;
-    if (defaultValue !== null) {
-      getArg = { [key]: defaultValue };
-    }
-    return await browser.storage.local.get(getArg)
-      .then(data => data[key]);
-  }
-
-  function doSetInterval(func, delay) {
-    func();
-    return setInterval(func, delay);
-  }
-})();
+initializeBouncer();

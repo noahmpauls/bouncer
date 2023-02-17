@@ -20,10 +20,10 @@
 
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
       "js": [
-        "bouncer.js"
+        "dist/bouncer.js"
       ],
+      "matches": ["<all_urls>"],
       "run_at": "document_start",
       "all_frames": true
     }
