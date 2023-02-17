@@ -28,22 +28,39 @@
       } else if (document.visibilityState === "hidden") {
         await pause();
       }
-    });
+    }, { capture: true });
 
     window.addEventListener("pageshow", async (event) => {
       if (document.visibilityState === "visible") {
         await activate();
       }
-    });
+    }, { capture: true });
 
     window.addEventListener("pagehide", async (event) => {
       await pause();
-    });
+    }, { capture: true });
   }
 
   async function activate() {
     if (limit === undefined || limit === null) {
       return;
+    }
+    
+    // Check whether a block is currently in place, and whether that block
+    // has expired.
+    const viewTime = await getStorage(`viewTime:${host}`, 0);
+    const isBlocked = viewTime > limit;
+    if (isBlocked) {
+      const lastVisit = await getLastBlockTime(host);
+      const currentTime = Date.now();
+      const minAway = 10000; // minimum milliseconds to wait after block
+      if (lastVisit < 0 || currentTime - lastVisit >= minAway) {
+        await modifyStorage(`viewTime:${host}`, 0, () => 0);
+        await resetLastBlockTime(host);
+      } else {
+        await block(host);
+        return;
+      }
     }
     // Ensure a checker isn't already running.
     // TODO: determine why this happens; probably due to shared context between
@@ -53,13 +70,10 @@
     }
     await setViewStartTime();
     checker = doSetInterval(async () => {
-      const viewTime = await browser.storage.local.get({ [`viewTime:${host}`]: 0 })
-        .then(viewTimeResult => viewTimeResult[`viewTime:${host}`]);
+      const viewTime = await getStorage(`viewTime:${host}`, 0);
       const additionalTime = Date.now() - viewStartTime;
-      if (viewTime + additionalTime >= limit) {
-        await pause();
-        console.log(`LIMIT REACHED FOR THIS SITE`);
-        blockSite();
+      if (viewTime + additionalTime > limit) {
+        await block(host, true);
       }
     }, 1000);
   }
@@ -71,6 +85,27 @@
     await setSiteViewTime();
     clearInterval(checker);
     checker = undefined;
+  }
+  
+  async function block(host, setBlockTime=false) {
+    console.log("BOUNCER: blocking site");
+    await pause();
+    if (setBlockTime) {
+      await setLastBlockTime(host);
+    }
+    blockSite();
+  }
+  
+  async function setLastBlockTime(host) {
+    await modifyStorage(`lastVisitTime:${host}`, -1, () => Date.now());
+  }
+
+  async function resetLastBlockTime(host) {
+    await modifyStorage(`lastVisitTime:${host}`, -1, () => -1);
+  }
+  
+  async function getLastBlockTime(host) {
+    return await getStorage(`lastVisitTime:${host}`, -1);
   }
 
   async function recordLastSite(site) {
@@ -115,6 +150,15 @@
       .then(value => {
         browser.storage.local.set(value);
       });
+  }
+  
+  async function getStorage(key, defaultValue = null) {
+    let getArg = key;
+    if (defaultValue !== null) {
+      getArg = { [key]: defaultValue };
+    }
+    return await browser.storage.local.get(getArg)
+      .then(data => data[key]);
   }
 
   function doSetInterval(func, delay) {
