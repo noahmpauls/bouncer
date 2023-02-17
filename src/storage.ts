@@ -1,25 +1,21 @@
-export async function getStorage(key, defaultValue = {}) {
+import browser from "webextension-polyfill";
+
+export async function getStorage(key: string, defaultValue: any = {}): Promise<any> {
   const getArg = ({ [key]: defaultValue });
-  console.log("wow");
   return await browser.storage.local.get(getArg)
     .then(data => data[key]);
 }
 
-export async function setStorage(key, value) {
+export async function setStorage(key: string, value: any) {
   await browser.storage.local.set({ [key]: value });
 }
 
-export async function updateStorage(key, updater, defaultValue = {}) {
+export async function updateStorage(key: string, updater: (x: any) => any, defaultValue: any = {}) {
   const prevValue = await getStorage(key, defaultValue);
   const nextValue = updater(prevValue);
   await setStorage(key, nextValue);
 }
 
-export async function deleteStorage(key) {
+export async function deleteStorage(key: string) {
   await browser.storage.local.remove(key);
-}
-
-export function doSetInterval(func, delay) {
-  func();
-  return setInterval(func, delay);
 }

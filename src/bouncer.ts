@@ -1,20 +1,18 @@
-import { getStorage, setStorage, updateStorage, doSetInterval } from "./utils.mjs";
+import browser from "webextension-polyfill";
+import { getStorage, setStorage, updateStorage } from "./storage"
+import { doSetInterval } from "./utils";
 
 async function initializeBouncer() {
-  const rules = await browser.storage.local.get({ rules: [] })
-    .then(data => {
-      ruleData = data.rules;
-      const rules = new Map(ruleData.map(r => ([r.host, r.milliseconds])));
-      return rules;
-    });
+  const ruleData = await getStorage("rules", []);
+  const rules = new Map(ruleData.map(r => ([r.host, r.milliseconds])));
 
   // Get the host and record the visit to it
   const host = window.location.host;
   await recordLastSite(host);
 
   const limit = rules.get(host);
-  let checker = undefined;
-  let viewStartTime = undefined;
+  let checker: NodeJS.Timer | undefined = undefined;
+  let viewStartTime: number | undefined = undefined;
 
   // Only activate bouncer for this page if a limit applies
   if (limit !== undefined && limit !== null) {
@@ -71,7 +69,7 @@ async function initializeBouncer() {
     await setViewStartTime();
     checker = doSetInterval(async () => {
       const viewTime = await getStorage(`viewTime:${host}`, 0);
-      const additionalTime = Date.now() - viewStartTime;
+      const additionalTime = Date.now() - viewStartTime!;
       if (viewTime + additionalTime > limit) {
         await block(host, true);
       }
@@ -117,7 +115,7 @@ async function initializeBouncer() {
   }
 
   function blockSite() {
-    window.location = browser.runtime.getURL("pages/blocked/blocked.html");
+    location.assign(browser.runtime.getURL("pages/blocked/blocked.html"));
   }
 
   async function setViewStartTime() {
