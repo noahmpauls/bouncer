@@ -1,10 +1,17 @@
 import browser from "webextension-polyfill";
-import { getStorage, setStorage, updateStorage } from "./storage"
+import { IStorage } from "./storage";
+import { BrowserStorage } from "./browserStorage";
 import { doSetInterval } from "./utils";
 
+type Rule = {
+  host: string
+  milliseconds: number
+}
+
 async function initializeBouncer() {
-  const ruleData = await getStorage("rules", []);
-  const rules = new Map(ruleData.map(r => ([r.host, r.milliseconds])));
+  const storage: IStorage<any> = new BrowserStorage();
+  const ruleData: Rule[] = await storage.get("rules", []);
+  const rules = new Map(ruleData.map((r: Rule) => ([r.host, r.milliseconds])));
 
   // Get the host and record the visit to it
   const host = window.location.host;
@@ -46,14 +53,14 @@ async function initializeBouncer() {
     
     // Check whether a block is currently in place, and whether that block
     // has expired.
-    const viewTime = await getStorage(`viewTime:${host}`, 0);
+    const viewTime = await storage.get(`viewTime:${host}`, 0);
     const isBlocked = viewTime > limit;
     if (isBlocked) {
       const lastVisit = await getLastBlockTime(host);
       const currentTime = Date.now();
       const minAway = 10000; // minimum milliseconds to wait after block
       if (lastVisit < 0 || currentTime - lastVisit >= minAway) {
-        await setStorage(`viewTime:${host}`, 0);
+        await storage.set(`viewTime:${host}`, 0);
         await resetLastBlockTime(host);
       } else {
         await block(host);
@@ -68,7 +75,7 @@ async function initializeBouncer() {
     }
     await setViewStartTime();
     checker = doSetInterval(async () => {
-      const viewTime = await getStorage(`viewTime:${host}`, 0);
+      const viewTime = await storage.get(`viewTime:${host}`, 0);
       const additionalTime = Date.now() - viewStartTime!;
       if (viewTime + additionalTime > limit) {
         await block(host, true);
@@ -85,7 +92,7 @@ async function initializeBouncer() {
     checker = undefined;
   }
   
-  async function block(host, setBlockTime=false) {
+  async function block(host: string, setBlockTime: boolean=false) {
     console.log("BOUNCER: blocking site");
     await pause();
     if (setBlockTime) {
@@ -94,20 +101,20 @@ async function initializeBouncer() {
     blockSite();
   }
   
-  async function setLastBlockTime(host) {
-    await setStorage(`lastVisitTime:${host}`, Date.now());
+  async function setLastBlockTime(host: string) {
+    await storage.set(`lastVisitTime:${host}`, Date.now());
   }
 
-  async function resetLastBlockTime(host) {
-    await setStorage(`lastVisitTime:${host}`, -1);
+  async function resetLastBlockTime(host: string) {
+    await storage.set(`lastVisitTime:${host}`, -1);
   }
   
-  async function getLastBlockTime(host) {
-    return await getStorage(`lastVisitTime:${host}`, -1);
+  async function getLastBlockTime(host: string): Promise<number> {
+    return await storage.get(`lastVisitTime:${host}`, -1);
   }
 
-  async function recordLastSite(site) {
-    await updateStorage("lastSite", prev => {
+  async function recordLastSite(site: string) {
+    await storage.update("lastSite", prev => {
       let next = [...prev];
       next.push(site);
       return next;
@@ -130,7 +137,7 @@ async function initializeBouncer() {
 
     const viewTime = Date.now() - viewStartTime;
 
-    await updateStorage(`viewTime:${host}`, prev => {
+    await storage.update(`viewTime:${host}`, prev => {
       return prev + viewTime;
     }, 0);
   }
