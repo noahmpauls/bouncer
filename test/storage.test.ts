@@ -20,7 +20,7 @@ describe("example test using mock of browser polyfill", () => {
   })
   
   test("get", async () => {
-    const storage: IStorage<number[]> = new BrowserStorage();
+    const storage: IStorage = new BrowserStorage();
     expect(await storage.get("test", [])).toEqual([]);
   });
 });

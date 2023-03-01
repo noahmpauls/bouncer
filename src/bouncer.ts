@@ -9,7 +9,7 @@ type Rule = {
 }
 
 async function initializeBouncer() {
-  const storage: IStorage<any> = new BrowserStorage();
+  const storage: IStorage = new BrowserStorage();
   const ruleData: Rule[] = await storage.get("rules", []);
   const rules = new Map(ruleData.map((r: Rule) => ([r.host, r.milliseconds])));
 
@@ -114,7 +114,7 @@ async function initializeBouncer() {
   }
 
   async function recordLastSite(site: string) {
-    await storage.update("lastSite", prev => {
+    await storage.update("lastSite", (prev: string[]) => {
       let next = [...prev];
       next.push(site);
       return next;
