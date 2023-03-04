@@ -1,8 +1,3 @@
-export type OptionalProperties<Type> = {
-  [Property in keyof Type]?: Type[Property]
-}
-
-
 /**
  * Execute a function on an interval, starting with an immediate execution.
  * 

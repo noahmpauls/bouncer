@@ -8,6 +8,11 @@ import { ISchedule } from "./schedule";
  */
 export interface IRule {
   /**
+   * Type discriminator indicating the type of rule;
+   */
+  type: RuleType;
+
+  /**
    * Apply a rule to a page, potentially mutating the page.
    * 
    * @param time time to apply the rule at
@@ -22,7 +27,49 @@ export interface IRule {
    * @returns amount of viewtime until the page is blocked
    */
   remainingViewtime(page: IPage): number;
+
+  /**
+   * Convert rule to an object representation. The representation must
+   * include a field "type" that indicates the type of rule represented.
+   * 
+   * @returns object representing rule
+   */
+  toObject(): any;
 }
+
+
+/**
+ * Deserialize a rule from an object.
+ * 
+ * @param data object data representing rule
+ * @returns deserialized rule
+ */
+export function deserializeRule(data: any): IRule {
+  switch (data.type as RuleType) {
+    case "ScheduleLimit":
+      return ScheduledLimit.fromObject(data);
+    default:
+      throw new Error(`invalid rule type ${data.type} cannot be deserialized`);
+  }
+}
+
+
+/**
+ * Serialize a rule to an object representation.
+ * 
+ * @param rule the rule to serialize
+ * @returns serialized rule object
+ */
+export function serializeRule(rule: IRule): any {
+  return rule.toObject();
+}
+
+
+/**
+ * Discriminator type for each kind of rule.
+ */
+type RuleType =
+  "ScheduleLimit";
 
 
 /**
@@ -35,12 +82,24 @@ export interface IRule {
  * - `limit`: determines how the rule applies during the schedule.
  */
 export class ScheduledLimit implements IRule {
+  readonly type: RuleType = "ScheduleLimit";
 
   /**
    * @param schedule the schedule during which the limit applies
    * @param limit the limit to apply
    */
   constructor(schedule: ISchedule, limit: ILimit) {
+    throw new Error("Method not implemented.");
+  }
+
+
+  /**
+   * Convert an object to this type of rule.
+   * 
+   * @param data object data representing rule
+   * @returns rule
+   */
+  static fromObject(data: any): ScheduledLimit {
     throw new Error("Method not implemented.");
   }
 
@@ -52,5 +111,10 @@ export class ScheduledLimit implements IRule {
 
   remainingViewtime(page: IPage): number {
     throw new Error("Method not implemented.");
+  }
+
+  
+  toObject(): any {
+    
   }
 }

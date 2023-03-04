@@ -1,6 +1,5 @@
 import { IPage } from "./page";
 import { IPolicy } from "./policy";
-import { IRule } from "./rule";
 import { IStorage } from "./storage";
 
 
@@ -9,12 +8,12 @@ import { IStorage } from "./storage";
  */
 export interface IBouncerData {
   /**
-   * Get all rules and pages that correspond to a given URL.
+   * Get all policies and pages that correspond to a given URL.
    *
-   * @param url the URL that rules should apply to
-   * @returns applicable rules and pages
+   * @param url the URL that policies should apply to
+   * @returns applicable policies and corresponding pages
    */
-  getApplicableRules(url: string): Promise<{ id: string, rule: IRule, page: IPage }[]>;
+  getApplicablePolicies(url: string): Promise<{ policy: IPolicy, page: IPage }[]>;
 
   /**
    * Get all policies.
@@ -37,7 +36,7 @@ export interface IBouncerData {
    * @param policyId the ID of the page's policy
    * @param page the set page
    */
-  setRulePage(policyId: string, page: IPage): Promise<void>;
+  setPolicyPage(policyId: string, page: IPage): Promise<void>;
 }
 
 
@@ -47,8 +46,6 @@ export interface IBouncerData {
 export class StoredBouncerData implements IBouncerData {
 
   /**
-   * Construct a new `StoredBouncerData` instance.
-   * 
    * @param storage the storage provider
    */
   constructor(storage: IStorage) {
@@ -56,7 +53,7 @@ export class StoredBouncerData implements IBouncerData {
   }
 
   
-  getApplicableRules(url: string): Promise<{ id: string; rule: IRule; page: IPage; }[]> {
+  getApplicablePolicies(url: string): Promise<{ policy: IPolicy, page: IPage; }[]> {
     throw new Error("Method not implemented.");
   }
 
@@ -71,7 +68,7 @@ export class StoredBouncerData implements IBouncerData {
   }
   
 
-  setRulePage(policyId: string, page: IPage): Promise<void> {
+  setPolicyPage(policyId: string, page: IPage): Promise<void> {
     throw new Error("Method not implemented.");
   }
 }

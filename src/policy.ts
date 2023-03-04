@@ -8,6 +8,11 @@ import { IRule } from "./rule";
  */
 export interface IPolicy {
   /**
+   * Unique policy identifier.
+   */
+  id: string;
+
+  /**
    * The policy URL matchers.
    */
   matchers: IUrlMatcher[];
@@ -16,4 +21,34 @@ export interface IPolicy {
    * The applicable rule.
    */
   rule: IRule;
+
+  /**
+   * Convert the policy to an object representation.
+   *
+   * @returns object representing policy
+   */
+  toObject(): any;
+}
+
+
+/**
+ * Deserialize a policy from an object.
+ * 
+ * @param id the id of the policy
+ * @param data object data representing policy
+ * @returns deserialized policy
+ */
+export function deserializePolicy(id: string, data: any): IPolicy {
+  throw new Error("Function not implemented.");
+}
+
+
+/**
+ * Serialize a policy to an object representation.
+ * 
+ * @param policy the policy to serialize
+ * @returns serialized policy object
+ */
+export function serializePolicy(policy: IPolicy): any {
+  return policy.toObject();
 }

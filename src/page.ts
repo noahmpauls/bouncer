@@ -50,5 +50,34 @@ export interface IPage {
    */
   block(time: Date, duration: number): void;
   
+  /**
+   * Convert page to an object representation.
+   * 
+   * @returns object representing page
+   */
+  toObject(): any;
+  
   // TODO: need to expose metrics for storage and rule actions.
+}
+
+
+/**
+ * Deserialize a page from an object.
+ * 
+ * @param data object data representing page
+ * @returns deserialized page
+ */
+export function deserializePage(data: any): IPage {
+  throw new Error("Function not implemented.");
+}
+
+
+/**
+ * Serialize a page to an object representation.
+ * 
+ * @param page the page to serialize
+ * @returns serialized page object
+ */
+export function serializePage(page: IPage): any {
+  return page.toObject();
 }

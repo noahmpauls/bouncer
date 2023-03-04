@@ -11,7 +11,8 @@ async function initializeBouncer() {
   const currentTime = new Date();
   const url = window.location;
   const data: IBouncerData = new StoredBouncerData(new BrowserStorage());
-  const rulesAndPages = await data.getApplicableRules(url.href);
+  const rulesAndPages = (await data.getApplicablePolicies(url.href))
+    .map(value => ({ id: value.policy.id, rule: value.policy.rule, page: value.page }));
   let viewtimeChecker: NodeJS.Timeout | null = null;
 
   /**
@@ -64,7 +65,7 @@ async function initializeBouncer() {
     clearViewtimeChecker();
     for (let {id, page} of rulesAndPages) {
       page.recordEvent(currentTime, PageEvent.HIDE);
-      data.setRulePage(id, page);
+      data.setPolicyPage(id, page);
     }
   }
 

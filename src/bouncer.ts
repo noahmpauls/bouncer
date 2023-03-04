@@ -23,25 +23,31 @@ async function initializeBouncer() {
 
   // Only activate bouncer for this page if a limit applies
   if (limit !== undefined && limit !== null) {
+    console.log("visit");
     if (document.visibilityState === "visible") {
+      console.log("visible at visit");
       await activate();
     }
 
     window.addEventListener("visibilitychange", async (event) => {
       if (document.visibilityState === "visible") {
+        console.log("visibility: visible");
         await activate();
       } else if (document.visibilityState === "hidden") {
+        console.log("visibility: hidden");
         await pause();
       }
     }, { capture: true });
 
     window.addEventListener("pageshow", async (event) => {
+      console.log("pageshow");
       if (document.visibilityState === "visible") {
         await activate();
       }
     }, { capture: true });
 
     window.addEventListener("pagehide", async (event) => {
+      console.log("pagehide");
       await pause();
     }, { capture: true });
   }
