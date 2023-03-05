@@ -1,3 +1,4 @@
+import { assert } from "./assert";
 import { IPage } from "./page";
 
 
@@ -102,7 +103,8 @@ export class AlwaysBlock implements ILimit {
    * @returns limit
    */
   static fromObject(data: any): AlwaysBlock {
-    throw new Error("Method not implemented.");
+    assert(data.type === "AlwaysBlock", `cannot make AlwaysBlock from data with type ${data.type}`);
+    return new AlwaysBlock();
   }
 
 
@@ -120,6 +122,6 @@ export class AlwaysBlock implements ILimit {
   
 
   toObject(): any {
-    throw new Error("Method not implemented.");
+    return { type: this.type };
   }
 }

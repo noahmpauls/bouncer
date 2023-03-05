@@ -11,8 +11,8 @@ async function initializeBouncer() {
   const currentTime = new Date();
   const url = window.location;
   const data: IBouncerData = new StoredBouncerData(new BrowserStorage());
-  const rulesAndPages = (await data.getApplicablePolicies(url.href))
-    .map(value => ({ id: value.policy.id, rule: value.policy.rule, page: value.page }));
+  const rulesAndPages = (await data.getApplicablePolicies(new URL(url.href)))
+    .map(value => ({ metadata: value.metadata, rule: value.policy.rule, page: value.page }));
   let viewtimeChecker: NodeJS.Timeout | null = null;
 
   /**
@@ -63,9 +63,9 @@ async function initializeBouncer() {
    */
   function onHide(currentTime: Date) {
     clearViewtimeChecker();
-    for (let {id, page} of rulesAndPages) {
+    for (let {metadata, page} of rulesAndPages) {
       page.recordEvent(currentTime, PageEvent.HIDE);
-      data.setPolicyPage(id, page);
+      data.setPolicyPage(metadata, page);
     }
   }
 
@@ -75,10 +75,10 @@ async function initializeBouncer() {
   }
 
   // check for an existing block and enforce it
-  for (let {id, rule, page} of rulesAndPages) {
+  for (let {rule, page} of rulesAndPages) {
     rule.applyTo(currentTime, page);
   }
-  for (let {id, rule, page} of rulesAndPages) {
+  for (let {page} of rulesAndPages) {
     if (page.checkAccess(currentTime) === PageAccess.BLOCKED) {
       block();
     }

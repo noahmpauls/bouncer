@@ -1,6 +1,7 @@
-import { ILimit } from "./limit";
+import { assert } from "./assert";
+import { deserializeLimit, ILimit, serializeLimit } from "./limit";
 import { IPage } from "./page";
-import { ISchedule } from "./schedule";
+import { deserializeSchedule, ISchedule, serializeSchedule } from "./schedule";
 
 
 /**
@@ -84,14 +85,17 @@ type RuleType =
 export class ScheduledLimit implements IRule {
   readonly type: RuleType = "ScheduleLimit";
 
+  private readonly schedule: ISchedule;
+  private readonly limit: ILimit;
+
   /**
    * @param schedule the schedule during which the limit applies
    * @param limit the limit to apply
    */
   constructor(schedule: ISchedule, limit: ILimit) {
-    throw new Error("Method not implemented.");
+    this.schedule = schedule;
+    this.limit = limit;
   }
-
 
   /**
    * Convert an object to this type of rule.
@@ -100,21 +104,27 @@ export class ScheduledLimit implements IRule {
    * @returns rule
    */
   static fromObject(data: any): ScheduledLimit {
-    throw new Error("Method not implemented.");
+    assert(data.type === "ScheduleLimit", `cannot make ScheduleLimit from data with type ${data.type}`);
+    return new ScheduledLimit(
+      deserializeSchedule(data.schedule),
+      deserializeLimit(data.limit)
+    );
   }
-
 
   applyTo(time: Date, page: IPage): void {
     throw new Error("Method not implemented.");
   }
   
-
   remainingViewtime(page: IPage): number {
     throw new Error("Method not implemented.");
   }
-
   
   toObject(): any {
-    
+    return {
+      type: this.type,
+      schedule: serializeSchedule(this.schedule),
+      limit: serializeLimit(this.limit)
+    };
   }
 }
+

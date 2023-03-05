@@ -1,3 +1,5 @@
+import { assert } from "./assert";
+
 /**
  * Represents a specified subset of all times.
  * 
@@ -81,7 +83,8 @@ export class AlwaysSchedule implements ISchedule {
    * @returns schedule
    */
   static fromObject(data: any): AlwaysSchedule {
-    throw new Error("Method not implemented.");
+    assert(data.type === "AlwaysSchedule", `cannot make AlwaysSchdule from data with type ${data.type}`);
+    return new AlwaysSchedule();
   }
 
   
@@ -89,6 +92,6 @@ export class AlwaysSchedule implements ISchedule {
   
 
   toObject(): any {
-    
+    return { type: this.type };
   }  
 }

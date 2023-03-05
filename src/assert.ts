@@ -9,3 +9,15 @@ export function assert(condition: boolean, message?: string) {
     throw new Error(message || "assertion failed");
   }
 }
+
+
+/**
+ * Assert that one time is equal to or after another.
+ * 
+ * @param prev previous time in the sequence
+ * @param next next time in the sequence
+ */
+export function assertTimeSequence(prev: Date, next: Date) {
+    const difference = next.getTime() - prev.getTime();
+    assert(difference > 0, `cannot move ${Math.abs(difference)} ms backwards in time`);
+}

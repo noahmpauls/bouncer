@@ -1,3 +1,5 @@
+import { assert } from "./assert";
+
 /**
  * Represents a URL matching pattern.
  */
@@ -82,7 +84,8 @@ export class ExactHostnameMatcher implements IUrlMatcher {
    * @returns matcher
    */
   static fromObject(data: any): ExactHostnameMatcher {
-    throw new Error("Method not implemented.");
+    assert(data.type === "ExactHostname", `cannot make ExactHostname from data with type ${data.type}`);
+    return new ExactHostnameMatcher(data.hostname);
   }
 
   
@@ -92,6 +95,9 @@ export class ExactHostnameMatcher implements IUrlMatcher {
   
 
   toObject(): any {
-    throw new Error("Method not implemented.");
+    return {
+      type: this.type,
+      hostname: this.hostname
+    };
   }
 }

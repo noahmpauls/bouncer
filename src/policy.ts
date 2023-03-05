@@ -1,5 +1,32 @@
-import { IUrlMatcher } from "./matcher";
-import { IRule } from "./rule";
+import { assert } from "./assert";
+import { deserializeMatcher, IUrlMatcher, serializeMatcher } from "./matcher";
+import { deserializeRule, IRule, serializeRule } from "./rule";
+
+
+/**
+ * Represents metadata about a policy.
+ */
+export interface IPolicyMetadata {
+  /**
+   * Unique ID identifying a policy.
+   */
+  id: string;
+  
+  /**
+   * Human-readable name of the policy.
+   */
+  name?: string;
+  
+  /**
+   * Humean-readable description of the policy.
+   */
+  description?: string;
+  
+  /**
+   * Whether the policy is active or not.
+   */
+  active: boolean;
+}
 
 
 /**
@@ -8,9 +35,9 @@ import { IRule } from "./rule";
  */
 export interface IPolicy {
   /**
-   * Unique policy identifier.
+   * Type discriminator indicating the type of policy.
    */
-  id: string;
+  type: PolicyType
 
   /**
    * The policy URL matchers.
@@ -23,7 +50,8 @@ export interface IPolicy {
   rule: IRule;
 
   /**
-   * Convert the policy to an object representation.
+   * Convert the policy to an object representation. The representation must
+   * include a field "type" that indicates the type of policy represented.
    *
    * @returns object representing policy
    */
@@ -34,12 +62,16 @@ export interface IPolicy {
 /**
  * Deserialize a policy from an object.
  * 
- * @param id the id of the policy
  * @param data object data representing policy
  * @returns deserialized policy
  */
-export function deserializePolicy(id: string, data: any): IPolicy {
-  throw new Error("Function not implemented.");
+export function deserializePolicy(data: any): IPolicy {
+  switch (data.type as PolicyType) {
+    case "BasicPolicy":
+      return BasicPolicy.fromObject(data);
+    default:
+      throw new Error(`invalid policy type ${data.type} cannot be deserialized`);
+  }
 }
 
 
@@ -51,4 +83,55 @@ export function deserializePolicy(id: string, data: any): IPolicy {
  */
 export function serializePolicy(policy: IPolicy): any {
   return policy.toObject();
+}
+
+
+/**
+ * Discriminator type for each kind of policy.
+ */
+type PolicyType =
+  "BasicPolicy";
+
+
+/**
+ * Represents a mapping between a set of URL matchers and the rules that apply
+ * to URLs matched by the matchers.
+ */
+export class BasicPolicy implements IPolicy {
+  readonly type: PolicyType = "BasicPolicy";
+
+  readonly matchers: IUrlMatcher[];
+  readonly rule: IRule;
+
+  /**
+   * @param matchers determines what URLs the policy applies to
+   * @param rule the rule to apply
+   */
+  constructor(matchers: IUrlMatcher[], rule: IRule) {
+    this.matchers = matchers;
+    this.rule = rule;
+  }
+
+  /**
+   * Convert an object to this kind of policy.
+   * 
+   * @param data object data representing the policy
+   * @returns policy
+   */
+  static fromObject(data: any): BasicPolicy {
+    assert(data.type === "BasicPolicy", `cannot make Basic Policy from data with type ${data.type}`);
+    return new BasicPolicy(
+      data.matchers.map((m: any) => deserializeMatcher(m)),
+      deserializeRule(data.rule)
+    );
+  }
+
+  toObject() {
+    return {
+      type: this.type,
+      matchers: this.matchers.map((m: IUrlMatcher) => serializeMatcher(m)),
+      rule: serializeRule(this.rule)
+    }
+  }
+
 }
