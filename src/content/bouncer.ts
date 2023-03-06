@@ -1,7 +1,8 @@
-import { BrowserStorage } from "./browserStorage";
-import { IBouncerData, StoredBouncerData } from "./data";
-import { IPage, PageAccess, PageEvent } from "./page";
-import { IRule } from "./rule";
+import browser from "webextension-polyfill";
+import { BrowserStorage } from "../browserStorage";
+import { IBouncerData, StoredBouncerData } from "../data";
+import { IPage, PageAccess, PageEvent } from "../page";
+import { IRule } from "../rule";
 
 // TODO: move a bunch of this functionality to a class that handles bulk
 //       updates to rules and pages.
@@ -83,7 +84,7 @@ async function initializeBouncer() {
       block();
     }
   }
-
+  
   // on page visit, add initial events and start viewtime checker
   for (let {page} of rulesAndPages) {
     page.recordEvent(currentTime, PageEvent.VISIT);
@@ -117,6 +118,12 @@ function minRemainingViewtime(rulesAndPages: { rule: IRule, page: IPage }[]): nu
   return Math.min(...remainings);
 }
 
+// TODO: change Bouncer to effectively end on pagehide, restart on pageshow?
+//       can't rely on unload event to clear bfcache
 function block(): void {
-  throw new Error("not implemented!");
+  // invalidate the bfcache for the page otherwise script state at block time
+  // is preserved, so hitting back button doesn't trigger block
+  window.addEventListener("unload", () => { });
+  location.assign(browser.runtime.getURL("dist/pages/blocked/blocked.html"));
+  throw new Error(`${new Date().toTimeString()} BOUNCER: blocking page...`);
 }

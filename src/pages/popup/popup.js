@@ -2,7 +2,7 @@ const linkContainer = document.getElementById("link-container");
 
 const settingsLink = document.createElement("a");
 settingsLink.innerText = "Settings";
-settingsLink.href = browser.runtime.getURL("pages/settings/settings.html");
+settingsLink.href = browser.runtime.getURL("dist/pages/settings/settings.html");
 settingsLink.target = "_blank";
 
 

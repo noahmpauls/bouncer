@@ -6,6 +6,7 @@
  */
 export function assert(condition: boolean, message?: string) {
   if (!condition) {
+    console.trace();
     throw new Error(message || "assertion failed");
   }
 }

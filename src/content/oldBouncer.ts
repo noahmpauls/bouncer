@@ -1,7 +1,7 @@
 import browser from "webextension-polyfill";
-import { IStorage } from "./storage";
-import { BrowserStorage } from "./browserStorage";
-import { doSetInterval } from "./utils";
+import { IStorage } from "../storage";
+import { BrowserStorage } from "../browserStorage";
+import { doSetInterval } from "../utils";
 
 type Rule = {
   host: string
@@ -128,7 +128,7 @@ async function initializeBouncer() {
   }
 
   function blockSite() {
-    location.assign(browser.runtime.getURL("pages/blocked/blocked.html"));
+    location.assign(browser.runtime.getURL("dist/pages/blocked/blocked.html"));
   }
 
   async function setViewStartTime() {

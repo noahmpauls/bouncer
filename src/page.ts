@@ -166,7 +166,7 @@ export class BasicPage implements IPage {
 
   private checkRep() {
     if (this.timeBlock !== null) {
-      assert(this.timeInitialVisit === null, `timeInitialVisit should be null when blocked`);
+      assert(this.timeInitialVisit === null, `timeInitialVisit should be null when blocked (was ${this.timeInitialVisit})`);
       assert(this.timeLastShow === null, `timeLastShow should be null when blocked`);
       assert(this.msViewtimeAccrued === 0, `msViewtimeAccrued should be 0 when blocked`);
     }
@@ -187,7 +187,11 @@ export class BasicPage implements IPage {
    */
   static fromObject(data: any): BasicPage {
     assert(data.type === "BasicPage", `cannot make BasicPage from data with type ${data.type}`);
-    return new BasicPage(...data);
+    return new BasicPage(
+      data.timeInitialVisit,
+      data.msViewtimeAccrued,
+      data.timeBlock
+    );
   }
 
   checkAccess(time: Date): PageAccess {

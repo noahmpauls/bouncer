@@ -1,5 +1,5 @@
 import { IUrlMatcher } from "./matcher";
-import { BasicPage, IPage } from "./page";
+import { BasicPage, deserializePage, IPage, serializePage } from "./page";
 import { deserializePolicy, IPolicy, IPolicyMetadata, serializePolicy } from "./policy";
 import { IStorage } from "./storage";
 
@@ -132,7 +132,7 @@ export class StoredBouncerData implements IBouncerData {
 
   private async getPolicyPage(metadata: IPolicyMetadata): Promise<IPage> {
     const pageId = this.pageId(metadata);
-    return await this.storage.get(pageId, new BasicPage());
+    return deserializePage(await this.storage.get(pageId, serializePage(new BasicPage())));
   }
 
   private pageId(metadata: IPolicyMetadata): string {

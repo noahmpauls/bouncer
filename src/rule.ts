@@ -1,6 +1,6 @@
 import { assert } from "./assert";
 import { deserializeLimit, ILimit, serializeLimit } from "./limit";
-import { IPage } from "./page";
+import { IPage, PageAccess } from "./page";
 import { deserializeSchedule, ISchedule, serializeSchedule } from "./schedule";
 
 
@@ -112,11 +112,21 @@ export class ScheduledLimit implements IRule {
   }
 
   applyTo(time: Date, page: IPage): void {
-    throw new Error("Method not implemented.");
+    if (this.schedule.contains(time)) {
+      const pageAccess = page.checkAccess(time);
+      const action = this.limit.action(time, page);
+      if (action.action === "BLOCK" && pageAccess === PageAccess.ALLOWED) {
+        page.block(time);
+      } else if (action.action === "UNBLOCK" && pageAccess === PageAccess.BLOCKED) {
+        page.unblock(time);
+      }
+    } else if (page.checkAccess(time) === PageAccess.BLOCKED) {
+      page.unblock(time);
+    }
   }
   
   remainingViewtime(page: IPage): number {
-    throw new Error("Method not implemented.");
+    return this.limit.remainingViewtime(page);
   }
   
   toObject(): any {
