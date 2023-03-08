@@ -37,10 +37,11 @@ export interface ILimit {
    * viewtime-based block. Should return `Infinity` if the limit does not
    * recommend blocks based on viewtime.
    * 
+   * @param time the current time
    * @param page page to be blocked
    * @returns amount of viewtime until the page should be blocked
    */
-  remainingViewtime(page: IPage): number;
+  remainingViewtime(time: Date, page: IPage): number;
 
 
   /**
@@ -63,6 +64,8 @@ export function deserializeLimit(data: any): ILimit {
   switch (data.type as LimitType) {
     case "AlwaysBlock":
       return AlwaysBlock.fromObject(data);
+    case "ViewtimeCooldown":
+      return ViewtimeCooldownLimit.fromObject(data);
     default:
       throw new Error(`invalid limit type ${data.type} cannot be deserialized`);
   }
@@ -84,7 +87,9 @@ export function serializeLimit(limit: ILimit): any {
  * Discriminator type for each kind of limit.
  */
 type LimitType =
-  "AlwaysBlock";
+    "AlwaysBlock"
+  | "ViewtimeCooldown"
+  ;
 
 
 /**
@@ -116,12 +121,76 @@ export class AlwaysBlock implements ILimit {
   }
 
   
-  remainingViewtime(page: IPage): number {
+  remainingViewtime(time: Date, page: IPage): number {
     return Infinity;
   }
   
 
   toObject(): any {
     return { type: this.type };
+  }
+}
+
+
+export class ViewtimeCooldownLimit implements ILimit {
+  readonly type: LimitType = "ViewtimeCooldown";
+  
+  private readonly msViewtime: number;
+  private readonly msCooldown: number;
+  
+  constructor(msViewtime: number, msCooldown: number) {
+    this.msViewtime = msViewtime;
+    this.msCooldown = msCooldown;
+    this.checkRep();
+  }
+  
+  private checkRep(): void {
+    assert(this.msViewtime > 0, `msViewtime must be > 0 (was ${this.msViewtime})`);
+    assert(this.msCooldown > 0, `msCooldown must be > 0 (was ${this.msCooldown})`);
+  }
+
+
+  /**
+   * Convert an object to this type of limit.
+   * 
+   * @param data object data representing limit
+   * @returns limit
+   */
+  static fromObject(data: any): ViewtimeCooldownLimit {
+    const expectedType: LimitType = "ViewtimeCooldown";
+    assert(data.type === expectedType, `cannot make ${expectedType} from data with type ${data.type}`);
+    return new ViewtimeCooldownLimit(
+      data.msViewtime,
+      data.msCooldown,
+    );
+  }
+
+
+  action(time: Date, page: IPage): LimitAction {
+    const msSinceBlock = page.msSinceBlock(time);
+    if (msSinceBlock !== null && msSinceBlock >= this.msCooldown) {
+      return { action: "UNBLOCK" };
+    } else if (page.msViewtime(time) >= this.msViewtime) {
+      return { action: "BLOCK", duration: this.msCooldown };
+    }
+    return { action: "NONE" };
+  }
+
+  
+  remainingViewtime(time: Date, page: IPage): number {
+    if (page.msSinceBlock(time) === null) {
+      return Math.max(0, this.msViewtime - page.msViewtime(time));
+    } else {
+      return 0;
+    }
+  }
+  
+
+  toObject(): any {
+    return { 
+      type: this.type,
+      msViewtime: this.msViewtime,
+      msCooldown: this.msCooldown,
+    };
   }
 }

@@ -1,6 +1,6 @@
 import { BrowserStorage } from "../../browserStorage";
 import { IBouncerData, StoredBouncerData } from "../../data";
-import { AlwaysBlock } from "../../limit";
+import { AlwaysBlock, ViewtimeCooldownLimit } from "../../limit";
 import { ExactHostnameMatcher } from "../../matcher";
 import { BasicPolicy, IPolicy } from "../../policy";
 import { ScheduledLimit } from "../../rule";
@@ -8,23 +8,25 @@ import { AlwaysSchedule } from "../../schedule";
 
 const ruleForm: HTMLInputElement = document.getElementById("add-rule") as HTMLInputElement;
 const hostInput: HTMLInputElement = document.getElementById("host") as HTMLInputElement;
-const millisecondsInput: HTMLInputElement = document.getElementById("milliseconds") as HTMLInputElement;
+const durationInput: HTMLInputElement = document.getElementById("duration") as HTMLInputElement;
+const cooldownInput: HTMLInputElement = document.getElementById("cooldown") as HTMLInputElement;
 
 const bouncerData: IBouncerData = new StoredBouncerData(new BrowserStorage());
 
 ruleForm.addEventListener("submit", event => {
   event.preventDefault();
-  const dataObject = {
-    host: hostInput.value,
-    milliseconds: parseInt(millisecondsInput.value)
-  };
+  
+  const host = hostInput.value;
+  const duration = Number(durationInput.value);
+  const cooldown = Number(cooldownInput.value);
+
   hostInput.value = "";
-  millisecondsInput.value = "";
+  durationInput.value = "";
   const policy: IPolicy = new BasicPolicy(
-    [new ExactHostnameMatcher(dataObject.host)],
+    [new ExactHostnameMatcher(host)],
     new ScheduledLimit(
       new AlwaysSchedule(),
-      new AlwaysBlock()
+      new ViewtimeCooldownLimit(duration, cooldown)
     )
   );
   bouncerData.addPolicy(

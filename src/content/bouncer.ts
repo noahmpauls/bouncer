@@ -22,11 +22,13 @@ async function initializeBouncer() {
    */
   function setViewtimeChecker(): void {
     const currentTime = new Date();
-    let nextViewtimeCheck = minRemainingViewtime(rulesAndPages);
+    let nextViewtimeCheck = minRemainingViewtime(currentTime, rulesAndPages);
     if (nextViewtimeCheck < Infinity) {
-      viewtimeChecker = setTimeout(() => {
-        for (let {rule, page} of rulesAndPages) {
+      viewtimeChecker = setTimeout(async () => {
+        const currentTime = new Date();
+        for (let {metadata, rule, page} of rulesAndPages) {
           rule.applyTo(currentTime, page);
+          await data.setPolicyPage(metadata, page);
         }
         for (let {page} of rulesAndPages) {
           if (page.checkAccess(currentTime) === PageAccess.BLOCKED) {
@@ -62,11 +64,11 @@ async function initializeBouncer() {
    * When the page becomes invisible, clear the viewtime checker, record the
    * event, and persist the page to storage.
    */
-  function onHide(currentTime: Date) {
+  async function onHide(currentTime: Date) {
     clearViewtimeChecker();
     for (let {metadata, page} of rulesAndPages) {
       page.recordEvent(currentTime, PageEvent.HIDE);
-      data.setPolicyPage(metadata, page);
+      await data.setPolicyPage(metadata, page);
     }
   }
 
@@ -76,12 +78,13 @@ async function initializeBouncer() {
   }
 
   // check for an existing block and enforce it
-  for (let {rule, page} of rulesAndPages) {
+  for (let {metadata, rule, page} of rulesAndPages) {
     rule.applyTo(currentTime, page);
+    await data.setPolicyPage(metadata, page);
   }
   for (let {page} of rulesAndPages) {
     if (page.checkAccess(currentTime) === PageAccess.BLOCKED) {
-      block();
+      block()
     }
   }
   
@@ -96,7 +99,7 @@ async function initializeBouncer() {
   }, { capture: true });
   
   window.addEventListener("pagehide", async () => {
-    onHide(new Date());
+    await onHide(new Date());
   }, { capture: true });
 
   window.addEventListener("visibilitychange", async () => {
@@ -104,7 +107,7 @@ async function initializeBouncer() {
     if (pageVisible()) {
       onShow(currentTime);
     } else {
-      onHide(currentTime);
+      await onHide(currentTime);
     }
   }, { capture: true });
 }
@@ -113,8 +116,11 @@ initializeBouncer();
 
 function pageVisible(): boolean { return document.visibilityState === "visible"; }
 
-function minRemainingViewtime(rulesAndPages: { rule: IRule, page: IPage }[]): number {
-  const remainings = rulesAndPages.map(({rule, page}): number => rule.remainingViewtime(page));
+function minRemainingViewtime(time: Date, rulesAndPages: { rule: IRule, page: IPage }[]): number {
+  const remainings = rulesAndPages.map(({rule, page}): number => {
+    const viewtime = rule.remainingViewtime(time, page);
+    return viewtime;
+  });
   return Math.min(...remainings);
 }
 

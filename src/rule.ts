@@ -24,10 +24,11 @@ export interface IRule {
   /**
    * Get the amount of viewtime remaining until the next viewtime-based block.
    * 
+   * @param time the current time
    * @param page page to be blocked
    * @returns amount of viewtime until the page is blocked
    */
-  remainingViewtime(page: IPage): number;
+  remainingViewtime(time: Date, page: IPage): number;
 
   /**
    * Convert rule to an object representation. The representation must
@@ -125,8 +126,8 @@ export class ScheduledLimit implements IRule {
     }
   }
   
-  remainingViewtime(page: IPage): number {
-    return this.limit.remainingViewtime(page);
+  remainingViewtime(time: Date, page: IPage): number {
+    return this.limit.remainingViewtime(time, page);
   }
   
   toObject(): any {

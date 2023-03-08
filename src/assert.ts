@@ -6,7 +6,6 @@
  */
 export function assert(condition: boolean, message?: string) {
   if (!condition) {
-    console.trace();
     throw new Error(message || "assertion failed");
   }
 }
@@ -20,5 +19,5 @@ export function assert(condition: boolean, message?: string) {
  */
 export function assertTimeSequence(prev: Date, next: Date) {
     const difference = next.getTime() - prev.getTime();
-    assert(difference > 0, `cannot move ${Math.abs(difference)} ms backwards in time`);
+    assert(difference >= 0, `cannot move ${Math.abs(difference)} ms backwards in time`);
 }

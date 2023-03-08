@@ -283,7 +283,7 @@ export class BasicPage implements IPage {
       type: this.type,
       timeInitialVisit: this.timeInitialVisit,
       msViewtimeSpent: this.msViewtimeAccrued,
-      timeLastBlock: this.timeBlock,
+      timeBlock: this.timeBlock,
     };
   }
 }

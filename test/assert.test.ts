@@ -1,5 +1,5 @@
 import { describe, expect, test } from "@jest/globals";
-import { assert } from "../src/assert";
+import { assert, assertTimeSequence } from "../src/assert";
 
 describe("assert", () => {
   /**
@@ -40,5 +40,44 @@ describe("assert", () => {
     expect(
       () => assert(2 + 2 === 5, message)
     ).toThrow(message);
+  });
+});
+
+
+describe("assertTimeSequence", () => {
+  /**
+   * Partitions
+   * ----------
+   * 
+   * inputs:
+   *  [X] prev before next
+   *  [X] prev = next
+   *  [X] prev after next
+   * output:
+   *  [X] successful assertion
+   *  [X] failed assertion
+   */
+
+  test("times are in sequence", () => {
+    const prev = new Date(2023, 0, 1);
+    const next = new Date(prev.getTime() + 1);
+    
+    assertTimeSequence(prev, next);
+  });
+
+  test("times are equal", () => {
+    const prev = new Date(2023, 0, 1);
+    const next = prev;
+    
+    assertTimeSequence(prev, next);
+  });
+
+  test("times are not in sequence", () => {
+    const prev = new Date(2023, 0, 1);
+    const next = new Date(prev.getTime() - 1);
+    
+    expect(() => {
+      assertTimeSequence(prev, next);
+    }).toThrow();
   });
 });
