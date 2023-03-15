@@ -2,7 +2,7 @@ import { BrowserStorage } from "../../browserStorage";
 import { IBouncerData, StoredBouncerData } from "../../data";
 import { AlwaysBlock, ViewtimeCooldownLimit } from "../../limit";
 import { ExactHostnameMatcher } from "../../matcher";
-import { BasicPolicy, IPolicy } from "../../policy";
+import { BasicPolicy, IPolicy, PolicyData } from "../../policy";
 import { ScheduledLimit } from "../../enforcer";
 import { AlwaysSchedule } from "../../schedule";
 import { BasicPage } from "../../page";
@@ -25,17 +25,17 @@ policyForm.addEventListener("submit", event => {
 
   hostInput.value = "";
   durationInput.value = "";
-  const policy: any = {
-    type: "BasicPolicy",
-    name: name,
-    active: true,
-    matcher: new ExactHostnameMatcher(host),
-    enforcer: new ScheduledLimit(
+  const policy: IPolicy = new BasicPolicy(
+    "",
+    name,
+    true,
+    new ExactHostnameMatcher(host),
+    new ScheduledLimit(
       new AlwaysSchedule(),
       new ViewtimeCooldownLimit(duration, cooldown)
     ),
-    page: new BasicPage()
-  };
+    new BasicPage(),
+  );
   bouncerData.addPolicy(policy)
     .then(() => refreshPolicyDisplay());
 });

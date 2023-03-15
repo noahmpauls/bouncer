@@ -1,7 +1,7 @@
 import { assert } from "./assert";
-import { deserializeLimit, ILimit, serializeLimit } from "./limit";
+import { deserializeLimit, ILimit, LimitData, serializeLimit } from "./limit";
 import { IPage, PageAccess } from "./page";
-import { deserializeSchedule, ISchedule, serializeSchedule } from "./schedule";
+import { deserializeSchedule, ISchedule, ScheduleData, serializeSchedule } from "./schedule";
 
 
 /**
@@ -11,7 +11,7 @@ export interface IEnforcer {
   /**
    * Type discriminator indicating the type of enforcer.
    */
-  type: EnforcerType;
+  type: string;
 
   /**
    * Apply an enforcer to a page, potentially mutating the page.
@@ -36,22 +36,22 @@ export interface IEnforcer {
    * 
    * @returns object representing enforcer
    */
-  toObject(): any;
+  toObject(): EnforcerData;
 }
 
 
 /**
  * Deserialize an enforcer from an object.
  * 
- * @param data object data representing enforcer
+ * @param obj object data representing enforcer
  * @returns deserialized enforcer
  */
-export function deserializeEnforcer(data: any): IEnforcer {
-  switch (data.type as EnforcerType) {
-    case "ScheduleLimit":
-      return ScheduledLimit.fromObject(data);
+export function deserializeEnforcer(obj: EnforcerData): IEnforcer {
+  switch (obj.type) {
+    case "ScheduledLimit":
+      return ScheduledLimit.fromObject(obj);
     default:
-      throw new Error(`invalid enforcer type ${data.type} cannot be deserialized`);
+      throw new Error(`invalid enforcer type ${(obj as any).type} cannot be deserialized`);
   }
 }
 
@@ -62,16 +62,16 @@ export function deserializeEnforcer(data: any): IEnforcer {
  * @param enforcer the enforcer to serialize
  * @returns serialized enforcer object
  */
-export function serializeEnforcer(enforcer: IEnforcer): any {
+export function serializeEnforcer(enforcer: IEnforcer): EnforcerData {
   return enforcer.toObject();
 }
 
 
 /**
- * Discriminator type for each kind of enforcer.
+ * Union of all types that represent enforcers in their serialized form.
  */
-type EnforcerType =
-  "ScheduleLimit";
+export type EnforcerData =
+  ScheduledLimitData;
 
 
 /**
@@ -84,7 +84,7 @@ type EnforcerType =
  * - `limit`: determines how the enforcer applies during the schedule.
  */
 export class ScheduledLimit implements IEnforcer {
-  readonly type: EnforcerType = "ScheduleLimit";
+  readonly type = "ScheduledLimit";
 
   private readonly schedule: ISchedule;
   private readonly limit: ILimit;
@@ -101,14 +101,14 @@ export class ScheduledLimit implements IEnforcer {
   /**
    * Convert an object to this type of enforcer.
    * 
-   * @param data object data representing enforcer
+   * @param obj object data representing enforcer
    * @returns enforcer
    */
-  static fromObject(data: any): ScheduledLimit {
-    assert(data.type === "ScheduleLimit", `cannot make ScheduleLimit from data with type ${data.type}`);
+  static fromObject(obj: ScheduledLimitData): ScheduledLimit {
+    assert(obj.type === "ScheduledLimit", `cannot make ScheduledLimit from data with type ${obj.type}`);
     return new ScheduledLimit(
-      deserializeSchedule(data.schedule),
-      deserializeLimit(data.limit)
+      deserializeSchedule(obj.data.schedule),
+      deserializeLimit(obj.data.limit)
     );
   }
 
@@ -130,12 +130,21 @@ export class ScheduledLimit implements IEnforcer {
     return this.limit.remainingViewtime(time, page);
   }
   
-  toObject(): any {
+  toObject(): ScheduledLimitData {
     return {
       type: this.type,
-      schedule: serializeSchedule(this.schedule),
-      limit: serializeLimit(this.limit)
+      data: {
+        schedule: serializeSchedule(this.schedule),
+        limit: serializeLimit(this.limit)
+      }
     };
   }
 }
 
+type ScheduledLimitData = {
+  type: "ScheduledLimit",
+  data: {
+    schedule: ScheduleData,
+    limit: LimitData,
+  }
+}

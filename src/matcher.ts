@@ -7,7 +7,7 @@ export type IUrlMatcher = {
   /**
    * Type discriminator indicating the type of matcher.
    */
-  type: UrlMatcherType;
+  type: string;
 
   /**
    * Determine whether the pattern applies to a given URL.
@@ -23,22 +23,22 @@ export type IUrlMatcher = {
    * 
    * @returns object representing matcher
    */
-  toObject(): any;
+  toObject(): UrlMatcherData;
 }
 
 
 /**
  * Deserialize a matcher from an object.
  * 
- * @param data object data representing matcher
+ * @param obj object data representing matcher
  * @returns deserialized matcher
  */
-export function deserializeMatcher(data: any): IUrlMatcher {
-  switch (data.type as UrlMatcherType) {
+export function deserializeMatcher(obj: UrlMatcherData): IUrlMatcher {
+  switch (obj.type) {
     case "ExactHostname":
-      return ExactHostnameMatcher.fromObject(data);
+      return ExactHostnameMatcher.fromObject(obj);
     default:
-      throw new Error(`invalid matcher type ${data.type} cannot be deserialized`);
+      throw new Error(`invalid matcher type ${(obj as any).type} cannot be deserialized`);
   }
 }
 
@@ -49,23 +49,23 @@ export function deserializeMatcher(data: any): IUrlMatcher {
  * @param matcher the matcher to serialize
  * @returns serialized matcher object
  */
-export function serializeMatcher(matcher: IUrlMatcher): any {
+export function serializeMatcher(matcher: IUrlMatcher): UrlMatcherData {
   return matcher.toObject();
 }
 
 
 /**
- * Discriminator type for each kind of matcher.
+ * Union of all types that represent matchers in their serialized form.
  */
-type UrlMatcherType = 
-  "ExactHostname";
+export type UrlMatcherData = 
+  ExactHostnameMatcherData;
 
 
 /**
  * Determines whether a URL exactly matches a given hostname.
  */
 export class ExactHostnameMatcher implements IUrlMatcher {
-  readonly type: UrlMatcherType = "ExactHostname";
+  readonly type = "ExactHostname";
   
   private readonly hostname: string;
 
@@ -80,12 +80,12 @@ export class ExactHostnameMatcher implements IUrlMatcher {
   /**
    * Convert an object to this type of matcher.
    * 
-   * @param data object data representing matcher
+   * @param obj object data representing matcher
    * @returns matcher
    */
-  static fromObject(data: any): ExactHostnameMatcher {
-    assert(data.type === "ExactHostname", `cannot make ExactHostname from data with type ${data.type}`);
-    return new ExactHostnameMatcher(data.hostname);
+  static fromObject(obj: ExactHostnameMatcherData): ExactHostnameMatcher {
+    assert(obj.type === "ExactHostname", `cannot make ExactHostname from data with type ${obj.type}`);
+    return new ExactHostnameMatcher(obj.data.hostname);
   }
 
   
@@ -94,10 +94,19 @@ export class ExactHostnameMatcher implements IUrlMatcher {
   }
   
 
-  toObject(): any {
+  toObject(): ExactHostnameMatcherData {
     return {
       type: this.type,
-      hostname: this.hostname
+      data: {
+        hostname: this.hostname
+      }
     };
+  }
+}
+
+type ExactHostnameMatcherData = {
+  type: "ExactHostname",
+  data: {
+    hostname: string,
   }
 }

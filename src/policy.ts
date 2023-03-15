@@ -1,7 +1,7 @@
 import { assert } from "./assert";
-import { deserializeMatcher, IUrlMatcher, serializeMatcher } from "./matcher";
-import { deserializePage, IPage, serializePage } from "./page";
-import { deserializeEnforcer, IEnforcer, serializeEnforcer } from "./enforcer";
+import { deserializeMatcher, IUrlMatcher, serializeMatcher, UrlMatcherData } from "./matcher";
+import { deserializePage, IPage, PageData, serializePage } from "./page";
+import { deserializeEnforcer, EnforcerData, IEnforcer, serializeEnforcer } from "./enforcer";
 
 
 /**
@@ -11,7 +11,7 @@ export interface IPolicy {
   /**
    * Type discriminator indicating the type of policy.
    */
-  type: PolicyType
+  type: string;
 
   /**
    * Unique ID identifying a policy.
@@ -49,22 +49,22 @@ export interface IPolicy {
    *
    * @returns object representing policy
    */
-  toObject(): any;
+  toObject(): PolicyData;
 }
 
 
 /**
  * Deserialize a policy from an object.
  * 
- * @param data object data representing policy
+ * @param obj object data representing policy
  * @returns deserialized policy
  */
-export function deserializePolicy(data: any): IPolicy {
-  switch (data.type as PolicyType) {
+export function deserializePolicy(obj: PolicyData): IPolicy {
+  switch (obj.type) {
     case "BasicPolicy":
-      return BasicPolicy.fromObject(data);
+      return BasicPolicy.fromObject(obj);
     default:
-      throw new Error(`invalid policy type ${data.type} cannot be deserialized`);
+      throw new Error(`invalid policy type ${(obj as any).type} cannot be deserialized`);
   }
 }
 
@@ -75,16 +75,16 @@ export function deserializePolicy(data: any): IPolicy {
  * @param policy the policy to serialize
  * @returns serialized policy object
  */
-export function serializePolicy(policy: IPolicy): any {
+export function serializePolicy(policy: IPolicy): PolicyData {
   return policy.toObject();
 }
 
 
 /**
- * Discriminator type for each kind of policy.
+ * Union of all types that represent policies in their serialized form.
  */
-type PolicyType =
-  "BasicPolicy";
+export type PolicyData =
+  BasicPolicyData;
 
 
 /**
@@ -92,7 +92,7 @@ type PolicyType =
  * on those pages.
  */
 export class BasicPolicy implements IPolicy {
-  readonly type: PolicyType = "BasicPolicy";
+  readonly type = "BasicPolicy";
 
   readonly id: string;
   name: string;
@@ -120,31 +120,44 @@ export class BasicPolicy implements IPolicy {
   /**
    * Convert an object to this kind of policy.
    * 
-   * @param data object data representing the policy
+   * @param obj object data representing the policy
    * @returns policy
    */
-  static fromObject(data: any): BasicPolicy {
-    assert(data.type === "BasicPolicy", `cannot make Basic Policy from data with type ${data.type}`);
+  static fromObject(obj: BasicPolicyData): BasicPolicy {
+    assert(obj.type === "BasicPolicy", `cannot make Basic Policy from data with type ${obj.type}`);
     return new BasicPolicy(
-      data.id,
-      data.name,
-      data.active,
-      deserializeMatcher(data.matcher),
-      deserializeEnforcer(data.enforcer),
-      deserializePage(data.page)
+      obj.id,
+      obj.data.name,
+      obj.data.active,
+      deserializeMatcher(obj.data.matcher),
+      deserializeEnforcer(obj.data.enforcer),
+      deserializePage(obj.data.page)
     );
   }
 
-  toObject() {
+  toObject(): BasicPolicyData {
     return {
       type: this.type,
       id: this.id,
-      name: this.name,
-      active: this.active,
-      matcher: serializeMatcher(this.matcher),
-      enforcer: serializeEnforcer(this.enforcer),
-      page: serializePage(this.page),
+      data: {
+        name: this.name,
+        active: this.active,
+        matcher: serializeMatcher(this.matcher),
+        enforcer: serializeEnforcer(this.enforcer),
+        page: serializePage(this.page),
+      }
     }
   }
+}
 
+type BasicPolicyData = {
+  type: "BasicPolicy",
+  id: string,
+  data: {
+    name: string,
+    active: boolean,
+    matcher: UrlMatcherData,
+    enforcer: EnforcerData,
+    page: PageData,
+  }
 }

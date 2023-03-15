@@ -10,7 +10,7 @@ export interface ISchedule {
   /**
    * Type discriminator indicating the type of schedule.
    */
-  type: ScheduleType;
+  type: string;
 
 
   /**
@@ -28,22 +28,22 @@ export interface ISchedule {
    * 
    * @returns object representing schedule
    */
-  toObject(): any;
+  toObject(): ScheduleData;
 }
 
 
 /**
  * Deserialize a schedule from an object.
  * 
- * @param data object data representing schedule
+ * @param obj object data representing schedule
  * @returns deserialized schedule
  */
-export function deserializeSchedule(data: any): ISchedule {
-  switch (data.type as ScheduleType) {
+export function deserializeSchedule(obj: ScheduleData): ISchedule {
+  switch (obj.type) {
     case "AlwaysSchedule":
-      return AlwaysSchedule.fromObject(data);
+      return AlwaysSchedule.fromObject(obj);
     default:
-      throw new Error(`invalid schedule type ${data.type} cannot be deserialized`);
+      throw new Error(`invalid schedule type ${(obj as any).type} cannot be deserialized`);
   }
 }
 
@@ -54,23 +54,23 @@ export function deserializeSchedule(data: any): ISchedule {
  * @param schedule the schedule to serialize
  * @returns serialized schedule object
  */
-export function serializeSchedule(schedule: ISchedule): any {
+export function serializeSchedule(schedule: ISchedule): ScheduleData {
   return schedule.toObject();
 }
 
 
 /**
- * Discriminator type for each kind of schedule.
+ * Union of all types that represent schedules in their serialized form.
  */
-type ScheduleType =
-  "AlwaysSchedule";
+export type ScheduleData = 
+  AlwaysScheduleData;
 
 
 /**
  * Represents a schedule containing all times.
  */
 export class AlwaysSchedule implements ISchedule {
-  readonly type: ScheduleType = "AlwaysSchedule";
+  readonly type = "AlwaysSchedule";
 
 
   constructor() { }
@@ -79,11 +79,11 @@ export class AlwaysSchedule implements ISchedule {
   /**
    * Convert an object to this type of schedule.
    * 
-   * @param data object data representing schedule
+   * @param obj object data representing schedule
    * @returns schedule
    */
-  static fromObject(data: any): AlwaysSchedule {
-    assert(data.type === "AlwaysSchedule", `cannot make AlwaysSchdule from data with type ${data.type}`);
+  static fromObject(obj: AlwaysScheduleData): AlwaysSchedule {
+    assert(obj.type === "AlwaysSchedule", `cannot make AlwaysSchedule from data with type ${obj.type}`);
     return new AlwaysSchedule();
   }
 
@@ -91,7 +91,11 @@ export class AlwaysSchedule implements ISchedule {
   contains(time: Date): boolean { return true; }
   
 
-  toObject(): any {
+  toObject(): AlwaysScheduleData {
     return { type: this.type };
   }  
+}
+
+type AlwaysScheduleData = {
+  type: "AlwaysSchedule"
 }

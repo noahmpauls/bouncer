@@ -30,7 +30,7 @@ export interface IPage {
   /**
    * Type discriminator indicating the type of page.
    */
-  type: PageType;
+  type: string;
 
   /**
    * Get the current level of view access to the page.
@@ -69,7 +69,7 @@ export interface IPage {
    * 
    * @returns object representing page
    */
-  toObject(): any;
+  toObject(): PageData;
   
   //----------------------------------------------------------------------------
   // Metrics
@@ -105,15 +105,15 @@ export interface IPage {
 /**
  * Deserialize a page from an object.
  * 
- * @param data object data representing page
+ * @param obj object data representing page
  * @returns deserialized page
  */
-export function deserializePage(data: any): IPage {
-  switch (data.type as PageType) {
+export function deserializePage(obj: PageData): IPage {
+  switch (obj.type) {
     case "BasicPage":
-      return BasicPage.fromObject(data);
+      return BasicPage.fromObject(obj);
     default:
-      throw new Error(`invalid policy type ${data.type} cannot be deserialized`)
+      throw new Error(`invalid policy type ${obj.type} cannot be deserialized`)
   }
 }
 
@@ -124,23 +124,23 @@ export function deserializePage(data: any): IPage {
  * @param page the page to serialize
  * @returns serialized page object
  */
-export function serializePage(page: IPage): any {
+export function serializePage(page: IPage): PageData {
   return page.toObject();
 }
 
 
 /**
- * Discriminator type for each kind of page.
+ * Union of all types that represent pages in their serialized form.
  */
-type PageType =
-  "BasicPage";
+export type PageData = 
+  BasicPageData;
 
 
 /**
  * Represents a webpage that can be browsed and blocked.
  */
 export class BasicPage implements IPage {
-  readonly type: PageType = "BasicPage";
+  readonly type = "BasicPage";
   
   private timeInitialVisit: Date | null;
   private msViewtimeAccrued: number;
@@ -182,15 +182,15 @@ export class BasicPage implements IPage {
   /**
    * Convert an object to this kind of page.
    * 
-   * @param data object data representing the page
+   * @param obj object data representing the page
    * @returns page
    */
-  static fromObject(data: any): BasicPage {
-    assert(data.type === "BasicPage", `cannot make BasicPage from data with type ${data.type}`);
+  static fromObject(obj: BasicPageData): BasicPage {
+    assert(obj.type === "BasicPage", `cannot make BasicPage from data with type ${obj.type}`);
     return new BasicPage(
-      data.timeInitialVisit,
-      data.msViewtimeAccrued,
-      data.timeBlock
+      obj.data.timeInitialVisit,
+      obj.data.msViewtimeAccrued,
+      obj.data.timeBlock
     );
   }
 
@@ -278,12 +278,23 @@ export class BasicPage implements IPage {
     return time.getTime() - this.timeBlock.getTime();
   }
 
-  toObject(): any {
+  toObject(): BasicPageData {
     return {
       type: this.type,
-      timeInitialVisit: this.timeInitialVisit,
-      msViewtimeSpent: this.msViewtimeAccrued,
-      timeBlock: this.timeBlock,
+      data: {
+        timeInitialVisit: this.timeInitialVisit,
+        msViewtimeAccrued: this.msViewtimeAccrued,
+        timeBlock: this.timeBlock,
+      }
     };
+  }
+}
+
+type BasicPageData = {
+  type: "BasicPage",
+  data: {
+    timeInitialVisit: Date | null,
+    msViewtimeAccrued: number,
+    timeBlock: Date | null,
   }
 }

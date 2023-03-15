@@ -20,7 +20,7 @@ export interface ILimit {
   /**
    * Type discriminator indicating the type of limit.
    */
-  type: LimitType;
+  type: string;
 
   /**
    * Recommend an action to take on a page at the given time.
@@ -50,24 +50,24 @@ export interface ILimit {
    * 
    * @returns object representing limit
    */
-  toObject(): any;
+  toObject(): LimitData;
 }
 
 
 /**
  * Deserialize a limit from an object.
  * 
- * @param data object data representing limit
+ * @param obj object data representing limit
  * @returns deserialized limit
  */
-export function deserializeLimit(data: any): ILimit {
-  switch (data.type as LimitType) {
+export function deserializeLimit(obj: LimitData): ILimit {
+  switch (obj.type) {
     case "AlwaysBlock":
-      return AlwaysBlock.fromObject(data);
+      return AlwaysBlock.fromObject(obj);
     case "ViewtimeCooldown":
-      return ViewtimeCooldownLimit.fromObject(data);
+      return ViewtimeCooldownLimit.fromObject(obj);
     default:
-      throw new Error(`invalid limit type ${data.type} cannot be deserialized`);
+      throw new Error(`invalid limit type ${(obj as any).type} cannot be deserialized`);
   }
 }
 
@@ -78,17 +78,17 @@ export function deserializeLimit(data: any): ILimit {
  * @param limit the limit to serialize
  * @returns serialized limit object
  */
-export function serializeLimit(limit: ILimit): any {
+export function serializeLimit(limit: ILimit): LimitData {
   return limit.toObject();
 }
 
 
 /**
- * Discriminator type for each kind of limit.
+ * Union of all types that represent limits in their serialized form.
  */
-type LimitType =
-    "AlwaysBlock"
-  | "ViewtimeCooldown"
+export type LimitData =
+    AlwaysBlockData
+  | ViewtimeCooldownData;
   ;
 
 
@@ -96,7 +96,7 @@ type LimitType =
  * Represents a limit that always recommends blocking no matter what.
  */
 export class AlwaysBlock implements ILimit {
-  readonly type: LimitType = "AlwaysBlock";
+  readonly type = "AlwaysBlock";
 
   constructor() { }
 
@@ -104,11 +104,11 @@ export class AlwaysBlock implements ILimit {
   /**
    * Convert an object to this type of limit.
    * 
-   * @param data object data representing limit
+   * @param obj object data representing limit
    * @returns limit
    */
-  static fromObject(data: any): AlwaysBlock {
-    assert(data.type === "AlwaysBlock", `cannot make AlwaysBlock from data with type ${data.type}`);
+  static fromObject(obj: AlwaysBlockData): AlwaysBlock {
+    assert(obj.type === "AlwaysBlock", `cannot make AlwaysBlock from data with type ${obj.type}`);
     return new AlwaysBlock();
   }
 
@@ -126,14 +126,18 @@ export class AlwaysBlock implements ILimit {
   }
   
 
-  toObject(): any {
+  toObject(): AlwaysBlockData {
     return { type: this.type };
   }
 }
 
+type AlwaysBlockData = {
+  type: "AlwaysBlock",
+}
+
 
 export class ViewtimeCooldownLimit implements ILimit {
-  readonly type: LimitType = "ViewtimeCooldown";
+  readonly type = "ViewtimeCooldown";
   
   private readonly msViewtime: number;
   private readonly msCooldown: number;
@@ -153,15 +157,16 @@ export class ViewtimeCooldownLimit implements ILimit {
   /**
    * Convert an object to this type of limit.
    * 
-   * @param data object data representing limit
+   * @param obj object data representing limit
    * @returns limit
    */
-  static fromObject(data: any): ViewtimeCooldownLimit {
-    const expectedType: LimitType = "ViewtimeCooldown";
-    assert(data.type === expectedType, `cannot make ${expectedType} from data with type ${data.type}`);
+  static fromObject(obj: ViewtimeCooldownData): ViewtimeCooldownLimit {
+    const expectedType = "ViewtimeCooldown";
+
+    assert(obj.type === expectedType, `cannot make ${expectedType} from data with type ${obj.type}`);
     return new ViewtimeCooldownLimit(
-      data.msViewtime,
-      data.msCooldown,
+      obj.data.msViewtime,
+      obj.data.msCooldown,
     );
   }
 
@@ -186,11 +191,21 @@ export class ViewtimeCooldownLimit implements ILimit {
   }
   
 
-  toObject(): any {
+  toObject(): ViewtimeCooldownData {
     return { 
       type: this.type,
-      msViewtime: this.msViewtime,
-      msCooldown: this.msCooldown,
+      data: {
+        msViewtime: this.msViewtime,
+        msCooldown: this.msCooldown,
+      }
     };
+  }
+}
+
+type ViewtimeCooldownData = {
+  type: "ViewtimeCooldown",
+  data: {
+    msViewtime: number,
+    msCooldown: number,
   }
 }

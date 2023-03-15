@@ -1,6 +1,6 @@
 import { deserializeMatcher } from "./matcher";
 import { BasicPage } from "./page";
-import { deserializePolicy, IPolicy, serializePolicy } from "./policy";
+import { deserializePolicy, IPolicy, PolicyData, serializePolicy } from "./policy";
 import { deserializeEnforcer } from "./enforcer";
 import { IStorage } from "./storage";
 
@@ -27,10 +27,10 @@ export interface IBouncerData {
   /**
    * Add a new policy.
    * 
-   * @param data policy data
+   * @param policy policy to add, with dummy ID
    * @returns ID of added policy
    */
-  addPolicy(data: any): Promise<string>;
+  addPolicy(policy: IPolicy): Promise<string>;
 
   /**
    * Set a given policy to a new value.
@@ -69,19 +69,14 @@ export class StoredBouncerData implements IBouncerData {
   }
 
   
-  async addPolicy(data: any): Promise<string> {
+  async addPolicy(policy: IPolicy): Promise<string> {
     const policyData = await this.storage.get<any[]>("policies", []);
     const id = policyData.length.toString();
-    const policy = deserializePolicy({
-      type: data.type,
-      id,
-      name: data.name,
-      active: data.active,
-      matcher: deserializeMatcher(data.matcher),
-      enforcer: deserializeEnforcer(data.enforcer),
-      page: new BasicPage(),
-    });
+    // TODO: it is far from ideal to directly change the policy's serialized
+    //       representation, which should be entirely hidden. Need a way to
+    //       create policy objects without IDs.
     const serializedPolicy = serializePolicy(policy);
+    serializedPolicy.id = id;
     policyData.push(serializedPolicy);
     await this.storage.set("policies", policyData);
     return id;
