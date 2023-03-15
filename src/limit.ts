@@ -26,7 +26,7 @@ export interface ILimit {
    * Recommend an action to take on a page at the given time.
    * 
    * @param time time to apply the limit at
-   * @param page the page to apply the rule to
+   * @param page the page to apply the limit to
    * @returns the recommended action to take on the page
    */
   action(time: Date, page: IPage): LimitAction;

@@ -1,7 +1,7 @@
 import { deserializeMatcher } from "./matcher";
 import { BasicPage } from "./page";
 import { deserializePolicy, IPolicy, serializePolicy } from "./policy";
-import { deserializeRule } from "./rule";
+import { deserializeEnforcer } from "./enforcer";
 import { IStorage } from "./storage";
 
 
@@ -78,7 +78,7 @@ export class StoredBouncerData implements IBouncerData {
       name: data.name,
       active: data.active,
       matcher: deserializeMatcher(data.matcher),
-      rule: deserializeRule(data.rule),
+      enforcer: deserializeEnforcer(data.enforcer),
       page: new BasicPage(),
     });
     const serializedPolicy = serializePolicy(policy);

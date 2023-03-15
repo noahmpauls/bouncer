@@ -1,11 +1,11 @@
 import { assert } from "./assert";
 import { deserializeMatcher, IUrlMatcher, serializeMatcher } from "./matcher";
 import { deserializePage, IPage, serializePage } from "./page";
-import { deserializeRule, IRule, serializeRule } from "./rule";
+import { deserializeEnforcer, IEnforcer, serializeEnforcer } from "./enforcer";
 
 
 /**
- * Represents a policy bundled with its metadata.
+ * Represents a policy.
  */
 export interface IPolicy {
   /**
@@ -34,9 +34,9 @@ export interface IPolicy {
   matcher: IUrlMatcher;
 
   /**
-   * Rule to enforce on policy page.
+   * Enforcer to apply to policy page.
    */
-  rule: IRule;
+  enforcer: IEnforcer;
 
   /**
    * Blockable page associated with the policy.
@@ -88,8 +88,8 @@ type PolicyType =
 
 
 /**
- * Represents a mapping between a set of URL matchers and the rules that apply
- * to URLs matched by the matchers.
+ * Represents the mapping between a page/set of pages and an enforcement action
+ * on those pages.
  */
 export class BasicPolicy implements IPolicy {
   readonly type: PolicyType = "BasicPolicy";
@@ -98,26 +98,22 @@ export class BasicPolicy implements IPolicy {
   name: string;
   active: boolean;
   matcher: IUrlMatcher;
-  rule: IRule;
+  enforcer: IEnforcer;
   readonly page: IPage;
 
-  /**
-   * @param matchers determines what URLs the policy applies to
-   * @param rule the rule to apply
-   */
   constructor(
     id: string,
     name: string,
     active: boolean,
     matcher: IUrlMatcher,
-    rule: IRule,
+    enforcer: IEnforcer,
     page: IPage,
   ) {
     this.id = id;
     this.name = name;
     this.active = active;
     this.matcher = matcher;
-    this.rule = rule;
+    this.enforcer = enforcer;
     this.page = page;
   }
 
@@ -134,7 +130,7 @@ export class BasicPolicy implements IPolicy {
       data.name,
       data.active,
       deserializeMatcher(data.matcher),
-      deserializeRule(data.rule),
+      deserializeEnforcer(data.enforcer),
       deserializePage(data.page)
     );
   }
@@ -146,7 +142,7 @@ export class BasicPolicy implements IPolicy {
       name: this.name,
       active: this.active,
       matcher: serializeMatcher(this.matcher),
-      rule: serializeRule(this.rule),
+      enforcer: serializeEnforcer(this.enforcer),
       page: serializePage(this.page),
     }
   }

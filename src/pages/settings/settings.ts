@@ -3,11 +3,11 @@ import { IBouncerData, StoredBouncerData } from "../../data";
 import { AlwaysBlock, ViewtimeCooldownLimit } from "../../limit";
 import { ExactHostnameMatcher } from "../../matcher";
 import { BasicPolicy, IPolicy } from "../../policy";
-import { ScheduledLimit } from "../../rule";
+import { ScheduledLimit } from "../../enforcer";
 import { AlwaysSchedule } from "../../schedule";
 import { BasicPage } from "../../page";
 
-const ruleForm: HTMLInputElement = document.getElementById("add-rule") as HTMLInputElement;
+const policyForm: HTMLInputElement = document.getElementById("add-policy") as HTMLInputElement;
 const nameInput: HTMLInputElement = document.getElementById("name") as HTMLInputElement;
 const hostInput: HTMLInputElement = document.getElementById("host") as HTMLInputElement;
 const durationInput: HTMLInputElement = document.getElementById("duration") as HTMLInputElement;
@@ -15,7 +15,7 @@ const cooldownInput: HTMLInputElement = document.getElementById("cooldown") as H
 
 const bouncerData: IBouncerData = new StoredBouncerData(new BrowserStorage());
 
-ruleForm.addEventListener("submit", event => {
+policyForm.addEventListener("submit", event => {
   event.preventDefault();
   
   const name = nameInput.value;
@@ -30,28 +30,28 @@ ruleForm.addEventListener("submit", event => {
     name: name,
     active: true,
     matcher: new ExactHostnameMatcher(host),
-    rule: new ScheduledLimit(
+    enforcer: new ScheduledLimit(
       new AlwaysSchedule(),
       new ViewtimeCooldownLimit(duration, cooldown)
     ),
     page: new BasicPage()
   };
   bouncerData.addPolicy(policy)
-    .then(() => refreshRuleDisplay());
+    .then(() => refreshPolicyDisplay());
 });
 
-function refreshRuleDisplay() {
-  const rulesDiv = document.getElementById("rules");
+function refreshPolicyDisplay() {
+  const policyDiv = document.getElementById("policies");
 
   bouncerData.getPolicies()
     .then(policies => {
-      rulesDiv?.replaceChildren();
+      policyDiv?.replaceChildren();
       for (const policy of policies) {
-        const ruleElement = document.createElement("p");
-        ruleElement.innerText = `${policy.name}`;
-        rulesDiv?.appendChild(ruleElement);
+        const policyElement = document.createElement("p");
+        policyElement.innerText = `${policy.name}`;
+        policyDiv?.appendChild(policyElement);
       }
     });
 }
 
-refreshRuleDisplay();
+refreshPolicyDisplay();

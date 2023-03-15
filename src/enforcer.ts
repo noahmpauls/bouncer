@@ -5,19 +5,19 @@ import { deserializeSchedule, ISchedule, serializeSchedule } from "./schedule";
 
 
 /**
- * Represents a rule that limits allowed browsing behavior for a page.
+ * Represents an enforcer that limits allowed browsing behavior for a page.
  */
-export interface IRule {
+export interface IEnforcer {
   /**
-   * Type discriminator indicating the type of rule;
+   * Type discriminator indicating the type of enforcer.
    */
-  type: RuleType;
+  type: EnforcerType;
 
   /**
-   * Apply a rule to a page, potentially mutating the page.
+   * Apply an enforcer to a page, potentially mutating the page.
    * 
-   * @param time time to apply the rule at
-   * @param page the page to apply the rule to
+   * @param time time to apply the enforcer at
+   * @param page the page to apply the enforcer to
    */
   applyTo(time: Date, page: IPage): void;
 
@@ -31,46 +31,46 @@ export interface IRule {
   remainingViewtime(time: Date, page: IPage): number;
 
   /**
-   * Convert rule to an object representation. The representation must
-   * include a field "type" that indicates the type of rule represented.
+   * Convert enforcer to an object representation. The representation must
+   * include a field "type" that indicates the type of enforcer represented.
    * 
-   * @returns object representing rule
+   * @returns object representing enforcer
    */
   toObject(): any;
 }
 
 
 /**
- * Deserialize a rule from an object.
+ * Deserialize an enforcer from an object.
  * 
- * @param data object data representing rule
- * @returns deserialized rule
+ * @param data object data representing enforcer
+ * @returns deserialized enforcer
  */
-export function deserializeRule(data: any): IRule {
-  switch (data.type as RuleType) {
+export function deserializeEnforcer(data: any): IEnforcer {
+  switch (data.type as EnforcerType) {
     case "ScheduleLimit":
       return ScheduledLimit.fromObject(data);
     default:
-      throw new Error(`invalid rule type ${data.type} cannot be deserialized`);
+      throw new Error(`invalid enforcer type ${data.type} cannot be deserialized`);
   }
 }
 
 
 /**
- * Serialize a rule to an object representation.
+ * Serialize an enforcer to an object representation.
  * 
- * @param rule the rule to serialize
- * @returns serialized rule object
+ * @param enforcer the enforcer to serialize
+ * @returns serialized enforcer object
  */
-export function serializeRule(rule: IRule): any {
-  return rule.toObject();
+export function serializeEnforcer(enforcer: IEnforcer): any {
+  return enforcer.toObject();
 }
 
 
 /**
- * Discriminator type for each kind of rule.
+ * Discriminator type for each kind of enforcer.
  */
-type RuleType =
+type EnforcerType =
   "ScheduleLimit";
 
 
@@ -78,13 +78,13 @@ type RuleType =
  * Represents a browsing limit that applies on a schedule.
  * 
  * A `ScheduledLimit` has two main parts:
- * - `schedule`: determines when this rule applies. The conditions of the rule
- *   only apply when the current time is within the schedule; otherwise, the
- *   rule doesn't apply.
- * - `limit`: determines how the rule applies during the schedule.
+ * - `schedule`: determines when this enforcer applies. The conditions of the
+ *   enforcer only apply when the current time is within the schedule;
+ *   otherwise, the enforcer doesn't apply.
+ * - `limit`: determines how the enforcer applies during the schedule.
  */
-export class ScheduledLimit implements IRule {
-  readonly type: RuleType = "ScheduleLimit";
+export class ScheduledLimit implements IEnforcer {
+  readonly type: EnforcerType = "ScheduleLimit";
 
   private readonly schedule: ISchedule;
   private readonly limit: ILimit;
@@ -99,10 +99,10 @@ export class ScheduledLimit implements IRule {
   }
 
   /**
-   * Convert an object to this type of rule.
+   * Convert an object to this type of enforcer.
    * 
-   * @param data object data representing rule
-   * @returns rule
+   * @param data object data representing enforcer
+   * @returns enforcer
    */
   static fromObject(data: any): ScheduledLimit {
     assert(data.type === "ScheduleLimit", `cannot make ScheduleLimit from data with type ${data.type}`);

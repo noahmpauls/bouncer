@@ -3,10 +3,10 @@ import { BrowserStorage } from "../browserStorage";
 import { IBouncerData, StoredBouncerData } from "../data";
 import { IPage, PageAccess, PageEvent } from "../page";
 import { IPolicy } from "../policy";
-import { IRule } from "../rule";
+import { IEnforcer } from "../enforcer";
 
 // TODO: move a bunch of this functionality to a class that handles bulk
-//       updates to rules and pages.
+//       updates to policies and pages.
 
 
 async function initializeBouncer() {
@@ -17,7 +17,7 @@ async function initializeBouncer() {
   let viewtimeChecker: NodeJS.Timeout | null = null;
 
   /**
-   * Set the viewtime checker to check rules for a block at the next expected
+   * Set the viewtime checker to check policies for a block at the next expected
    * block time.
    */
   function setViewtimeChecker(): void {
@@ -27,7 +27,7 @@ async function initializeBouncer() {
       viewtimeChecker = setTimeout(async () => {
         const currentTime = new Date();
         for (let policy of policies) {
-          policy.rule.applyTo(currentTime, policy.page);
+          policy.enforcer.applyTo(currentTime, policy.page);
           await data.setPolicy(policy);
         }
         for (let {page} of policies) {
@@ -72,14 +72,14 @@ async function initializeBouncer() {
     }
   }
 
-  // no applicable rules means no Bouncer required
+  // no applicable policies means no Bouncer required
   if (policies.length === 0) {
     return;
   }
 
   // check for an existing block and enforce it
   for (let policy of policies) {
-    policy.rule.applyTo(currentTime, policy.page);
+    policy.enforcer.applyTo(currentTime, policy.page);
     await data.setPolicy(policy);
   }
   for (let {page} of policies) {
@@ -118,7 +118,7 @@ function pageVisible(): boolean { return document.visibilityState === "visible";
 
 function minRemainingViewtime(time: Date, policies: IPolicy[]): number {
   const remainings = policies.map((policy): number => {
-    const viewtime = policy.rule.remainingViewtime(time, policy.page);
+    const viewtime = policy.enforcer.remainingViewtime(time, policy.page);
     return viewtime;
   });
   return Math.min(...remainings);
