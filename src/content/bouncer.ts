@@ -2,6 +2,7 @@ import browser from "webextension-polyfill";
 import { BrowserStorage } from "../browserStorage";
 import { IBouncerData, StoredBouncerData } from "../data";
 import { IPage, PageAccess, PageEvent } from "../page";
+import { IPolicy } from "../policy";
 import { IRule } from "../rule";
 
 // TODO: move a bunch of this functionality to a class that handles bulk
@@ -12,8 +13,7 @@ async function initializeBouncer() {
   const currentTime = new Date();
   const url = window.location;
   const data: IBouncerData = new StoredBouncerData(new BrowserStorage());
-  const rulesAndPages = (await data.getApplicablePolicies(new URL(url.href)))
-    .map(value => ({ metadata: value.metadata, rule: value.policy.rule, page: value.page }));
+  const policies = await data.getApplicablePolicies(new URL(url.href));
   let viewtimeChecker: NodeJS.Timeout | null = null;
 
   /**
@@ -22,15 +22,15 @@ async function initializeBouncer() {
    */
   function setViewtimeChecker(): void {
     const currentTime = new Date();
-    let nextViewtimeCheck = minRemainingViewtime(currentTime, rulesAndPages);
+    let nextViewtimeCheck = minRemainingViewtime(currentTime, policies);
     if (nextViewtimeCheck < Infinity) {
       viewtimeChecker = setTimeout(async () => {
         const currentTime = new Date();
-        for (let {metadata, rule, page} of rulesAndPages) {
-          rule.applyTo(currentTime, page);
-          await data.setPolicyPage(metadata, page);
+        for (let policy of policies) {
+          policy.rule.applyTo(currentTime, policy.page);
+          await data.setPolicy(policy);
         }
-        for (let {page} of rulesAndPages) {
+        for (let {page} of policies) {
           if (page.checkAccess(currentTime) === PageAccess.BLOCKED) {
             block();
           }
@@ -53,7 +53,7 @@ async function initializeBouncer() {
    */
   function onShow(currentTime: Date) {
     if (pageVisible()) {
-      for (let {page} of rulesAndPages) {
+      for (let {page} of policies) {
         page.recordEvent(currentTime, PageEvent.SHOW);
       }
     }
@@ -66,30 +66,30 @@ async function initializeBouncer() {
    */
   async function onHide(currentTime: Date) {
     clearViewtimeChecker();
-    for (let {metadata, page} of rulesAndPages) {
-      page.recordEvent(currentTime, PageEvent.HIDE);
-      await data.setPolicyPage(metadata, page);
+    for (let policy of policies) {
+      policy.page.recordEvent(currentTime, PageEvent.HIDE);
+      await data.setPolicy(policy);
     }
   }
 
   // no applicable rules means no Bouncer required
-  if (rulesAndPages.length === 0) {
+  if (policies.length === 0) {
     return;
   }
 
   // check for an existing block and enforce it
-  for (let {metadata, rule, page} of rulesAndPages) {
-    rule.applyTo(currentTime, page);
-    await data.setPolicyPage(metadata, page);
+  for (let policy of policies) {
+    policy.rule.applyTo(currentTime, policy.page);
+    await data.setPolicy(policy);
   }
-  for (let {page} of rulesAndPages) {
+  for (let {page} of policies) {
     if (page.checkAccess(currentTime) === PageAccess.BLOCKED) {
       block()
     }
   }
   
   // on page visit, add initial events and start viewtime checker
-  for (let {page} of rulesAndPages) {
+  for (let {page} of policies) {
     page.recordEvent(currentTime, PageEvent.VISIT);
   }
   onShow(currentTime);
@@ -116,9 +116,9 @@ initializeBouncer();
 
 function pageVisible(): boolean { return document.visibilityState === "visible"; }
 
-function minRemainingViewtime(time: Date, rulesAndPages: { rule: IRule, page: IPage }[]): number {
-  const remainings = rulesAndPages.map(({rule, page}): number => {
-    const viewtime = rule.remainingViewtime(time, page);
+function minRemainingViewtime(time: Date, policies: IPolicy[]): number {
+  const remainings = policies.map((policy): number => {
+    const viewtime = policy.rule.remainingViewtime(time, policy.page);
     return viewtime;
   });
   return Math.min(...remainings);

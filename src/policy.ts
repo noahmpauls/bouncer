@@ -1,37 +1,11 @@
 import { assert } from "./assert";
 import { deserializeMatcher, IUrlMatcher, serializeMatcher } from "./matcher";
+import { deserializePage, IPage, serializePage } from "./page";
 import { deserializeRule, IRule, serializeRule } from "./rule";
 
 
 /**
- * Represents metadata about a policy.
- */
-export interface IPolicyMetadata {
-  /**
-   * Unique ID identifying a policy.
-   */
-  id: string;
-  
-  /**
-   * Human-readable name of the policy.
-   */
-  name?: string;
-  
-  /**
-   * Humean-readable description of the policy.
-   */
-  description?: string;
-  
-  /**
-   * Whether the policy is active or not.
-   */
-  active: boolean;
-}
-
-
-/**
- * Represents a mapping between a set of URL matchers and the rules that apply
- * to URLs matched by the matchers.
+ * Represents a policy bundled with its metadata.
  */
 export interface IPolicy {
   /**
@@ -40,14 +14,34 @@ export interface IPolicy {
   type: PolicyType
 
   /**
-   * The policy URL matchers.
+   * Unique ID identifying a policy.
    */
-  matchers: IUrlMatcher[];
+  id: string;
+  
+  /**
+   * Human-readable name of the policy.
+   */
+  name: string;
+  
+  /**
+   * Whether the policy is active or not.
+   */
+  active: boolean;
+  
+  /**
+   * Matcher determining what URLs this policy matches.
+   */
+  matcher: IUrlMatcher;
 
   /**
-   * The applicable rule.
+   * Rule to enforce on policy page.
    */
   rule: IRule;
+
+  /**
+   * Blockable page associated with the policy.
+   */
+  page: IPage;
 
   /**
    * Convert the policy to an object representation. The representation must
@@ -100,16 +94,31 @@ type PolicyType =
 export class BasicPolicy implements IPolicy {
   readonly type: PolicyType = "BasicPolicy";
 
-  readonly matchers: IUrlMatcher[];
-  readonly rule: IRule;
+  readonly id: string;
+  name: string;
+  active: boolean;
+  matcher: IUrlMatcher;
+  rule: IRule;
+  readonly page: IPage;
 
   /**
    * @param matchers determines what URLs the policy applies to
    * @param rule the rule to apply
    */
-  constructor(matchers: IUrlMatcher[], rule: IRule) {
-    this.matchers = matchers;
+  constructor(
+    id: string,
+    name: string,
+    active: boolean,
+    matcher: IUrlMatcher,
+    rule: IRule,
+    page: IPage,
+  ) {
+    this.id = id;
+    this.name = name;
+    this.active = active;
+    this.matcher = matcher;
     this.rule = rule;
+    this.page = page;
   }
 
   /**
@@ -121,16 +130,24 @@ export class BasicPolicy implements IPolicy {
   static fromObject(data: any): BasicPolicy {
     assert(data.type === "BasicPolicy", `cannot make Basic Policy from data with type ${data.type}`);
     return new BasicPolicy(
-      data.matchers.map((m: any) => deserializeMatcher(m)),
-      deserializeRule(data.rule)
+      data.id,
+      data.name,
+      data.active,
+      deserializeMatcher(data.matcher),
+      deserializeRule(data.rule),
+      deserializePage(data.page)
     );
   }
 
   toObject() {
     return {
       type: this.type,
-      matchers: this.matchers.map((m: IUrlMatcher) => serializeMatcher(m)),
-      rule: serializeRule(this.rule)
+      id: this.id,
+      name: this.name,
+      active: this.active,
+      matcher: serializeMatcher(this.matcher),
+      rule: serializeRule(this.rule),
+      page: serializePage(this.page),
     }
   }
 
