@@ -220,24 +220,24 @@ export class BasicPage implements IPage {
   }
 
   private handleVisit(time: Date): void {
-    if (this.timeInitialVisit !== null) {
-      assertTimeSequence(this.timeInitialVisit, time);
-    } else {
+    console.log(`${time.getTime()} page: VISIT`);
+    // initial visit only set if previously cleared by block
+    if (this.timeInitialVisit === null) {
       this.timeInitialVisit = time;
     }
   }
   
   private handleShow(time: Date): void {
-    if (this.timeLastShow !== null) {
-      assertTimeSequence(this.timeLastShow, time);
-    } else {
+    console.log(`${time.getTime()} page: SHOW`);
+    // timeLastShow only set if previously cleared
+    if (this.timeLastShow === null) {
       this.timeLastShow = time;
     }
   }
   
   private handleHide(time: Date): void {
-    if (this.timeLastShow !== null) {
-      assertTimeSequence(this.timeLastShow, time);
+    console.log(`${time.getTime()} page: HIDE`);
+    if (this.timeLastShow !== null && time.getTime() >= this.timeLastShow.getTime()) {
       const viewtime = time.getTime() - this.timeLastShow.getTime()
       this.msViewtimeAccrued += viewtime;
       this.timeLastShow = null;
@@ -259,23 +259,20 @@ export class BasicPage implements IPage {
   
   msSinceInitialVisit(time: Date): number | null {
     if (this.timeInitialVisit === null) return null;
-    assertTimeSequence(this.timeInitialVisit, time);
-    return time.getTime() - this.timeInitialVisit.getTime();
+    return Math.max(0, time.getTime() - this.timeInitialVisit.getTime());
   }
   
   msViewtime(time: Date): number {
     if (this.timeLastShow === null) {
       return this.msViewtimeAccrued;
     } else {
-      assertTimeSequence(this.timeLastShow, time);
-      return this.msViewtimeAccrued + (time.getTime() - this.timeLastShow.getTime());
+      return Math.max(0, this.msViewtimeAccrued + (time.getTime() - this.timeLastShow.getTime()));
     }
   }
   
   msSinceBlock(time: Date): number | null {
     if (this.timeBlock === null) return null;
-    assertTimeSequence(this.timeBlock, time);
-    return time.getTime() - this.timeBlock.getTime();
+    return Math.max(0, time.getTime() - this.timeBlock.getTime());
   }
 
   toObject(): BasicPageData {

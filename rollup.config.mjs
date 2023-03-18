@@ -5,9 +5,21 @@ import copy from 'rollup-plugin-copy';
 
 export default [
   {
-    input: "src/content/bouncer.ts",
+    input: "src/content/bouncerContent.ts",
     output: {
-      file: "dist/content/bouncer.js",
+      file: "dist/content/bouncerContent.js",
+      format: "es"
+    },
+    plugins: [
+      typescript(),
+      nodeResolve(),
+      commonjs(),
+    ],
+  },
+  {
+    input: "src/background/bouncerBackground.ts",
+    output: {
+      file: "dist/background/bouncerBackground.js",
       format: "es"
     },
     plugins: [

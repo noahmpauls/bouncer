@@ -1,7 +1,4 @@
-import { deserializeMatcher } from "./matcher";
-import { BasicPage } from "./page";
-import { deserializePolicy, IPolicy, PolicyData, serializePolicy } from "./policy";
-import { deserializeEnforcer } from "./enforcer";
+import { deserializePolicy, IPolicy, serializePolicy } from "./policy";
 import { IStorage } from "./storage";
 
 
@@ -10,19 +7,18 @@ import { IStorage } from "./storage";
  */
 export interface IBouncerData {
   /**
-   * Get all policies and pages that correspond to a given URL.
-   *
-   * @param url the URL that policies should apply to
-   * @returns applicable policies
-   */
-  getApplicablePolicies(url: URL): Promise<IPolicy[]>;
-
-  /**
    * Get all policies.
    * 
    * @returns all policies
    */
   getPolicies(): Promise<IPolicy[]>;
+  
+  /**
+   * Set all policies.
+   * 
+   * @param policies policy entities
+   */
+  setPolicies(policies: IPolicy[]): Promise<void>;
   
   /**
    * Add a new policy.
@@ -31,13 +27,6 @@ export interface IBouncerData {
    * @returns ID of added policy
    */
   addPolicy(policy: IPolicy): Promise<string>;
-
-  /**
-   * Set a given policy to a new value.
-   *
-   * @param policy the set policy
-   */
-  setPolicy(policy: IPolicy): Promise<void>;
 }
 
 
@@ -55,20 +44,17 @@ export class StoredBouncerData implements IBouncerData {
   }
 
   
-  async getApplicablePolicies(url: URL): Promise<IPolicy[]> {
-    const policies = await this.getPolicies();
-    const applicablePolicies = policies.filter(p => p.matcher.matches(url));
-    return applicablePolicies;
-  }
-  
-  
   async getPolicies(): Promise<IPolicy[]> {
     const policyData = await this.storage.get<any[]>("policies", []);
     const policies = policyData.map(p => deserializePolicy(p));
     return policies;
   }
-
   
+  async setPolicies(policies: IPolicy[]): Promise<void> {
+    const policyData = policies.map(p => serializePolicy(p));
+    await this.storage.set("policies", policyData);
+  }
+
   async addPolicy(policy: IPolicy): Promise<string> {
     const policyData = await this.storage.get<any[]>("policies", []);
     const id = policyData.length.toString();
@@ -80,17 +66,5 @@ export class StoredBouncerData implements IBouncerData {
     policyData.push(serializedPolicy);
     await this.storage.set("policies", policyData);
     return id;
-  }
-
-
-  async setPolicy(policy: IPolicy): Promise<void> {
-    const policies = await this.getPolicies();
-    const policyIndex = policies.findIndex(p => p.id === policy.id);
-    if (policyIndex === -1) {
-      throw new Error(`policy with ID ${policy.id} does not exist`);
-    }
-    policies[policyIndex] = policy;
-    const serializedPolicies = policies.map(p => serializePolicy(p));
-    await this.storage.set("policies", serializedPolicies);
   }
 }
