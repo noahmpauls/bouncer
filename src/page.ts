@@ -41,13 +41,14 @@ export interface IPage {
   checkAccess(time: Date): PageAccess;
 
   /**
-   * Record that a specific browsing event happended on the page at the current
-   * time.
+   * Record the occurence of an event on the page from a particular page
+   * viewer.
    * 
    * @param time the current time
    * @param event the event to record
+   * @param viewer unique ID of the viewer
    */
-  recordEvent(time: Date, event: PageEvent): void;
+  recordEvent(time: Date, event: PageEvent, viewer: string): void;
 
   /**
    * Add a block to this page at the current time.
@@ -145,7 +146,8 @@ export class BasicPage implements IPage {
   private timeInitialVisit: Date | null;
   private msViewtimeAccrued: number;
   private timeBlock: Date | null;
-  private timeLastShow: Date | null = null;
+  private timeLastShow: Date | null;
+  private viewers: Set<string>;
 
   /**
    * @param timeInitialVisit time of the initial visit to the page after a
@@ -157,10 +159,14 @@ export class BasicPage implements IPage {
     timeInitialVisit?: Date | null,
     msViewtimeAccrued?: number,
     timeBlock?: Date | null,
+    timeLastShow?: Date | null,
+    viewers?: string[],
   ) {
     this.timeInitialVisit = timeInitialVisit ?? null;
     this.msViewtimeAccrued = msViewtimeAccrued ?? 0;
     this.timeBlock = timeBlock ?? null;
+    this.timeLastShow = timeLastShow ?? null;
+    this.viewers = viewers !== undefined ? new Set(viewers) : new Set();
     this.checkRep();
   }
 
@@ -190,7 +196,9 @@ export class BasicPage implements IPage {
     return new BasicPage(
       obj.data.timeInitialVisit,
       obj.data.msViewtimeAccrued,
-      obj.data.timeBlock
+      obj.data.timeBlock,
+      obj.data.timeLastShow,
+      obj.data.viewers,
     );
   }
 
@@ -202,16 +210,20 @@ export class BasicPage implements IPage {
     }
   }
 
-  recordEvent(time: Date, event: PageEvent): void {
+  recordEvent(time: Date, event: PageEvent, viewer: string): void {
+    if (this.checkAccess(time) === PageAccess.BLOCKED) {
+      console.log("page: cannot record event when blocked");
+      return;
+    }
     switch (event) {
       case PageEvent.VISIT:
         this.handleVisit(time);
         break;
       case PageEvent.SHOW:
-        this.handleShow(time);
+        this.handleShow(time, viewer);
         break;
       case PageEvent.HIDE:
-        this.handleHide(time);
+        this.handleHide(time, viewer);
         break;
       default:
         throw "unreachable";
@@ -227,19 +239,26 @@ export class BasicPage implements IPage {
     }
   }
   
-  private handleShow(time: Date): void {
+  private handleShow(time: Date, viewer: string): void {
     console.log(`${time.getTime()} page: SHOW`);
+    this.viewers.add(viewer);
     // timeLastShow only set if previously cleared
     if (this.timeLastShow === null) {
       this.timeLastShow = time;
     }
   }
   
-  private handleHide(time: Date): void {
+  private handleHide(time: Date, viewer: string): void {
     console.log(`${time.getTime()} page: HIDE`);
-    if (this.timeLastShow !== null && time.getTime() >= this.timeLastShow.getTime()) {
-      const viewtime = time.getTime() - this.timeLastShow.getTime()
-      this.msViewtimeAccrued += viewtime;
+    this.viewers.delete(viewer);
+    if (this.timeLastShow === null) {
+      return;
+    }
+    const viewtime = time.getTime() - this.timeLastShow.getTime();
+    this.msViewtimeAccrued += viewtime;
+    if (this.viewers.size > 0) {
+      this.timeLastShow = time;
+    } else {
       this.timeLastShow = null;
     }
   }
@@ -249,6 +268,7 @@ export class BasicPage implements IPage {
     this.timeInitialVisit = null;
     this.msViewtimeAccrued = 0;
     this.timeLastShow = null;
+    this.viewers.clear();
     this.checkRep();
   }
   
@@ -282,6 +302,8 @@ export class BasicPage implements IPage {
         timeInitialVisit: this.timeInitialVisit,
         msViewtimeAccrued: this.msViewtimeAccrued,
         timeBlock: this.timeBlock,
+        timeLastShow: this.timeLastShow,
+        viewers: [...this.viewers]
       }
     };
   }
@@ -293,5 +315,7 @@ type BasicPageData = {
     timeInitialVisit: Date | null,
     msViewtimeAccrued: number,
     timeBlock: Date | null,
+    timeLastShow: Date | null,
+    viewers: string[],
   }
 }

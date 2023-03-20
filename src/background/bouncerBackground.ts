@@ -14,24 +14,24 @@ browser.runtime.onMessage.addListener(async (message, sender) => await synchroni
   console.log(`${message.time.getTime()} back: received ${message.type}`);
   console.log(`${message.time.getTime()} back: sender has id ${sender.id}, frame ${sender.frameId}, tab ${sender.tab?.id}`);
 
-  // switch case to use proper event handler
   let messageType: string = message.type;
   let messageTime: Date = message.time;
   // TODO: this is just yike
-  let parsedSender = { id: sender.id ?? "", url: new URL(sender.url ?? "") }
+  let url = new URL(sender.url ?? "");
+  let senderId = constructSenderId(sender);
   let response: any = null;
   switch (messageType) {
     case "CHECK":
-      response = await handlePageEvent(messageTime, null, parsedSender);
+      response = await handlePageEvent(messageTime, null, url, senderId);
       break;
     case "VISIT":
-      response = await handlePageEvent(messageTime, PageEvent.VISIT, parsedSender);
+      response = await handlePageEvent(messageTime, PageEvent.VISIT, url, senderId);
       break;
     case "SHOW":
-      response = await handlePageEvent(messageTime, PageEvent.SHOW, parsedSender);
+      response = await handlePageEvent(messageTime, PageEvent.SHOW, url, senderId);
       break;
     case "HIDE":
-      response = await handlePageEvent(messageTime, PageEvent.HIDE, parsedSender);
+      response = await handlePageEvent(messageTime, PageEvent.HIDE, url, senderId);
       break;
     // rules were changed externally, so need to refresh them
     case "REFRESH":
@@ -50,9 +50,9 @@ browser.runtime.onMessage.addListener(async (message, sender) => await synchroni
 }));
 
 
-async function handlePageEvent(time: Date, event: PageEvent | null, sender: { url: URL, id: string }): Promise<any> {
+async function handlePageEvent(time: Date, event: PageEvent | null, url: URL, sender: string): Promise<any> {
   // get rules associated with this sender
-  const applicable: IPolicy[] = await cache.getApplicablePolicies(sender.url);
+  const applicable: IPolicy[] = await cache.getApplicablePolicies(url);
   if (applicable.length === 0) {
     return {
       status: "UNTRACKED",
@@ -67,7 +67,7 @@ async function handlePageEvent(time: Date, event: PageEvent | null, sender: { ur
     if (event !== null) {
       // TODO: alter pages to support multiple concurrent viewers
       // policy.page.recordEvent(time, event, sender);
-      policy.page.recordEvent(time, event);
+      policy.page.recordEvent(time, event, sender);
     }
     policy.enforcer.applyTo(time, policy.page);
     block ||= policy.page.checkAccess(time) === PageAccess.BLOCKED;
@@ -78,4 +78,14 @@ async function handlePageEvent(time: Date, event: PageEvent | null, sender: { ur
     status: block ? "BLOCKED" : "ALLOWED",
     viewtimeCheck: viewtimeCheck < Infinity ? new Date(viewtimeCheck) : undefined,
   };
+}
+
+
+function constructSenderId(sender: browser.Runtime.MessageSender): string {
+  const senderId = sender.id ?? "X";
+  const windowId = sender.tab?.windowId ?? "X";
+  const tabId = sender.tab?.id ?? "X";
+  const frameId = sender.frameId ?? "X";
+  const id = [senderId, windowId, tabId, frameId].join("-");
+  return id;
 }
