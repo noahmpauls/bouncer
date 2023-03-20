@@ -26,9 +26,10 @@ export class BouncerCache implements IBouncerCache {
   }
 
   private async initCache(): Promise<void> {
-    if (this.cache !== undefined)
+    if (this.cache !== undefined) {
       return;
-    this.sync.sync(async () => {
+    }
+    await this.sync.sync(async () => {
       if (this.cache === undefined) {
         const data = await this.data.getPolicies();
         this.cache = data;
@@ -55,14 +56,14 @@ export class BouncerCache implements IBouncerCache {
   }
   
   async refresh(): Promise<void> {
-    this.sync.sync(async () => {
+    await this.sync.sync(async () => {
       const data = await this.data.getPolicies();
       this.cache = data;
     });
   }
   
   async persist(): Promise<void> {
-    this.sync.sync(async () => {
+    await this.sync.sync(async () => {
       if (this.cache !== undefined) {
         await this.data.setPolicies(this.cache);
       }

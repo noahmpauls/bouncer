@@ -21,7 +21,6 @@ async function doBouncer() {
   }
 
   async function enforce(status: any) {
-    console.log(`enforce status ${status.status}`);
     switch (status.status) {
       case "BLOCKED":
         blocked = true;
@@ -68,7 +67,6 @@ async function doBouncer() {
   
   async function onVisiblity(time: Date) {
     if (pageVisible()) {
-      console.log("show (visibility");
       await onShow(time);
     } else {
       await onHide(time);
@@ -81,7 +79,7 @@ async function doBouncer() {
   }
 
 
-  async function handleShow() { console.log("pageshow"); await onShow(new Date()); }
+  async function handleShow() { await onShow(new Date()); }
   async function handleHide() { await onHide(new Date()); }
   async function handleVisibilty() { await onVisiblity(new Date()); }
 

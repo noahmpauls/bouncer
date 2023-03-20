@@ -211,8 +211,8 @@ export class BasicPage implements IPage {
   }
 
   recordEvent(time: Date, event: PageEvent, viewer: string): void {
+    // cannot record events on blocked page
     if (this.checkAccess(time) === PageAccess.BLOCKED) {
-      console.log("page: cannot record event when blocked");
       return;
     }
     switch (event) {
@@ -232,7 +232,6 @@ export class BasicPage implements IPage {
   }
 
   private handleVisit(time: Date): void {
-    console.log(`${time.getTime()} page: VISIT`);
     // initial visit only set if previously cleared by block
     if (this.timeInitialVisit === null) {
       this.timeInitialVisit = time;
@@ -240,7 +239,6 @@ export class BasicPage implements IPage {
   }
   
   private handleShow(time: Date, viewer: string): void {
-    console.log(`${time.getTime()} page: SHOW`);
     this.viewers.add(viewer);
     // timeLastShow only set if previously cleared
     if (this.timeLastShow === null) {
@@ -249,7 +247,6 @@ export class BasicPage implements IPage {
   }
   
   private handleHide(time: Date, viewer: string): void {
-    console.log(`${time.getTime()} page: HIDE`);
     this.viewers.delete(viewer);
     if (this.timeLastShow === null) {
       return;

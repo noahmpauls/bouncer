@@ -1,6 +1,6 @@
 {
   "name": "bouncer",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "Ridiculously configurable website limiter.",
   "main": "manifest.json",
   "scripts": {

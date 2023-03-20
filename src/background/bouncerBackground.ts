@@ -12,7 +12,6 @@ const cache: IBouncerCache = new BouncerCache(new StoredBouncerData(new BrowserS
 
 browser.runtime.onMessage.addListener(async (message, sender) => await synchronizer.sync(async () => {
   console.log(`${message.time.getTime()} back: received ${message.type}`);
-  console.log(`${message.time.getTime()} back: sender has id ${sender.id}, frame ${sender.frameId}, tab ${sender.tab?.id}`);
 
   let messageType: string = message.type;
   let messageTime: Date = message.time;
