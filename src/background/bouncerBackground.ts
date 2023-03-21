@@ -60,22 +60,27 @@ async function handlePageEvent(time: Date, event: PageEvent | null, url: URL, se
 
   let block = false;
   let viewtimeCheck = Infinity;
-  // let nextWindowCheck = null;
+  let windowCheck = Infinity;
 
   for (const policy of applicable) {
+    // apply any necessary resets prior to recording event
+    policy.enforcer.applyTo(time, policy.page);
     if (event !== null) {
-      // TODO: alter pages to support multiple concurrent viewers
-      // policy.page.recordEvent(time, event, sender);
       policy.page.recordEvent(time, event, sender);
     }
     policy.enforcer.applyTo(time, policy.page);
     block ||= policy.page.checkAccess(time) === PageAccess.BLOCKED;
-    viewtimeCheck = Math.min(viewtimeCheck, time.getTime() + policy.enforcer.remainingViewtime(time, policy.page));
+    // if page isn't showing, don't perform viewtime check
+    if (policy.page.isShowing(time)) {
+      viewtimeCheck = Math.min(viewtimeCheck, time.getTime() + policy.enforcer.remainingViewtime(time, policy.page));
+    }
+    windowCheck = Math.min(windowCheck, time.getTime() + policy.enforcer.remainingWindow(time, policy.page));
   }
 
   return {
     status: block ? "BLOCKED" : "ALLOWED",
     viewtimeCheck: viewtimeCheck < Infinity ? new Date(viewtimeCheck) : undefined,
+    windowCheck: windowCheck < Infinity ? new Date(windowCheck) : undefined,
   };
 }
 

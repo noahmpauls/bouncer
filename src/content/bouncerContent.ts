@@ -6,11 +6,11 @@ async function doBouncer() {
   const currentTime = new Date();
   let listening = false;
   let viewtimeChecker: NodeJS.Timeout | null = null;
+  let windowChecker: NodeJS.Timeout | null = null;
   let blocked = false;
 
   await onCheck(currentTime);
   
-  // 
   if (blocked) {
     return;
   }
@@ -29,22 +29,15 @@ async function doBouncer() {
       case "ALLOWED":
         addListeners();
         if (status.viewtimeCheck !== undefined) {
-          // TODO: clean this up
-          if (viewtimeChecker !== null) {
-            clearTimeout(viewtimeChecker);
-          }
-          const msToCheck = status.viewtimeCheck.getTime() - (new Date()).getTime();
-          viewtimeChecker = setTimeout(async () => {
-            const currenTime = new Date();
-            await onCheck(currenTime);
-          }, msToCheck);
+          resetViewtimeChecker(status.viewtimeCheck);
+        }
+        if (status.windowCheck !== undefined) {
+          resetWindowChecker(status.windowCheck);
         }
         break;
       case "UNTRACKED":
-        if (viewtimeChecker !== null) {
-          clearTimeout(viewtimeChecker);
-          viewtimeChecker = null;
-        }
+        clearViewtimeChecker();
+        clearWindowChecker();
         removeListeners();
         break;
     }
@@ -102,7 +95,39 @@ async function doBouncer() {
       listening = false;
     }
   }
-  //
+  
+  function resetViewtimeChecker(checkTime: Date) {
+    clearViewtimeChecker();
+    const msToCheck = checkTime.getTime() - Date.now();
+    viewtimeChecker = setTimeout(async () => {
+      const currentTime = new Date();
+      await onCheck(currentTime);
+    }, msToCheck);
+  }
+  
+  function clearViewtimeChecker() {
+    if (viewtimeChecker !== null) {
+      clearTimeout(viewtimeChecker);
+      viewtimeChecker = null;
+    }
+  }
+  
+  function resetWindowChecker(checkTime: Date) {
+    clearWindowChecker();
+    const msToCheck = checkTime.getTime() - Date.now();
+    windowChecker = setTimeout(async () => {
+      const currentTime = new Date();
+      await onCheck(currentTime);
+    }, msToCheck);
+  }
+  
+  function clearWindowChecker() {
+    if (windowChecker !== null) {
+      clearTimeout(windowChecker);
+      windowChecker = null;
+    }
+  }
+
   // TODO: change Bouncer to effectively end on pagehide, restart on pageshow?
   //       can't rely on unload event to clear bfcache
   function block(): void {

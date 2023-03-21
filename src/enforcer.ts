@@ -26,9 +26,17 @@ export interface IEnforcer {
    * 
    * @param time the current time
    * @param page page to be blocked
-   * @returns amount of viewtime until the page is blocked
+   * @returns amount of viewtime until the page is blocked, in ms
    */
   remainingViewtime(time: Date, page: IPage): number;
+
+  /**
+   * 
+   * @param time the current time
+   * @param page page to be blocked
+   * @returns remaining time in window until the page is blocked, in ms
+   */
+  remainingWindow(time: Date, page: IPage): number;
 
   /**
    * Convert enforcer to an object representation. The representation must
@@ -111,13 +119,18 @@ export class ScheduledLimit implements IEnforcer {
       deserializeLimit(obj.data.limit)
     );
   }
-
+  
   applyTo(time: Date, page: IPage): void {
     if (this.schedule.contains(time)) {
       const pageAccess = page.checkAccess(time);
       const action = this.limit.action(time, page);
-      if (action.action === "BLOCK" && pageAccess === PageAccess.ALLOWED) {
-        page.block(time);
+      console.log(`enforcer: got action ${action.action}`)
+      if (action.action === "RESET") {
+        for (const reset of action.resets) {
+          page.recordReset(time, reset.type, reset.time);
+        }
+      } else if (action.action === "BLOCK" && pageAccess === PageAccess.ALLOWED) {
+        page.block(action.time);
       } else if (action.action === "UNBLOCK" && pageAccess === PageAccess.BLOCKED) {
         page.unblock(time);
       }
@@ -128,6 +141,10 @@ export class ScheduledLimit implements IEnforcer {
   
   remainingViewtime(time: Date, page: IPage): number {
     return this.limit.remainingViewtime(time, page);
+  }
+  
+  remainingWindow(time: Date, page: IPage): number {
+    return this.limit.remainingWindow(time, page);
   }
   
   toObject(): ScheduledLimitData {

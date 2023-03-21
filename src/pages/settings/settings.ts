@@ -1,6 +1,6 @@
 import { BrowserStorage } from "../../browserStorage";
 import { IBouncerData, StoredBouncerData } from "../../data";
-import { AlwaysBlock, ViewtimeCooldownLimit } from "../../limit";
+import { AlwaysBlock, ViewtimeCooldownLimit, WindowCooldownLimit } from "../../limit";
 import { ExactHostnameMatcher } from "../../matcher";
 import { BasicPolicy, IPolicy, PolicyData } from "../../policy";
 import { ScheduledLimit } from "../../enforcer";
@@ -17,7 +17,7 @@ const cooldownInput: HTMLInputElement = document.getElementById("cooldown") as H
 nameInput.value = "example";
 hostInput.value = "www.example.com";
 durationInput.value = "10000";
-cooldownInput.value = "5000";
+cooldownInput.value = "10000";
 
 const bouncerData: IBouncerData = new StoredBouncerData(new BrowserStorage());
 
@@ -32,7 +32,7 @@ policyForm.addEventListener("submit", event => {
   nameInput.value = "";
   hostInput.value = "";
   durationInput.value = "";
-  cooldownInput.value = ";"
+  cooldownInput.value = ""
   const policy: IPolicy = new BasicPolicy(
     "",
     name,
@@ -40,7 +40,7 @@ policyForm.addEventListener("submit", event => {
     new ExactHostnameMatcher(host),
     new ScheduledLimit(
       new AlwaysSchedule(),
-      new ViewtimeCooldownLimit(duration, cooldown)
+      new WindowCooldownLimit(duration, cooldown)
       // new AlwaysBlock()
     ),
     new BasicPage(),

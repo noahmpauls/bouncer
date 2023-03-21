@@ -21,6 +21,16 @@ export enum PageEvent {
   /** Page becomes hidden. */
   HIDE = "hide",
 }
+  
+/**
+ * Represents resets that can be applied to a page.
+ */
+export enum PageReset {
+  /** Viewtime reset. */
+  VIEWTIME = "viewtime",
+  /** Initial visit time reset. */
+  INITIALVISIT = "initialVisit",
+}
 
 
 /**
@@ -49,6 +59,16 @@ export interface IPage {
    * @param viewer unique ID of the viewer
    */
   recordEvent(time: Date, event: PageEvent, viewer: string): void;
+  
+  /**
+   * Reset page metrics according to the specified type of reset and the time
+   * at which the reset occurred.
+   * 
+   * @param time the current time
+   * @param type the type of reset to apply
+   * @param resetTime time at which the reset should occur
+   */
+  recordReset(time: Date, type: PageReset, resetTime: Date): void;
 
   /**
    * Add a block to this page at the current time.
@@ -75,6 +95,14 @@ export interface IPage {
   //----------------------------------------------------------------------------
   // Metrics
   //----------------------------------------------------------------------------
+  
+  /**
+   * Get whether the page is currently showing in any context.
+   * 
+   * @param time the current time
+   * @returns whether the page is currently showing
+   */
+  isShowing(time: Date): boolean;
 
   /**
    * Milliseconds since the first page visit since an unblock (or ever).
@@ -100,6 +128,15 @@ export interface IPage {
    * @returns milliseconds since last block
    */
   msSinceBlock(time: Date): number | null;
+  
+  /**
+   * Milliseconds since last time the page was hidden. Returns null if the page
+   * has never been hidden since being blocked.
+   * 
+   * @param time the current time
+   * @returns milliseconds since most recent hide
+   */
+  msSinceHide(time: Date): number | null;
 }
 
 
@@ -147,6 +184,7 @@ export class BasicPage implements IPage {
   private msViewtimeAccrued: number;
   private timeBlock: Date | null;
   private timeLastShow: Date | null;
+  private timeLastHide: Date | null;
   private viewers: Set<string>;
 
   /**
@@ -160,12 +198,14 @@ export class BasicPage implements IPage {
     msViewtimeAccrued?: number,
     timeBlock?: Date | null,
     timeLastShow?: Date | null,
+    timeLastHide?: Date | null,
     viewers?: string[],
   ) {
     this.timeInitialVisit = timeInitialVisit ?? null;
     this.msViewtimeAccrued = msViewtimeAccrued ?? 0;
     this.timeBlock = timeBlock ?? null;
     this.timeLastShow = timeLastShow ?? null;
+    this.timeLastHide = timeLastHide ?? null;
     this.viewers = viewers !== undefined ? new Set(viewers) : new Set();
     this.checkRep();
   }
@@ -175,13 +215,18 @@ export class BasicPage implements IPage {
       assert(this.timeInitialVisit === null, `timeInitialVisit should be null when blocked (was ${this.timeInitialVisit})`);
       assert(this.timeLastShow === null, `timeLastShow should be null when blocked`);
       assert(this.msViewtimeAccrued === 0, `msViewtimeAccrued should be 0 when blocked`);
+      assert(this.viewers.size === 0, "no viewers allowed when blocked")
     }
     
-    if (this.timeInitialVisit === null) {
-      assert(this.timeLastShow === null, `timeLastShow should be null until visited`);
-      assert(this.msViewtimeAccrued === 0, `msViewtimeAccrued should be 0 until visited`);
-    } else {
+    if (this.timeInitialVisit !== null) {
       assert(this.timeBlock === null, `timeBlock should be null if visit occurs`);
+    }
+    
+    if (this.timeLastShow !== null) {
+      assert(this.timeLastHide === null, `timeLastHide must be null when showing`);
+      assert(this.viewers.size > 0, `must have viewers while showing`);
+    } else {
+      assert(this.viewers.size === 0, `no viewers allowed while not showing`);
     }
   }
   
@@ -198,6 +243,7 @@ export class BasicPage implements IPage {
       obj.data.msViewtimeAccrued,
       obj.data.timeBlock,
       obj.data.timeLastShow,
+      obj.data.timeLastHide,
       obj.data.viewers,
     );
   }
@@ -239,6 +285,7 @@ export class BasicPage implements IPage {
   }
   
   private handleShow(time: Date, viewer: string): void {
+    this.timeLastHide = null;
     this.viewers.add(viewer);
     // timeLastShow only set if previously cleared
     if (this.timeLastShow === null) {
@@ -257,6 +304,42 @@ export class BasicPage implements IPage {
       this.timeLastShow = time;
     } else {
       this.timeLastShow = null;
+      this.timeLastHide = time;
+    }
+  }
+  
+  recordReset(time: Date, type: PageReset, resetTime: Date): void {
+    switch (type) {
+      case PageReset.INITIALVISIT:
+        this.resetInitialVisit(time, resetTime);
+        break;
+      case PageReset.VIEWTIME:
+        this.resetViewtime(time, resetTime);
+        break;
+    }
+    this.checkRep();
+  }
+
+  private resetViewtime(time: Date, resetTime: Date): void {
+    assertTimeSequence(resetTime, time);
+    this.msViewtimeAccrued = 0;
+    this.timeLastHide = null;
+    if (this.isShowing(time)) {
+      // if showing, viewtime is already accruing since reset
+      const viewtimeStart = new Date(Math.max(resetTime.getTime(), this.timeLastShow!.getTime()));
+      this.timeLastShow = viewtimeStart;
+    } else {
+      this.timeLastShow = null;
+      this.viewers.clear();
+    }
+  }
+  
+  private resetInitialVisit(time: Date, resetTime: Date): void {
+    assertTimeSequence(resetTime, time);
+    if (this.isShowing(time)) {
+      this.timeInitialVisit = resetTime;
+    } else {
+      this.timeInitialVisit = null;
     }
   }
 
@@ -265,6 +348,7 @@ export class BasicPage implements IPage {
     this.timeInitialVisit = null;
     this.msViewtimeAccrued = 0;
     this.timeLastShow = null;
+    this.timeLastHide = null;
     this.viewers.clear();
     this.checkRep();
   }
@@ -272,6 +356,10 @@ export class BasicPage implements IPage {
   unblock(time: Date): void {
     this.timeBlock = null;
     this.checkRep();
+  }
+  
+  isShowing(time: Date): boolean {
+    return (this.timeLastShow !== null && this.timeLastShow <= time)
   }
   
   msSinceInitialVisit(time: Date): number | null {
@@ -291,6 +379,11 @@ export class BasicPage implements IPage {
     if (this.timeBlock === null) return null;
     return Math.max(0, time.getTime() - this.timeBlock.getTime());
   }
+  
+  msSinceHide(time: Date): number | null {
+    if (this.timeLastHide === null) return null;
+    return Math.max(0, time.getTime() - this.timeLastHide.getTime());
+  }
 
   toObject(): BasicPageData {
     return {
@@ -300,6 +393,7 @@ export class BasicPage implements IPage {
         msViewtimeAccrued: this.msViewtimeAccrued,
         timeBlock: this.timeBlock,
         timeLastShow: this.timeLastShow,
+        timeLastHide: this.timeLastHide,
         viewers: [...this.viewers]
       }
     };
@@ -313,6 +407,7 @@ type BasicPageData = {
     msViewtimeAccrued: number,
     timeBlock: Date | null,
     timeLastShow: Date | null,
+    timeLastHide: Date | null,
     viewers: string[],
   }
 }

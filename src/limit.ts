@@ -1,5 +1,5 @@
 import { assert } from "./assert";
-import { IPage } from "./page";
+import { IPage, PageReset } from "./page";
 
 
 /**
@@ -9,7 +9,20 @@ export type LimitAction =
 { action: "NONE" | "UNBLOCK" } | 
 {
   action: "BLOCK",
-  duration: number,
+  time: Date,
+} |
+{
+  action: "RESET",
+  resets: ResetAction[]
+}
+
+/**
+ * Represents a type of reset to apply to a page, and the time to apply the
+ * reset at.
+ */
+export type ResetAction = {
+  type: PageReset,
+  time: Date
 }
 
 
@@ -39,9 +52,21 @@ export interface ILimit {
    * 
    * @param time the current time
    * @param page page to be blocked
-   * @returns amount of viewtime until the page should be blocked
+   * @returns amount of viewtime until the page should be blocked, in ms
    */
   remainingViewtime(time: Date, page: IPage): number;
+  
+
+  /**
+   * Get the amount of time remaining in the window since a page's initial
+   * visit until the next suggested window-based block. Should return
+   * `Infinity` if the limit does not recommend blocks based on windows.
+   * 
+   * @param time the current time
+   * @param page page to be blocked
+   * @returns remaining time in window until the page should be blocked, in ms
+   */
+  remainingWindow(time: Date, page: IPage): number;
 
 
   /**
@@ -66,6 +91,8 @@ export function deserializeLimit(obj: LimitData): ILimit {
       return AlwaysBlock.fromObject(obj);
     case "ViewtimeCooldown":
       return ViewtimeCooldownLimit.fromObject(obj);
+    case "WindowCooldown":
+      return WindowCooldownLimit.fromObject(obj);
     default:
       throw new Error(`invalid limit type ${(obj as any).type} cannot be deserialized`);
   }
@@ -88,7 +115,8 @@ export function serializeLimit(limit: ILimit): LimitData {
  */
 export type LimitData =
     AlwaysBlockData
-  | ViewtimeCooldownData;
+  | ViewtimeCooldownData
+  | WindowCooldownData
   ;
 
 
@@ -116,12 +144,17 @@ export class AlwaysBlock implements ILimit {
   action(time: Date, page: IPage): LimitAction {
     return {
       action: "BLOCK",
-      duration: Infinity
+      time
     };
   }
 
   
   remainingViewtime(time: Date, page: IPage): number {
+    return Infinity;
+  }
+  
+
+  remainingWindow(time: Date, page: IPage): number {
     return Infinity;
   }
   
@@ -136,12 +169,20 @@ type AlwaysBlockData = {
 }
 
 
+/**
+ * Represents a limit that provides an allotment of viewtime, followed by a
+ * block lasting for at least the duration of a specified cooldown period.
+ */
 export class ViewtimeCooldownLimit implements ILimit {
   readonly type = "ViewtimeCooldown";
   
   private readonly msViewtime: number;
   private readonly msCooldown: number;
   
+  /**
+   * @param msViewtime allotted viewtime, in ms
+   * @param msCooldown cooldown period, in ms
+   */
   constructor(msViewtime: number, msCooldown: number) {
     this.msViewtime = msViewtime;
     this.msCooldown = msCooldown;
@@ -175,8 +216,23 @@ export class ViewtimeCooldownLimit implements ILimit {
     const msSinceBlock = page.msSinceBlock(time);
     if (msSinceBlock !== null && msSinceBlock >= this.msCooldown) {
       return { action: "UNBLOCK" };
-    } else if (page.msViewtime(time) >= this.msViewtime) {
-      return { action: "BLOCK", duration: this.msCooldown };
+    }
+    const viewtime = page.msViewtime(time);
+    if (viewtime >= this.msViewtime) {
+      const timeOverAllotted = viewtime - this.msViewtime;
+      const blockTimeOffset = (page.msSinceHide(time) ?? 0) + timeOverAllotted;
+      const blockTime = new Date(time.getTime() - blockTimeOffset);
+      // cooldown not elapsed
+      if (time.getTime() - blockTime.getTime() < this.msCooldown) {
+        return { action: "BLOCK", time: blockTime };
+      // cooldown complete, reset triggered at end of cooldown
+      } else {
+        const resetTime = new Date(blockTime.getTime() + this.msCooldown);
+        return {
+          action: "RESET",
+          resets: [{ type: PageReset.VIEWTIME, time: resetTime }]
+        };
+      }
     }
     return { action: "NONE" };
   }
@@ -184,10 +240,16 @@ export class ViewtimeCooldownLimit implements ILimit {
   
   remainingViewtime(time: Date, page: IPage): number {
     if (page.msSinceBlock(time) === null) {
-      return Math.max(0, this.msViewtime - page.msViewtime(time));
+      const remaining = Math.max(0, this.msViewtime - page.msViewtime(time));
+      return remaining;
     } else {
       return 0;
     }
+  }
+  
+
+  remainingWindow(time: Date, page: IPage): number {
+    return Infinity;
   }
   
 
@@ -206,6 +268,104 @@ type ViewtimeCooldownData = {
   type: "ViewtimeCooldown",
   data: {
     msViewtime: number,
+    msCooldown: number,
+  }
+}
+
+
+/**
+ * Represents a limit that allows viewing for a specified amount of time after
+ * an initial visit, followed by a block lasting for at least the duration of a
+ * specified cooldown period.
+ */
+export class WindowCooldownLimit implements ILimit {
+  readonly type = "WindowCooldown";
+  
+  private readonly msWindow: number;
+  private readonly msCooldown: number;
+
+  /**
+   * @param msWindow allotted window, in ms
+   * @param msCooldown cooldown period, in ms
+   */
+  constructor(msWindow: number, msCooldown: number) {
+    this.msWindow = msWindow;
+    this.msCooldown = msCooldown;
+    this.checkRep();
+  }
+  
+  private checkRep(): void {
+    assert(this.msWindow > 0, `msWindow must be > 0 (was ${this.msWindow})`);
+    assert(this.msCooldown > 0, `msCooldown must be > 0 (was ${this.msCooldown})`);
+  }
+  
+  /**
+   * Convert an object to this type of limit.
+   * 
+   * @param obj object data representing limit
+   * @returns limit
+   */
+  static fromObject(obj: WindowCooldownData): WindowCooldownLimit {
+    const expectedType = "WindowCooldown";
+
+    assert(obj.type === expectedType, `cannot make ${expectedType} from data with type ${obj.type}`);
+    return new WindowCooldownLimit(
+      obj.data.msWindow,
+      obj.data.msCooldown,
+    );
+  }
+  
+  action(time: Date, page: IPage): LimitAction {
+    const msSinceBlock = page.msSinceBlock(time);
+    if (msSinceBlock !== null && msSinceBlock >= this.msCooldown) {
+      return { action: "UNBLOCK" };
+    }
+    const msSinceInitialVisit = page.msSinceInitialVisit(time) ?? 0;
+    if (msSinceInitialVisit >= this.msWindow) {
+      const blockTime = new Date(time.getTime() - msSinceInitialVisit + this.msWindow);
+      // cooldown not complete
+      if (msSinceInitialVisit < this.msWindow + this.msCooldown) {
+        return { action: "BLOCK", time: blockTime };
+        // cooldown complete, reset triggered at end of cooldown
+      } else {
+        const resetTime = new Date(blockTime.getTime() + this.msCooldown);
+        return {
+          action: "RESET",
+          resets: [{ type: PageReset.INITIALVISIT, time: resetTime }]
+        };
+      }
+    }
+    return { action: "NONE" };
+  }
+  
+  remainingViewtime(time: Date, page: IPage): number {
+    return Infinity;
+  }
+  
+  remainingWindow(time: Date, page: IPage): number {
+    if (page.msSinceBlock(time) === null) {
+      const windowElapsed = page.msSinceInitialVisit(time) ?? 0;
+      return Math.max(0, windowElapsed - this.msWindow);
+    } else {
+      return 0;
+    }
+  }
+  
+  toObject(): WindowCooldownData {
+    return {
+      type: "WindowCooldown",
+      data: {
+        msWindow: this.msWindow,
+        msCooldown: this.msCooldown,
+      }
+    }
+  }
+}
+
+type WindowCooldownData = {
+  type: "WindowCooldown",
+  data: {
+    msWindow: number,
     msCooldown: number,
   }
 }
