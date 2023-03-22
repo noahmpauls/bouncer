@@ -9,11 +9,6 @@ import { deserializeEnforcer, EnforcerData, IEnforcer, serializeEnforcer } from 
  */
 export interface IPolicy {
   /**
-   * Type discriminator indicating the type of policy.
-   */
-  type: string;
-
-  /**
    * Unique ID identifying a policy.
    */
   id: string;
@@ -92,7 +87,6 @@ export type PolicyData =
  * on those pages.
  */
 export class BasicPolicy implements IPolicy {
-  readonly type = "BasicPolicy";
 
   readonly id: string;
   name: string;
@@ -137,7 +131,7 @@ export class BasicPolicy implements IPolicy {
 
   toObject(): BasicPolicyData {
     return {
-      type: this.type,
+      type: "BasicPolicy",
       id: this.id,
       data: {
         name: this.name,

@@ -8,12 +8,6 @@ import { assert } from "./assert";
  */
 export interface ISchedule {
   /**
-   * Type discriminator indicating the type of schedule.
-   */
-  type: string;
-
-
-  /**
    * Check whether the given time is in the schedule.
    * 
    * @param time the time to test
@@ -70,8 +64,6 @@ export type ScheduleData =
  * Represents a schedule containing all times.
  */
 export class AlwaysSchedule implements ISchedule {
-  readonly type = "AlwaysSchedule";
-
 
   constructor() { }
 
@@ -92,7 +84,7 @@ export class AlwaysSchedule implements ISchedule {
   
 
   toObject(): AlwaysScheduleData {
-    return { type: this.type };
+    return { type: "AlwaysSchedule" };
   }  
 }
 

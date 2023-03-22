@@ -38,11 +38,6 @@ export enum PageReset {
  */
 export interface IPage {
   /**
-   * Type discriminator indicating the type of page.
-   */
-  type: string;
-
-  /**
    * Get the current level of view access to the page.
    *
    * @param time the current time
@@ -178,7 +173,6 @@ export type PageData =
  * Represents a webpage that can be browsed and blocked.
  */
 export class BasicPage implements IPage {
-  readonly type = "BasicPage";
   
   private timeInitialVisit: Date | null;
   private msViewtimeAccrued: number;
@@ -387,7 +381,7 @@ export class BasicPage implements IPage {
 
   toObject(): BasicPageData {
     return {
-      type: this.type,
+      type: "BasicPage",
       data: {
         timeInitialVisit: this.timeInitialVisit,
         msViewtimeAccrued: this.msViewtimeAccrued,

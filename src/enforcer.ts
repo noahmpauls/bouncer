@@ -9,11 +9,6 @@ import { deserializeSchedule, ISchedule, ScheduleData, serializeSchedule } from 
  */
 export interface IEnforcer {
   /**
-   * Type discriminator indicating the type of enforcer.
-   */
-  type: string;
-
-  /**
    * Apply an enforcer to a page, potentially mutating the page.
    * 
    * @param time time to apply the enforcer at
@@ -92,7 +87,6 @@ export type EnforcerData =
  * - `limit`: determines how the enforcer applies during the schedule.
  */
 export class ScheduledLimit implements IEnforcer {
-  readonly type = "ScheduledLimit";
 
   private readonly schedule: ISchedule;
   private readonly limit: ILimit;
@@ -149,7 +143,7 @@ export class ScheduledLimit implements IEnforcer {
   
   toObject(): ScheduledLimitData {
     return {
-      type: this.type,
+      type: "ScheduledLimit",
       data: {
         schedule: serializeSchedule(this.schedule),
         limit: serializeLimit(this.limit)

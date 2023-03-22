@@ -5,11 +5,6 @@ import { assert } from "./assert";
  */
 export type IUrlMatcher = {
   /**
-   * Type discriminator indicating the type of matcher.
-   */
-  type: string;
-
-  /**
    * Determine whether the pattern applies to a given URL.
    * 
    * @param url the URL to test
@@ -65,7 +60,6 @@ export type UrlMatcherData =
  * Determines whether a URL exactly matches a given hostname.
  */
 export class ExactHostnameMatcher implements IUrlMatcher {
-  readonly type = "ExactHostname";
   
   private readonly hostname: string;
 
@@ -96,7 +90,7 @@ export class ExactHostnameMatcher implements IUrlMatcher {
 
   toObject(): ExactHostnameMatcherData {
     return {
-      type: this.type,
+      type: "ExactHostname",
       data: {
         hostname: this.hostname
       }

@@ -31,11 +31,6 @@ export type ResetAction = {
  */
 export interface ILimit {
   /**
-   * Type discriminator indicating the type of limit.
-   */
-  type: string;
-
-  /**
    * Recommend an action to take on a page at the given time.
    * 
    * @param time time to apply the limit at
@@ -160,7 +155,7 @@ export class AlwaysBlock implements ILimit {
   
 
   toObject(): AlwaysBlockData {
-    return { type: this.type };
+    return { type: "AlwaysBlock" };
   }
 }
 
@@ -174,7 +169,6 @@ type AlwaysBlockData = {
  * block lasting for at least the duration of a specified cooldown period.
  */
 export class ViewtimeCooldownLimit implements ILimit {
-  readonly type = "ViewtimeCooldown";
   
   private readonly msViewtime: number;
   private readonly msCooldown: number;
@@ -255,7 +249,7 @@ export class ViewtimeCooldownLimit implements ILimit {
 
   toObject(): ViewtimeCooldownData {
     return { 
-      type: this.type,
+      type: "ViewtimeCooldown",
       data: {
         msViewtime: this.msViewtime,
         msCooldown: this.msCooldown,
@@ -279,7 +273,6 @@ type ViewtimeCooldownData = {
  * specified cooldown period.
  */
 export class WindowCooldownLimit implements ILimit {
-  readonly type = "WindowCooldown";
   
   private readonly msWindow: number;
   private readonly msCooldown: number;

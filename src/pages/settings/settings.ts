@@ -40,7 +40,7 @@ policyForm.addEventListener("submit", event => {
     new ExactHostnameMatcher(host),
     new ScheduledLimit(
       new AlwaysSchedule(),
-      new WindowCooldownLimit(duration, cooldown)
+      new ViewtimeCooldownLimit(duration, cooldown)
       // new AlwaysBlock()
     ),
     new BasicPage(),
