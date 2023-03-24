@@ -17,6 +17,12 @@
 
     /* Type Checking */
     "strict": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    
+    /* Path Aliases */
+    "baseUrl": "src",
+    "paths": {
+      "@bouncer/*": ["lib/*"]
+    }
   }
 }

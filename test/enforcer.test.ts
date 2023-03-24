@@ -2,7 +2,7 @@ import { describe, test, expect } from "@jest/globals";
 import { ScheduledLimit } from "../src/enforcer";
 import { ViewtimeCooldownLimit, WindowCooldownLimit } from "../src/limit";
 import { BasicPage, PageAccess, PageEvent } from "../src/page";
-import { AlwaysSchedule } from "../src/lib/schedule";
+import { AlwaysSchedule } from "@bouncer/schedule";
 
 
 describe("ScheduledLimit -> WindowCooldownLimit", () => {
