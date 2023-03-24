@@ -1,7 +1,7 @@
 import { assert } from "./assert";
 import { deserializeLimit, ILimit, LimitData, serializeLimit } from "./limit";
 import { IPage, PageAccess } from "./page";
-import { deserializeSchedule, ISchedule, ScheduleData, serializeSchedule } from "./schedule";
+import { deserializeSchedule, ISchedule, ScheduleData, serializeSchedule } from "./lib/schedule";
 
 
 /**

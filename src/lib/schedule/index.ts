@@ -1,4 +1,4 @@
-import { assert } from "./assert";
+import { AlwaysSchedule, AlwaysScheduleData } from "./AlwaysSchedule";
 
 /**
  * Represents a specified subset of all times.
@@ -56,38 +56,8 @@ export function serializeSchedule(schedule: ISchedule): ScheduleData {
 /**
  * Union of all types that represent schedules in their serialized form.
  */
-export type ScheduleData = 
+export type ScheduleData =
   AlwaysScheduleData;
 
 
-/**
- * Represents a schedule containing all times.
- */
-export class AlwaysSchedule implements ISchedule {
-
-  constructor() { }
-
-
-  /**
-   * Convert an object to this type of schedule.
-   * 
-   * @param obj object data representing schedule
-   * @returns schedule
-   */
-  static fromObject(obj: AlwaysScheduleData): AlwaysSchedule {
-    assert(obj.type === "AlwaysSchedule", `cannot make AlwaysSchedule from data with type ${obj.type}`);
-    return new AlwaysSchedule();
-  }
-
-  
-  contains(time: Date): boolean { return true; }
-  
-
-  toObject(): AlwaysScheduleData {
-    return { type: "AlwaysSchedule" };
-  }  
-}
-
-type AlwaysScheduleData = {
-  type: "AlwaysSchedule"
-}
+export { AlwaysSchedule } from "./AlwaysSchedule";

@@ -4,7 +4,7 @@ import { AlwaysBlock, ViewtimeCooldownLimit, WindowCooldownLimit } from "../../l
 import { ExactHostnameMatcher } from "../../matcher";
 import { BasicPolicy, IPolicy, PolicyData } from "../../policy";
 import { ScheduledLimit } from "../../enforcer";
-import { AlwaysSchedule } from "../../schedule";
+import { AlwaysSchedule } from "../../lib/schedule/schedule";
 import { BasicPage } from "../../page";
 import browser from "webextension-polyfill";
 
