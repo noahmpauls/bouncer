@@ -1,6 +1,6 @@
 import { BrowserStorage } from "../../browserStorage";
 import { IBouncerData, StoredBouncerData } from "../../data";
-import { AlwaysBlock, ViewtimeCooldownLimit, WindowCooldownLimit } from "../../limit";
+import { AlwaysBlock, ViewtimeCooldownLimit, WindowCooldownLimit } from "@bouncer/limit";
 import { ExactHostnameMatcher } from "../../matcher";
 import { BasicPolicy, IPolicy, PolicyData } from "../../policy";
 import { ScheduledLimit } from "../../enforcer";
