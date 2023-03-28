@@ -1,5 +1,5 @@
 import { assert } from "./assert";
-import { deserializeMatcher, IUrlMatcher, serializeMatcher, UrlMatcherData } from "./matcher";
+import { deserializeMatcher, IUrlMatcher, serializeMatcher, UrlMatcherData } from "@bouncer/matcher";
 import { deserializePage, IPage, PageData, serializePage } from "@bouncer/page";
 import { deserializeEnforcer, EnforcerData, IEnforcer, serializeEnforcer } from "@bouncer/enforcer";
 
