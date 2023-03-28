@@ -1,21 +1,14 @@
 import { IBouncerData } from "@bouncer/data";
 import { IPolicy } from "@bouncer/policy";
 import { Synchronizer } from "@bouncer/utils";
+import { IBouncerContext } from ".";
 
 
-export interface IBouncerCache {
-
-  getPolicies(): Promise<IPolicy[]>;
-
-  getApplicablePolicies(url: URL): Promise<IPolicy[]>;
-  
-  refresh(): Promise<void>;
-
-  persist(): Promise<void>;
-}
-
-
-export class BouncerCache implements IBouncerCache {
+/**
+ * Represents a data context that serves entities out of an in-memory cache
+ * populated from the data source.
+ */
+export class CachedBouncerContext implements IBouncerContext {
   data: IBouncerData;
   cache: IPolicy[] | undefined = undefined;
   sync: Synchronizer = new Synchronizer();
@@ -25,6 +18,10 @@ export class BouncerCache implements IBouncerCache {
     this.initCache();
   }
 
+  /**
+   * Synchronously populate the cache from the data source, if the cache isn't
+   * already populated.
+   */
   private async initCache(): Promise<void> {
     if (this.cache !== undefined) {
       return;
@@ -37,19 +34,19 @@ export class BouncerCache implements IBouncerCache {
     });
   }
   
-  async getPolicies(): Promise<IPolicy[]> {
+  async policies(): Promise<IPolicy[]> {
     if (this.cache === undefined) {
       await this.initCache();
-      return this.getPolicies();
+      return this.policies();
     } else {
       return this.cache;
     }
   }
   
-  async getApplicablePolicies(url: URL): Promise<IPolicy[]> {
+  async applicablePolicies(url: URL): Promise<IPolicy[]> {
     if (this.cache === undefined) {
       await this.initCache();
-      return this.getApplicablePolicies(url);
+      return this.applicablePolicies(url);
     } else {
       return this.cache.filter(p => p.matcher.matches(url));
     }

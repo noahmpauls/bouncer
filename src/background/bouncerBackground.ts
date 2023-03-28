@@ -4,11 +4,11 @@ import { StoredBouncerData } from "@bouncer/data";
 import { IPage, PageAccess, PageEvent } from "@bouncer/page";
 import { IPolicy } from "@bouncer/policy";
 import { Synchronizer } from "@bouncer/utils";
-import { BouncerCache, IBouncerCache } from "./cache";
+import { CachedBouncerContext, IBouncerContext } from "@bouncer/context";
 
 
 const synchronizer: Synchronizer = new Synchronizer();
-const cache: IBouncerCache = new BouncerCache(new StoredBouncerData(new BrowserStorage()));
+const cache: IBouncerContext = new CachedBouncerContext(new StoredBouncerData(new BrowserStorage()));
 
 browser.runtime.onMessage.addListener(async (message, sender) => await synchronizer.sync(async () => {
   console.log(`${message.time.getTime()} back: received ${message.type}`);
@@ -51,7 +51,7 @@ browser.runtime.onMessage.addListener(async (message, sender) => await synchroni
 
 async function handlePageEvent(time: Date, event: PageEvent | null, url: URL, sender: string): Promise<any> {
   // get rules associated with this sender
-  const applicable: IPolicy[] = await cache.getApplicablePolicies(url);
+  const applicable: IPolicy[] = await cache.applicablePolicies(url);
   if (applicable.length === 0) {
     return {
       status: "UNTRACKED",
