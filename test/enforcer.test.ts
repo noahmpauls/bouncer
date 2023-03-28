@@ -1,5 +1,5 @@
 import { describe, test, expect } from "@jest/globals";
-import { ScheduledLimit } from "../src/enforcer";
+import { ScheduledLimit } from "@bouncer/enforcer";
 import { ViewtimeCooldownLimit, WindowCooldownLimit } from "@bouncer/limit";
 import { BasicPage, PageAccess, PageEvent } from "@bouncer/page";
 import { AlwaysSchedule } from "@bouncer/schedule";
