@@ -1,4 +1,4 @@
-import { assert } from "../../assert";
+import { assert } from "@bouncer/utils";
 import { IPage } from "@bouncer/page";
 import { ILimit, LimitAction } from ".";
 

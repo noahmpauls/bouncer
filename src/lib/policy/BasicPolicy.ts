@@ -1,7 +1,7 @@
 import { IEnforcer, deserializeEnforcer, serializeEnforcer, EnforcerData } from "@bouncer/enforcer";
 import { IUrlMatcher, deserializeMatcher, serializeMatcher, UrlMatcherData } from "@bouncer/matcher";
 import { IPage, deserializePage, serializePage, PageData } from "@bouncer/page";
-import { assert } from "../../assert";
+import { assert } from "@bouncer/utils";
 import { IPolicy } from ".";
 
 /**

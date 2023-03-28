@@ -1,21 +1,8 @@
 /**
- * Execute a function on an interval, starting with an immediate execution.
- * 
- * @param func the function to be executed
- * @param delay delay between executions
- * @returns the interval ID
- */
-export function doSetInterval(func: () => void, delay: number) {
-  func();
-  return setInterval(func, delay);
-}
-
-
-/**
  * Represents a synchronizer, which guarantees non-overlapping execution of
  * all asynchronous functions executed through the `sync` method.
  */
-export class Sync {
+export class Synchronizer {
   private readonly queue: (() => Promise<any>)[];
   private ready: boolean;
   

@@ -1,6 +1,6 @@
 import { IBouncerData } from "@bouncer/data";
 import { IPolicy } from "@bouncer/policy";
-import { Sync } from "../utils";
+import { Synchronizer } from "@bouncer/utils";
 
 
 export interface IBouncerCache {
@@ -18,7 +18,7 @@ export interface IBouncerCache {
 export class BouncerCache implements IBouncerCache {
   data: IBouncerData;
   cache: IPolicy[] | undefined = undefined;
-  sync: Sync = new Sync();
+  sync: Synchronizer = new Synchronizer();
 
   constructor(data: IBouncerData) {
     this.data = data;

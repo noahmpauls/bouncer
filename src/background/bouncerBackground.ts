@@ -3,11 +3,11 @@ import { BrowserStorage } from "@bouncer/storage";
 import { StoredBouncerData } from "@bouncer/data";
 import { IPage, PageAccess, PageEvent } from "@bouncer/page";
 import { IPolicy } from "@bouncer/policy";
-import { Sync } from "../utils";
+import { Synchronizer } from "@bouncer/utils";
 import { BouncerCache, IBouncerCache } from "./cache";
 
 
-const synchronizer: Sync = new Sync();
+const synchronizer: Synchronizer = new Synchronizer();
 const cache: IBouncerCache = new BouncerCache(new StoredBouncerData(new BrowserStorage()));
 
 browser.runtime.onMessage.addListener(async (message, sender) => await synchronizer.sync(async () => {

@@ -1,5 +1,5 @@
 import { ISchedule } from ".";
-import { assert } from "../../assert";
+import { assert } from "@bouncer/utils";
 
 /**
  * Represents a schedule containing all times.

@@ -1,4 +1,4 @@
-import { assert, assertTimeSequence } from "../../assert";
+import { assert, assertTimeSequence } from "@bouncer/utils";
 import { PageAccess, PageEvent, PageReset } from "./enums";
 import { IPage } from ".";
 
