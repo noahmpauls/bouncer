@@ -5,7 +5,7 @@ import { ExactHostnameMatcher } from "../../matcher";
 import { BasicPolicy, IPolicy, PolicyData } from "../../policy";
 import { ScheduledLimit } from "../../enforcer";
 import { AlwaysSchedule } from "@bouncer/schedule";
-import { BasicPage } from "../../page";
+import { BasicPage } from "@bouncer/page";
 import browser from "webextension-polyfill";
 
 const policyForm: HTMLInputElement = document.getElementById("add-policy") as HTMLInputElement;

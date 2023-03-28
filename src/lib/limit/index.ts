@@ -1,4 +1,4 @@
-import { IPage, PageReset } from "../../page";
+import { IPage, PageReset } from "@bouncer/page";
 import { AlwaysBlock, AlwaysBlockData } from "./AlwaysBlock";
 import { ViewtimeCooldownLimit, ViewtimeCooldownData } from "./ViewtimeCooldownLimit";
 import { WindowCooldownData, WindowCooldownLimit } from "./WindowCooldownLimit";

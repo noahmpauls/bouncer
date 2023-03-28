@@ -1,6 +1,6 @@
 import { assert } from "./assert";
 import { deserializeLimit, ILimit, LimitData, serializeLimit } from "@bouncer/limit";
-import { IPage, PageAccess } from "./page";
+import { IPage, PageAccess } from "@bouncer/page";
 import { deserializeSchedule, ISchedule, ScheduleData, serializeSchedule } from "./lib/schedule";
 
 

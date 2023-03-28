@@ -1,5 +1,5 @@
 import { assert } from "../../assert";
-import { IPage, PageReset } from "page";
+import { IPage, PageReset } from "@bouncer/page";
 import { ILimit, LimitAction } from ".";
 
 /**
