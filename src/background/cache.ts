@@ -1,5 +1,5 @@
 import { IBouncerData } from "../data";
-import { IPolicy } from "../policy";
+import { IPolicy } from "@bouncer/policy";
 import { Sync } from "../utils";
 
 

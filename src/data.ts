@@ -1,4 +1,4 @@
-import { deserializePolicy, IPolicy, serializePolicy } from "./policy";
+import { deserializePolicy, IPolicy, serializePolicy } from "@bouncer/policy";
 import { IStorage } from "./storage";
 
 
