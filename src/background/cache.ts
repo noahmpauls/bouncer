@@ -1,4 +1,4 @@
-import { IBouncerData } from "../data";
+import { IBouncerData } from "@bouncer/data";
 import { IPolicy } from "@bouncer/policy";
 import { Sync } from "../utils";
 

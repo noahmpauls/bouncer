@@ -1,5 +1,5 @@
 import { BrowserStorage } from "@bouncer/storage";
-import { IBouncerData, StoredBouncerData } from "../../data";
+import { IBouncerData, StoredBouncerData } from "@bouncer/data";
 import { AlwaysBlock, ViewtimeCooldownLimit, WindowCooldownLimit } from "@bouncer/limit";
 import { ExactHostnameMatcher } from "@bouncer/matcher";
 import { BasicPolicy, IPolicy, PolicyData } from "@bouncer/policy";
