@@ -1,5 +1,5 @@
 import browser from "webextension-polyfill";
-import { IStorage } from "./storage";
+import { IStorage } from ".";
 
 /**
  * Persistent data manipulation through browser local extension storage.
@@ -26,3 +26,4 @@ export class BrowserStorage implements IStorage {
     await browser.storage.local.remove(key);
   }
 }
+

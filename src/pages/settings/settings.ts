@@ -1,4 +1,4 @@
-import { BrowserStorage } from "../../browserStorage";
+import { BrowserStorage } from "@bouncer/storage";
 import { IBouncerData, StoredBouncerData } from "../../data";
 import { AlwaysBlock, ViewtimeCooldownLimit, WindowCooldownLimit } from "@bouncer/limit";
 import { ExactHostnameMatcher } from "@bouncer/matcher";

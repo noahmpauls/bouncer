@@ -1,5 +1,5 @@
 import browser from "webextension-polyfill";
-import { BrowserStorage } from "../browserStorage";
+import { BrowserStorage } from "@bouncer/storage";
 import { StoredBouncerData } from "../data";
 import { IPage, PageAccess, PageEvent } from "@bouncer/page";
 import { IPolicy } from "@bouncer/policy";
