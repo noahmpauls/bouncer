@@ -1,5 +1,5 @@
 import { assert } from "@bouncer/utils";
-import { IPage, PageReset } from "@bouncer/page";
+import { IPageMetrics, PageReset } from "@bouncer/page";
 import { ILimit, LimitAction } from ".";
 
 /**
@@ -44,7 +44,7 @@ export class WindowCooldownLimit implements ILimit {
   }
 
   
-  action(time: Date, page: IPage): LimitAction {
+  action(time: Date, page: IPageMetrics): LimitAction {
     const msSinceBlock = page.msSinceBlock(time);
     if (msSinceBlock !== null && msSinceBlock >= this.msCooldown) {
       return { action: "UNBLOCK" };
@@ -68,12 +68,12 @@ export class WindowCooldownLimit implements ILimit {
   }
   
 
-  remainingViewtime(time: Date, page: IPage): number {
+  remainingViewtime(time: Date, page: IPageMetrics): number {
     return Infinity;
   }
 
   
-  remainingWindow(time: Date, page: IPage): number {
+  remainingWindow(time: Date, page: IPageMetrics): number {
     if (page.msSinceBlock(time) === null) {
       const windowElapsed = page.msSinceInitialVisit(time) ?? 0;
       return Math.max(0, windowElapsed - this.msWindow);

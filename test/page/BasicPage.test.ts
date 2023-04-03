@@ -4,7 +4,7 @@ import { BasicPageData } from "@bouncer/page/BasicPage";
 
 
 type ObservedPage = {
-  access: ReturnType<IPage["checkAccess"]>,
+  access: ReturnType<IPage["access"]>,
   isShowing: ReturnType<IPage["isShowing"]>,
   msSinceInitialVisit: ReturnType<IPage["msSinceInitialVisit"]>,
   msViewtime: ReturnType<IPage["msViewtime"]>
@@ -16,7 +16,7 @@ type ExpectedObservedPage = Partial<ObservedPage>;
 
 function observePage(page: IPage, time: Date): ObservedPage {
   return {
-    access: page.checkAccess(),
+    access: page.access(),
     isShowing: page.isShowing(),
     msSinceInitialVisit: page.msSinceInitialVisit(time),
     msViewtime: page.msViewtime(time),

@@ -1,4 +1,4 @@
-import { IPage, PageReset } from "@bouncer/page";
+import { IPageMetrics, PageReset } from "@bouncer/page";
 import { AlwaysBlock, AlwaysBlockData } from "./AlwaysBlock";
 import { ViewtimeCooldownLimit, ViewtimeCooldownData } from "./ViewtimeCooldownLimit";
 import { WindowCooldownData, WindowCooldownLimit } from "./WindowCooldownLimit";
@@ -39,7 +39,7 @@ export interface ILimit {
    * @param page the page to apply the limit to
    * @returns the recommended action to take on the page
    */
-  action(time: Date, page: IPage): LimitAction;
+  action(time: Date, page: IPageMetrics): LimitAction;
 
 
   /**
@@ -51,7 +51,7 @@ export interface ILimit {
    * @param page page to be blocked
    * @returns amount of viewtime until the page should be blocked, in ms
    */
-  remainingViewtime(time: Date, page: IPage): number;
+  remainingViewtime(time: Date, page: IPageMetrics): number;
   
 
   /**
@@ -63,7 +63,7 @@ export interface ILimit {
    * @param page page to be blocked
    * @returns remaining time in window until the page should be blocked, in ms
    */
-  remainingWindow(time: Date, page: IPage): number;
+  remainingWindow(time: Date, page: IPageMetrics): number;
 
 
   /**

@@ -1,5 +1,5 @@
 import { assert } from "@bouncer/utils";
-import { IPage } from "@bouncer/page";
+import { IPageMetrics } from "@bouncer/page";
 import { ILimit, LimitAction } from ".";
 
 /**
@@ -21,7 +21,7 @@ export class AlwaysBlock implements ILimit {
   }
 
 
-  action(time: Date, page: IPage): LimitAction {
+  action(time: Date, page: IPageMetrics): LimitAction {
     return {
       action: "BLOCK",
       time
@@ -29,12 +29,12 @@ export class AlwaysBlock implements ILimit {
   }
 
   
-  remainingViewtime(time: Date, page: IPage): number {
+  remainingViewtime(time: Date, page: IPageMetrics): number {
     return Infinity;
   }
   
 
-  remainingWindow(time: Date, page: IPage): number {
+  remainingWindow(time: Date, page: IPageMetrics): number {
     return Infinity;
   }
   

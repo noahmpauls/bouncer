@@ -16,11 +16,11 @@ describe("ScheduledLimit -> WindowCooldownLimit", () => {
     page.recordEvent(new Date(900), PageEvent.HIDE, "a");
     enforcer.applyTo(new Date(900), page);
 
-    expect(page.checkAccess()).toEqual(PageAccess.ALLOWED);
+    expect(page.access()).toEqual(PageAccess.ALLOWED);
 
     // wait until after window and cooldown to enforce
     enforcer.applyTo(new Date(2001), page);
-    expect(page.checkAccess()).toEqual(PageAccess.ALLOWED);
+    expect(page.access()).toEqual(PageAccess.ALLOWED);
   });
 
   test("blocks for correct cooldown", () => {
@@ -33,13 +33,13 @@ describe("ScheduledLimit -> WindowCooldownLimit", () => {
     page.recordEvent(new Date(900), PageEvent.HIDE, "a");
     enforcer.applyTo(new Date(900), page);
 
-    expect(page.checkAccess()).toEqual(PageAccess.ALLOWED);
+    expect(page.access()).toEqual(PageAccess.ALLOWED);
 
     // wait until after window and cooldown to enforce
     enforcer.applyTo(new Date(1500), page);
-    expect(page.checkAccess()).toEqual(PageAccess.BLOCKED);
+    expect(page.access()).toEqual(PageAccess.BLOCKED);
     enforcer.applyTo(new Date(2001), page);
-    expect(page.checkAccess()).toEqual(PageAccess.ALLOWED);
+    expect(page.access()).toEqual(PageAccess.ALLOWED);
   });
 });
 
@@ -54,7 +54,7 @@ describe("ScheduledLimit -> ViewtimeCooldownLimit", () => {
     page.recordEvent(new Date(1100), PageEvent.HIDE, "a");
 
     enforcer.applyTo(new Date(2001), page);
-    expect(page.checkAccess()).toEqual(PageAccess.ALLOWED);
+    expect(page.access()).toEqual(PageAccess.ALLOWED);
   });
 
   test("blocks for correct cooldown", () => {
@@ -66,9 +66,9 @@ describe("ScheduledLimit -> ViewtimeCooldownLimit", () => {
     page.recordEvent(new Date(1100), PageEvent.HIDE, "a");
     
     enforcer.applyTo(new Date(1500), page);
-    expect(page.checkAccess()).toEqual(PageAccess.BLOCKED);
+    expect(page.access()).toEqual(PageAccess.BLOCKED);
 
     enforcer.applyTo(new Date(2001), page);
-    expect(page.checkAccess()).toEqual(PageAccess.ALLOWED);
+    expect(page.access()).toEqual(PageAccess.ALLOWED);
   });
 });

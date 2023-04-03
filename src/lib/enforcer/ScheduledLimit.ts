@@ -43,7 +43,7 @@ export class ScheduledLimit implements IEnforcer {
   
   applyTo(time: Date, page: IPage): void {
     if (this.schedule.contains(time)) {
-      const pageAccess = page.checkAccess();
+      const pageAccess = page.access();
       const action = this.limit.action(time, page);
       console.log(`enforcer: got action ${action.action}`)
       if (action.action === "RESET") {
@@ -55,7 +55,7 @@ export class ScheduledLimit implements IEnforcer {
       } else if (action.action === "UNBLOCK" && pageAccess === PageAccess.BLOCKED) {
         page.unblock();
       }
-    } else if (page.checkAccess() === PageAccess.BLOCKED) {
+    } else if (page.access() === PageAccess.BLOCKED) {
       page.unblock();
     }
   }

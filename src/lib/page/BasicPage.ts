@@ -75,7 +75,7 @@ export class BasicPage implements IPage {
     );
   }
 
-  checkAccess(): PageAccess {
+  access(): PageAccess {
     if (this.timeBlock === null) {
       return PageAccess.ALLOWED;
     } else {
@@ -85,7 +85,7 @@ export class BasicPage implements IPage {
 
   recordEvent(time: Date, event: PageEvent, viewer: string): void {
     // cannot record events on blocked page
-    if (this.checkAccess() === PageAccess.BLOCKED) {
+    if (this.access() === PageAccess.BLOCKED) {
       return;
     }
     switch (event) {

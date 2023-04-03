@@ -69,7 +69,7 @@ async function handlePageEvent(time: Date, event: PageEvent | null, url: URL, se
       policy.page.recordEvent(time, event, sender);
     }
     policy.enforcer.applyTo(time, policy.page);
-    block ||= policy.page.checkAccess() === PageAccess.BLOCKED;
+    block ||= policy.page.access() === PageAccess.BLOCKED;
     // if page isn't showing, don't perform viewtime check
     if (policy.page.isShowing()) {
       viewtimeCheck = Math.min(viewtimeCheck, time.getTime() + policy.enforcer.remainingViewtime(time, policy.page));

@@ -5,14 +5,7 @@ import { PageAccess, PageEvent, PageReset } from "./enums";
 /**
  * Represents a webpage that can be browsed and blocked.
  */
-export interface IPage {
-  /**
-   * Get the current level of view access to the page.
-   *
-   * @returns the access status of the page
-   */
-  checkAccess(): PageAccess;
-
+export interface IPage extends IPageMetrics {
   /**
    * Record the occurence of an event on the page from a particular page
    * viewer.
@@ -52,11 +45,17 @@ export interface IPage {
    * @returns object representing page
    */
   toObject(): PageData;
-  
-  //----------------------------------------------------------------------------
-  // Metrics
-  //----------------------------------------------------------------------------
-  
+}
+
+
+export interface IPageMetrics {
+  /**
+   * Get the current level of view access to the page.
+   *
+   * @returns the access status of the page
+   */
+  access(): PageAccess;
+
   /**
    * Get whether the page is currently showing in any context.
    * 
