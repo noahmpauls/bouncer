@@ -45,7 +45,6 @@ export class ScheduledLimit implements IEnforcer {
     if (this.schedule.contains(time)) {
       const pageAccess = page.access();
       const action = this.limit.action(time, page);
-      console.log(`enforcer: got action ${action.action}`)
       if (action.action === "RESET") {
         for (const reset of action.resets) {
           page.recordReset(reset.type, reset.time);
