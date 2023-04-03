@@ -125,7 +125,7 @@ export class BasicPage implements IPage {
     if (this.timeLastShow === null) {
       return;
     }
-    const viewtime = time.getTime() - this.timeLastShow.getTime();
+    const viewtime = Math.max(0, time.getTime() - this.timeLastShow.getTime());
     this.msViewtimeAccrued += viewtime;
     if (this.viewers.size > 0) {
       this.timeLastShow = time;
@@ -161,7 +161,8 @@ export class BasicPage implements IPage {
   
   private resetInitialVisit(resetTime: Date): void {
     if (this.isShowing()) {
-      this.timeInitialVisit = resetTime;
+      const initialVisit = new Date(Math.max(resetTime.getTime(), this.timeLastShow!.getTime()));
+      this.timeInitialVisit = initialVisit;
     } else {
       this.timeInitialVisit = null;
     }

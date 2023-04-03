@@ -170,12 +170,12 @@ describe("BasicPage", () => {
     page.recordEvent(time(), PageEvent.SHOW, "");
     page.recordEvent(time(msViewtime), PageEvent.HIDE, "");
     const msObserveDelay = 100_000;
-    const observed = observePage(page, time(msViewtime + msObserveDelay));
+    const observed = observePage(page, time(msObserveDelay));
     
     const expected: ExpectedObservedPage = {
-      isShowing: true,
-      msViewtime: msObserveDelay,
-      msSinceHide: null,
+      isShowing: false,
+      msViewtime: 0,
+      msSinceHide: msObserveDelay - msViewtime,
     };
     expect(observed).toMatchObject(expected);
   })
@@ -276,7 +276,7 @@ describe("BasicPage", () => {
     const observed = observePage(page, time(msObserve));
 
     const expected: ExpectedObservedPage = {
-      msSinceInitialVisit: msObserve - Math.min(...visitTimes)
+      msSinceInitialVisit: msObserve - visitTimes[0]
     };
     expect(observed).toMatchObject(expected);
   })
@@ -293,7 +293,7 @@ describe("BasicPage", () => {
     const observed = observePage(page, time(msObserve));
 
     const expected: ExpectedObservedPage = {
-      msSinceInitialVisit: msObserve - Math.min(...visitTimes)
+      msSinceInitialVisit: msObserve - visitTimes[0]
     };
     expect(observed).toMatchObject(expected);
   })
@@ -310,7 +310,7 @@ describe("BasicPage", () => {
     const observed = observePage(page, time(msObserve));
 
     const expected: ExpectedObservedPage = {
-      msViewtime: msObserve - Math.min(...showTimes)
+      msViewtime: msObserve - showTimes[0]
     };
     expect(observed).toMatchObject(expected);
   })
@@ -327,7 +327,7 @@ describe("BasicPage", () => {
     const observed = observePage(page, time(msObserve));
 
     const expected: ExpectedObservedPage = {
-      msViewtime: msObserve - Math.min(...showTimes)
+      msViewtime: msObserve - showTimes[0]
     };
     expect(observed).toMatchObject(expected);
   })
@@ -493,13 +493,33 @@ describe("BasicPage", () => {
   })
   
 
-  test("reset initial visit while visible", () => {
+  test("reset initial visit while visible, resetTime after show", () => {
     const time = timeGenerator();
     const page = new BasicPage();
     page.recordEvent(time(), PageEvent.VISIT, "");
     const msShow = 150;
     page.recordEvent(time(msShow), PageEvent.SHOW, "");
     const msReset = 200;
+    page.recordReset(PageReset.INITIALVISIT, time(msReset));
+    const msObserve = 300; 
+    const observed = observePage(page, time(msObserve));
+    
+    const expected: ExpectedObservedPage = {
+      isShowing: true,
+      msViewtime: msObserve - msShow,
+      msSinceInitialVisit: msObserve - msReset
+    };
+    expect(observed).toMatchObject(expected);
+  })
+
+
+  test("reset initial visit while visible, resetTime before show", () => {
+    const time = timeGenerator();
+    const page = new BasicPage();
+    page.recordEvent(time(), PageEvent.VISIT, "");
+    const msShow = 150;
+    page.recordEvent(time(msShow), PageEvent.SHOW, "");
+    const msReset = 100;
     page.recordReset(PageReset.INITIALVISIT, time(msReset));
     const msObserve = 300; 
     const observed = observePage(page, time(msObserve));
@@ -536,72 +556,261 @@ describe("BasicPage", () => {
 
 
   test("block fresh page", () => {
-        throw new Error("not implemented");
+    const time = timeGenerator();
+    const page = new BasicPage();
+    page.block(time());
+    const msObserve = 25;
+    const observed = observePage(page, time(msObserve));
+
+    const expected: ExpectedObservedPage = {
+      access: PageAccess.BLOCKED,
+      msSinceBlock: msObserve,
+      isShowing: false,
+      msSinceInitialVisit: null,
+      msSinceHide: null,
+      msViewtime: 0,
+    }
+    expect(observed).toMatchObject(expected);
   })
   
 
   test("block after visit", () => {
-        throw new Error("not implemented");
+    const time = timeGenerator();
+    const page = new BasicPage();
+    page.recordEvent(time(), PageEvent.VISIT, "");
+    page.block(time());
+    const msObserve = 25;
+    const observed = observePage(page, time(msObserve));
+
+    const expected: ExpectedObservedPage = {
+      access: PageAccess.BLOCKED,
+      msSinceBlock: msObserve,
+      isShowing: false,
+      msSinceInitialVisit: null,
+      msSinceHide: null,
+      msViewtime: 0,
+    }
+    expect(observed).toMatchObject(expected);
   })
   
 
   test("block while visible", () => {
-    throw new Error("not implemented");
+    const time = timeGenerator();
+    const page = new BasicPage();
+    page.recordEvent(time(), PageEvent.SHOW, "");
+    page.block(time());
+    const msObserve = 25;
+    const observed = observePage(page, time(msObserve));
+
+    const expected: ExpectedObservedPage = {
+      access: PageAccess.BLOCKED,
+      msSinceBlock: msObserve,
+      isShowing: false,
+      msSinceInitialVisit: null,
+      msSinceHide: null,
+      msViewtime: 0,
+    }
+    expect(observed).toMatchObject(expected);
   })
   
 
   test("block after viewtime accrued", () => {
-        throw new Error("not implemented");
+    const time = timeGenerator();
+    const page = new BasicPage();
+    page.recordEvent(time(), PageEvent.SHOW, "");
+    const viewtime = 1234;
+    page.recordEvent(time(viewtime), PageEvent.HIDE, "");
+    const msBlock = viewtime + 1;
+    page.block(time(msBlock));
+    const msObserve = msBlock;
+    const observed = observePage(page, time(msObserve));
+
+    const expected: ExpectedObservedPage = {
+      access: PageAccess.BLOCKED,
+      msSinceBlock: msObserve - msBlock,
+      isShowing: false,
+      msSinceInitialVisit: null,
+      msSinceHide: null,
+      msViewtime: 0,
+    }
+    expect(observed).toMatchObject(expected);
   })
 
 
   test("block after visit and viewtime accrued", () => {
-    throw new Error("not implemented");
+    const time = timeGenerator();
+    const page = new BasicPage();
+    page.recordEvent(time(), PageEvent.VISIT, "");
+    page.recordEvent(time(), PageEvent.SHOW, "");
+    const viewtime = 1234;
+    page.recordEvent(time(viewtime), PageEvent.HIDE, "");
+    const msBlock = viewtime + 1;
+    page.block(time(msBlock));
+    const msObserve = msBlock - 1;
+    const observed = observePage(page, time(msObserve));
+
+    const expected: ExpectedObservedPage = {
+      access: PageAccess.BLOCKED,
+      msSinceBlock: 0,
+      isShowing: false,
+      msSinceInitialVisit: null,
+      msSinceHide: null,
+      msViewtime: 0,
+    }
+    expect(observed).toMatchObject(expected);
   })
 
 
   test("visit while blocked", () => {
-        throw new Error("not implemented");
+    const time = timeGenerator();
+    const page = new BasicPage();
+    page.block(time());
+    page.recordEvent(time(), PageEvent.VISIT, "");
+    const observed = observePage(page, time());
+
+    const expected: ExpectedObservedPage = {
+      access: PageAccess.BLOCKED,
+      msSinceBlock: 0,
+      msSinceInitialVisit: null,
+    }
+    expect(observed).toMatchObject(expected);
   })
   
 
   test("show while blocked", () => {
-        throw new Error("not implemented");
+    const time = timeGenerator();
+    const page = new BasicPage();
+    page.block(time());
+    page.recordEvent(time(), PageEvent.SHOW, "");
+    const msObserve = 5;
+    const observed = observePage(page, time(msObserve));
+
+    const expected: ExpectedObservedPage = {
+      access: PageAccess.BLOCKED,
+      msSinceBlock: msObserve,
+      isShowing: false,
+      msViewtime: 0,
+    }
+    expect(observed).toMatchObject(expected);
   })
   
 
   test("show and hide while blocked", () => {
-        throw new Error("not implemented");
+    const time = timeGenerator();
+    const page = new BasicPage();
+    page.block(time());
+    page.recordEvent(time(), PageEvent.SHOW, "");
+    const msHide = 5;
+    page.recordEvent(time(msHide), PageEvent.HIDE, "");
+    const msObserve = 10;
+    const observed = observePage(page, time(msObserve));
+
+    const expected: ExpectedObservedPage = {
+      access: PageAccess.BLOCKED,
+      msSinceBlock: msObserve,
+      isShowing: false,
+      msViewtime: 0,
+    }
+    expect(observed).toMatchObject(expected);
   })
   
 
   test("reset viewtime while blocekd", () => {
-        throw new Error("not implemented");
+    const time = timeGenerator();
+    const page = new BasicPage();
+    page.block(time());
+    page.recordReset(PageReset.VIEWTIME, time(100_000));
+    const observed = observePage(page, time());
+
+    const expected: ExpectedObservedPage = {
+      access: PageAccess.BLOCKED,
+      msSinceBlock: 0,
+      isShowing: false,
+      msSinceInitialVisit: null,
+      msSinceHide: null,
+      msViewtime: 0,
+    }
+    expect(observed).toMatchObject(expected);
   })
   
   
   test("reset initial visit while blocked", () => {
-        throw new Error("not implemented");
+    const time = timeGenerator();
+    const page = new BasicPage();
+    page.block(time());
+    page.recordReset(PageReset.INITIALVISIT, time(100_000));
+    const observed = observePage(page, time());
+
+    const expected: ExpectedObservedPage = {
+      access: PageAccess.BLOCKED,
+      msSinceBlock: 0,
+      isShowing: false,
+      msSinceInitialVisit: null,
+      msSinceHide: null,
+      msViewtime: 0,
+    }
+    expect(observed).toMatchObject(expected);
   })
   
 
   test("unblock before block", () => {
-        throw new Error("not implemented");
-  })
+    const time = timeGenerator();
+    const page = new BasicPage();
+    page.unblock();
+    page.block(time());
+    const observed = observePage(page, time());
 
-
-  test("block and unblock at same time", () => {
-        throw new Error("not implemented");
+    const expected: ExpectedObservedPage = {
+      access: PageAccess.BLOCKED,
+      msSinceBlock: 0,
+      isShowing: false,
+      msSinceInitialVisit: null,
+      msSinceHide: null,
+      msViewtime: 0,
+    }
+    expect(observed).toMatchObject(expected);
   })
 
 
   test("unblock after block", () => {
-        throw new Error("not implemented");
-  })
-  
+    const time = timeGenerator();
+    const page = new BasicPage();
+    page.block(time());
+    page.unblock();
+    const observed = observePage(page, time());
 
-  test("unblock when not blocked", () => {
-        throw new Error("not implemented");
+    const expected: ExpectedObservedPage = {
+      access: PageAccess.ALLOWED,
+      msSinceBlock: null,
+      isShowing: false,
+      msSinceInitialVisit: null,
+      msSinceHide: null,
+      msViewtime: 0,
+    }
+    expect(observed).toMatchObject(expected);
+  })
+
+
+  test("unblock when not blocked; visited and viewed", () => {
+    const time = timeGenerator();
+    const page = new BasicPage();
+    page.recordEvent(time(), PageEvent.VISIT, "");
+    page.recordEvent(time(), PageEvent.SHOW, "");
+    const viewtime = 1;
+    page.recordEvent(time(viewtime), PageEvent.HIDE, "");
+    page.unblock();
+    const msObserve = 500;
+    const observed = observePage(page, time(msObserve));
+
+    const expected: ExpectedObservedPage = {
+      access: PageAccess.ALLOWED,
+      msSinceBlock: null,
+      isShowing: false,
+      msSinceInitialVisit: msObserve,
+      msSinceHide: msObserve - viewtime,
+      msViewtime: viewtime,
+    }
+    expect(observed).toMatchObject(expected);
   })
 })
 
@@ -609,6 +818,14 @@ describe("BasicPage", () => {
 describe("BasicPage from/toObject", () => {
 
   test("from/toObject does not mutate", () => {
-    throw new Error("not implemented");
+    const time = timeGenerator();
+    const page = new BasicPage();
+    page.recordEvent(time(), PageEvent.VISIT, "");
+    page.recordEvent(time(), PageEvent.SHOW, "A");
+    page.recordEvent(time(5), PageEvent.SHOW, "B");
+    page.recordEvent(time(10), PageEvent.HIDE, "A");
+    const expected = page.toObject();
+    const actual = BasicPage.fromObject(expected).toObject();
+    expect(actual).toStrictEqual(expected);
   })
 })
