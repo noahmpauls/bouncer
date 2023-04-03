@@ -1,6 +1,7 @@
 import { describe, test, expect } from "@jest/globals";
 import { BasicPage, IPage, PageAccess, PageEvent, PageReset } from "@bouncer/page";
 import { BasicPageData } from "@bouncer/page/BasicPage";
+import { timeGenerator } from "../testUtils";
 
 
 type ObservedPage = {
@@ -23,11 +24,6 @@ function observePage(page: IPage, time: Date): ObservedPage {
     msSinceBlock: page.msSinceBlock(time),
     msSinceHide: page.msSinceHide(time)
   }
-}
-
-
-function timeGenerator(time: Date = new Date()) {
-  return (offsetMs: number = 0) => new Date(time.getTime() + offsetMs);
 }
 
 

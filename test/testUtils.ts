@@ -1,4 +1,5 @@
-import { BasicPage, IPage, PageEvent } from "@bouncer/page"
+import { BasicPage, IPage, IPageMetrics, PageAccess, PageEvent, PageReset } from "@bouncer/page"
+import { BasicPageData } from "@bouncer/page/BasicPage";
 
 type PageMutation = {
   type: PageEvent,
@@ -28,4 +29,28 @@ export function pageWithMutations(startTime: Date, mutations: PageMutation[]): I
     page.recordEvent(time, mutation.type, mutation.viewer ?? "");
   }
   return page;
+}
+
+
+export function pageMetrics(metrics: {
+  access?: PageAccess,
+  isShowing?: boolean,
+  msSinceInitialVisit?: number | null,
+  msViewtime?: number,
+  msSinceBlock?: number | null,
+  msSinceHide?: number | null,
+}): IPageMetrics {
+  return {
+    access: () => metrics.access ?? PageAccess.ALLOWED,
+    isShowing: () => metrics.isShowing ?? false,
+    msSinceInitialVisit: (t) => metrics.msSinceInitialVisit ?? null,
+    msViewtime: (t) => metrics.msViewtime ?? 0,
+    msSinceBlock: (t) => metrics.msSinceBlock ?? null,
+    msSinceHide: (t) => metrics.msSinceHide ?? null,
+  }
+}
+
+
+export function timeGenerator(time: Date = new Date()) {
+  return (offsetMs: number = 0) => new Date(time.getTime() + offsetMs);
 }
