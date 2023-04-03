@@ -9,16 +9,15 @@ export interface IPage {
   /**
    * Get the current level of view access to the page.
    *
-   * @param time the current time
    * @returns the access status of the page
    */
-  checkAccess(time: Date): PageAccess;
+  checkAccess(): PageAccess;
 
   /**
    * Record the occurence of an event on the page from a particular page
    * viewer.
    * 
-   * @param time the current time
+   * @param time event time
    * @param event the event to record
    * @param viewer unique ID of the viewer
    */
@@ -28,25 +27,23 @@ export interface IPage {
    * Reset page metrics according to the specified type of reset and the time
    * at which the reset occurred.
    * 
-   * @param time the current time
    * @param type the type of reset to apply
    * @param resetTime time at which the reset should occur
    */
-  recordReset(time: Date, type: PageReset, resetTime: Date): void;
+  recordReset(type: PageReset, resetTime: Date): void;
 
   /**
-   * Add a block to this page at the current time.
+   * Add a block to this page at the given time.
    * 
-   * @param time the current time
+   * @param time block time
    */
   block(time: Date): void;
   
   /**
    * Removes a block from this page at the current time.
    * 
-   * @param time the current time
    */
-  unblock(time: Date): void;
+  unblock(): void;
   
   /**
    * Convert the page to an object representation. The representation must
@@ -63,14 +60,13 @@ export interface IPage {
   /**
    * Get whether the page is currently showing in any context.
    * 
-   * @param time the current time
    * @returns whether the page is currently showing
    */
-  isShowing(time: Date): boolean;
+  isShowing(): boolean;
 
   /**
    * Milliseconds since the first page visit since an unblock (or ever).
-   * TOOO null if...
+   * TODO null if...
    * 
    * @param time the current time
    * @returns milliseconds since initial visit

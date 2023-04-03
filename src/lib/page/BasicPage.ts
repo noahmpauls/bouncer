@@ -75,7 +75,7 @@ export class BasicPage implements IPage {
     );
   }
 
-  checkAccess(time: Date): PageAccess {
+  checkAccess(): PageAccess {
     if (this.timeBlock === null) {
       return PageAccess.ALLOWED;
     } else {
@@ -85,7 +85,7 @@ export class BasicPage implements IPage {
 
   recordEvent(time: Date, event: PageEvent, viewer: string): void {
     // cannot record events on blocked page
-    if (this.checkAccess(time) === PageAccess.BLOCKED) {
+    if (this.checkAccess() === PageAccess.BLOCKED) {
       return;
     }
     switch (event) {
@@ -135,23 +135,21 @@ export class BasicPage implements IPage {
     }
   }
   
-  recordReset(time: Date, type: PageReset, resetTime: Date): void {
+  recordReset(type: PageReset, resetTime: Date): void {
     switch (type) {
       case PageReset.INITIALVISIT:
-        this.resetInitialVisit(time, resetTime);
+        this.resetInitialVisit(resetTime);
         break;
       case PageReset.VIEWTIME:
-        this.resetViewtime(time, resetTime);
+        this.resetViewtime(resetTime);
         break;
     }
     this.checkRep();
   }
 
-  private resetViewtime(time: Date, resetTime: Date): void {
-    assertTimeSequence(resetTime, time);
+  private resetViewtime(resetTime: Date): void {
     this.msViewtimeAccrued = 0;
-    this.timeLastHide = null;
-    if (this.isShowing(time)) {
+    if (this.isShowing()) {
       // if showing, viewtime is already accruing since reset
       const viewtimeStart = new Date(Math.max(resetTime.getTime(), this.timeLastShow!.getTime()));
       this.timeLastShow = viewtimeStart;
@@ -161,9 +159,8 @@ export class BasicPage implements IPage {
     }
   }
   
-  private resetInitialVisit(time: Date, resetTime: Date): void {
-    assertTimeSequence(resetTime, time);
-    if (this.isShowing(time)) {
+  private resetInitialVisit(resetTime: Date): void {
+    if (this.isShowing()) {
       this.timeInitialVisit = resetTime;
     } else {
       this.timeInitialVisit = null;
@@ -180,13 +177,13 @@ export class BasicPage implements IPage {
     this.checkRep();
   }
   
-  unblock(time: Date): void {
+  unblock(): void {
     this.timeBlock = null;
     this.checkRep();
   }
   
-  isShowing(time: Date): boolean {
-    return (this.timeLastShow !== null && this.timeLastShow <= time)
+  isShowing(): boolean {
+    return this.viewers.size > 0;
   }
   
   msSinceInitialVisit(time: Date): number | null {

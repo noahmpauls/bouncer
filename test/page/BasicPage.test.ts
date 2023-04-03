@@ -16,8 +16,8 @@ type ExpectedObservedPage = Partial<ObservedPage>;
 
 function observePage(page: IPage, time: Date): ObservedPage {
   return {
-    access: page.checkAccess(time),
-    isShowing: page.isShowing(time),
+    access: page.checkAccess(),
+    isShowing: page.isShowing(),
     msSinceInitialVisit: page.msSinceInitialVisit(time),
     msViewtime: page.msViewtime(time),
     msSinceBlock: page.msSinceBlock(time),
@@ -374,7 +374,7 @@ describe("BasicPage", () => {
     const page = new BasicPage();
     page.recordEvent(time(), PageEvent.VISIT, "");
     const msReset = 500;
-    page.recordReset(time(msReset), PageReset.VIEWTIME, time(msReset));
+    page.recordReset(PageReset.VIEWTIME, time(msReset));
     const msObserve = 1000;
     const observed = observePage(page, time(msObserve))
     
@@ -386,25 +386,13 @@ describe("BasicPage", () => {
   })
 
 
-  /**
-   * Reset application time is before the time of the last show, in which
-   * case the reset should have no effect since viewtime events occurred
-   * after the reset.
-   * 
-   * Ugh, this is dangerous. We can't do the same thing after a hide.
-   */
-  test("reset viewtime while visible, reset applied before last show", () => {
-    throw new Error("not implemented");
-  })
-  
-  
   test("reset viewtime while visible, resetTime after last show", () => {
     const time = timeGenerator();
     const page = new BasicPage();
     page.recordEvent(time(), PageEvent.SHOW, "");
     const msReset = 2000;
+    page.recordReset(PageReset.VIEWTIME, time(msReset));
     const msObserve = 5000;
-    page.recordReset(time(msObserve), PageReset.VIEWTIME, time(msReset));
     const observed = observePage(page, time(msObserve));
 
     const expected: ExpectedObservedPage = {
@@ -422,7 +410,7 @@ describe("BasicPage", () => {
     page.recordEvent(time(), PageEvent.SHOW, "");
     const msReset = -1000;
     const msObserve = 5000;
-    page.recordReset(time(msObserve), PageReset.VIEWTIME, time(msReset));
+    page.recordReset(PageReset.VIEWTIME, time(msReset));
     const observed = observePage(page, time(msObserve));
 
     const expected: ExpectedObservedPage = {
@@ -432,34 +420,44 @@ describe("BasicPage", () => {
     }
     expect(observed).toMatchObject(expected);
   })
+  
+  
+  /**
+   * DISCLAIMER for the next two tests:
+   * 
+   * This tests whether the page keeps a detailed history. The most recent view
+   * session is complete when the reset is applied, but the reset time is in
+   * the middle of that view session, so in theory the reset splits the view
+   * session, and the effective viewtime is the length of the latter split.
+   * 
+   * In reality, we don't need pages to be that complex. The rule is that a
+   * reset can only take an open view session for context; if a reset should
+   * have been applied in the middle of a view session, it's too late to do it
+   * afterwards.
+   */
 
 
-  test("reset viewtime after show and hide, reset after start and hide", () => {
+  test("reset viewtime after show and hide, resetTime after show and hide", () => {
     const time = timeGenerator();
     const page = new BasicPage();
     page.recordEvent(time(), PageEvent.SHOW, "");
     const msHide = 5000;
     page.recordEvent(time(msHide), PageEvent.HIDE, "");
     const msReset = 5500;
+    page.recordReset(PageReset.VIEWTIME, time(msReset));
     const msObserve = 6000;
-    page.recordReset(time(msObserve), PageReset.VIEWTIME, time(msReset));
     const observed = observePage(page, time(msObserve));
     
     const expected: ExpectedObservedPage = {
       isShowing: false,
-      msViewtime: msHide,
+      msViewtime: 0,
       msSinceHide: msObserve - msHide,
     };
     expect(observed).toMatchObject(expected);
   })
 
 
-  /**
-   * Reseting viewtime after a view session, but the reset time is prior to the
-   * hide time of the session. In this case, the effective start time of the
-   * session is the reset time, and viewtime is altered accordingly.
-   */
-  test("reset viewtime after show and hide, reset before hide and after start", () => {
+  test("reset viewtime after show and hide, resetTime before hide and after show", () => {
     const time = timeGenerator();
     const page = new BasicPage();
     page.recordEvent(time(), PageEvent.SHOW, "");
@@ -467,12 +465,12 @@ describe("BasicPage", () => {
     page.recordEvent(time(msHide), PageEvent.HIDE, "");
     const msReset = 4000;
     const msObserve = 6000;
-    page.recordReset(time(msObserve), PageReset.VIEWTIME, time(msReset));
+    page.recordReset(PageReset.VIEWTIME, time(msReset));
     const observed = observePage(page, time(msObserve));
     
     const expected: ExpectedObservedPage = {
       isShowing: false,
-      msViewtime: msHide - msReset,
+      msViewtime: 0,
       msSinceHide: msObserve - msHide,
     };
     expect(observed).toMatchObject(expected);
@@ -484,7 +482,7 @@ describe("BasicPage", () => {
     const page = new BasicPage();
     page.recordEvent(time(), PageEvent.VISIT, "");
     const msReset = 100;
-    page.recordReset(time(200), PageReset.INITIALVISIT, time(msReset));
+    page.recordReset(PageReset.INITIALVISIT, time(msReset));
     const msObserve = 300; 
     const observed = observePage(page, time(msObserve));
     
@@ -495,25 +493,6 @@ describe("BasicPage", () => {
   })
   
 
-  /**
-   * If reset is applied before the initial visit, the reset has no effect.
-   * Does this even make sense for this to happen?
-   */
-  test("reset initial visit after only visited, applied before visit", () => {
-    const time = timeGenerator();
-    const page = new BasicPage();
-    page.recordEvent(time(), PageEvent.VISIT, "");
-    page.recordReset(time(-100), PageReset.INITIALVISIT, time(-200));
-    const msObserve = 200; 
-    const observed = observePage(page, time(msObserve));
-
-    const expected: ExpectedObservedPage = {
-      msSinceInitialVisit: 0
-    };
-    expect(observed).toMatchObject(expected);
-  })
-
-
   test("reset initial visit while visible", () => {
     const time = timeGenerator();
     const page = new BasicPage();
@@ -521,7 +500,7 @@ describe("BasicPage", () => {
     const msShow = 150;
     page.recordEvent(time(msShow), PageEvent.SHOW, "");
     const msReset = 200;
-    page.recordReset(time(250), PageReset.INITIALVISIT, time(msReset));
+    page.recordReset(PageReset.INITIALVISIT, time(msReset));
     const msObserve = 300; 
     const observed = observePage(page, time(msObserve));
     
@@ -543,7 +522,7 @@ describe("BasicPage", () => {
     const msHide = 175;
     page.recordEvent(time(msHide), PageEvent.HIDE, "");
     const msReset = 200;
-    page.recordReset(time(250), PageReset.INITIALVISIT, time(msReset));
+    page.recordReset(PageReset.INITIALVISIT, time(msReset));
     const msObserve = 300; 
     const observed = observePage(page, time(msObserve));
     

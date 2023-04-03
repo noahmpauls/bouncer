@@ -43,20 +43,20 @@ export class ScheduledLimit implements IEnforcer {
   
   applyTo(time: Date, page: IPage): void {
     if (this.schedule.contains(time)) {
-      const pageAccess = page.checkAccess(time);
+      const pageAccess = page.checkAccess();
       const action = this.limit.action(time, page);
       console.log(`enforcer: got action ${action.action}`)
       if (action.action === "RESET") {
         for (const reset of action.resets) {
-          page.recordReset(time, reset.type, reset.time);
+          page.recordReset(reset.type, reset.time);
         }
       } else if (action.action === "BLOCK" && pageAccess === PageAccess.ALLOWED) {
         page.block(action.time);
       } else if (action.action === "UNBLOCK" && pageAccess === PageAccess.BLOCKED) {
-        page.unblock(time);
+        page.unblock();
       }
-    } else if (page.checkAccess(time) === PageAccess.BLOCKED) {
-      page.unblock(time);
+    } else if (page.checkAccess() === PageAccess.BLOCKED) {
+      page.unblock();
     }
   }
   
