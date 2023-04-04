@@ -51,19 +51,21 @@ export class ViewtimeCooldownLimit implements ILimit {
     }
     const viewtime = page.msViewtime(time);
     if (viewtime >= this.msViewtime) {
-      const timeOverAllotted = viewtime - this.msViewtime;
-      const blockTimeOffset = (page.msSinceHide(time) ?? 0) + timeOverAllotted;
-      const blockTime = new Date(time.getTime() - blockTimeOffset);
-      // cooldown not elapsed
-      if (time.getTime() - blockTime.getTime() < this.msCooldown) {
-        return { action: "BLOCK", time: blockTime };
-      // cooldown complete, reset triggered at end of cooldown
+      if (page.isShowing()) {
+        return { action: "BLOCK", time: time }
       } else {
-        const resetTime = new Date(blockTime.getTime() + this.msCooldown);
-        return {
-          action: "RESET",
-          resets: [{ type: PageReset.VIEWTIME, time: resetTime }]
-        };
+        // treat time of last hide as the time when a block should be applied
+        // at this point, the last hide time should never be null...
+        const hideTime = new Date(time.getTime() - (page.msSinceHide(time) ?? 0))
+        if (time.getTime() - hideTime.getTime() < this.msCooldown) {
+          return { action: "BLOCK", time: hideTime }
+        } else {
+          const resetTime = new Date(hideTime.getTime() + this.msCooldown);
+          return { 
+            action: "RESET",
+            resets: [{ type: PageReset.VIEWTIME, time: resetTime }]
+          }
+        }
       }
     }
     return { action: "NONE" };
