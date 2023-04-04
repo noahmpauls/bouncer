@@ -53,7 +53,7 @@ describe("ScheduledLimit -> ViewtimeCooldownLimit", () => {
     page.recordEvent(new Date(0), PageEvent.SHOW, "a");
     page.recordEvent(new Date(1100), PageEvent.HIDE, "a");
 
-    enforcer.applyTo(new Date(2001), page);
+    enforcer.applyTo(new Date(2101), page);
     expect(page.access()).toEqual(PageAccess.ALLOWED);
   });
 
@@ -68,7 +68,7 @@ describe("ScheduledLimit -> ViewtimeCooldownLimit", () => {
     enforcer.applyTo(new Date(1500), page);
     expect(page.access()).toEqual(PageAccess.BLOCKED);
 
-    enforcer.applyTo(new Date(2001), page);
+    enforcer.applyTo(new Date(2101), page);
     expect(page.access()).toEqual(PageAccess.ALLOWED);
   });
 });

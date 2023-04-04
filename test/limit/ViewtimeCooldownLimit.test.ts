@@ -59,7 +59,6 @@ describe("ViewtimeCooldownLimit action", () => {
   })
 
 
-
   test("allowed, viewtime < limit", () => {
     const viewtime = 1000;
     const cooldown = 500;
@@ -129,7 +128,7 @@ describe("ViewtimeCooldownLimit action", () => {
 
     const expected: LimitAction = {
       action: "BLOCK",
-      time: time(msCheck - msTimeOver),
+      time: time(msCheck),
     };
     expect(action).toStrictEqual(expected);
   })
@@ -141,17 +140,18 @@ describe("ViewtimeCooldownLimit action", () => {
     const cooldown = 500;
     const limit = new ViewtimeCooldownLimit(viewtime, cooldown);
 
-    const msTimeOver = cooldown;
+    const msTimeOver = 250;
+    const msViewtime = viewtime + msTimeOver;
     const page = pageMetrics({
       access: PageAccess.ALLOWED,
-      isShowing: true,
-      msViewtime: viewtime + msTimeOver,
+      isShowing: false,
+      msViewtime: msViewtime,
       msSinceInitialVisit: null,
       msSinceBlock: null,
-      msSinceHide: null,
+      msSinceHide: cooldown,
     });
 
-    const msCheck = viewtime + msTimeOver;
+    const msCheck = msViewtime + cooldown;
     const action = limit.action(time(msCheck), page);
 
     const expected: LimitAction = {
@@ -171,52 +171,52 @@ describe("ViewtimeCooldownLimit action", () => {
     const limit = new ViewtimeCooldownLimit(viewtime, cooldown);
 
     const msTimeOver = 1;
+    const msOverCooldown = 20;
     const page = pageMetrics({
       access: PageAccess.ALLOWED,
       isShowing: false,
       msViewtime: viewtime + msTimeOver,
       msSinceInitialVisit: null,
       msSinceBlock: null,
-      msSinceHide: viewtime + msTimeOver + cooldown,
+      msSinceHide: cooldown + msOverCooldown,
     });
 
-    const msCheck = viewtime + msTimeOver + cooldown;
+    const msCheck = viewtime + msTimeOver + cooldown + msOverCooldown;
     const action = limit.action(time(msCheck), page);
 
     const expected: LimitAction = {
       action: "RESET",
       resets: [
-        { type: PageReset.VIEWTIME, time: time(viewtime + cooldown) }
+        { type: PageReset.VIEWTIME, time: time(msCheck - msOverCooldown) }
       ]
     };
     expect(action).toStrictEqual(expected);
   })
 
 
-  test("allowed, visible, viewtime > limit, checktime > cooldown", () => {
+  test("allowed, visible, viewtime > limit + cooldown", () => {
     const time = timeGenerator(new Date(0));
     const viewtime = 1000;
     const cooldown = 500;
     const limit = new ViewtimeCooldownLimit(viewtime, cooldown);
 
     const msTimeOver = 1;
+    const msViewtime = viewtime + cooldown + msTimeOver;
     const page = pageMetrics({
       access: PageAccess.ALLOWED,
       isShowing: true,
-      msViewtime: viewtime + cooldown + msTimeOver,
+      msViewtime: msViewtime,
       msSinceInitialVisit: null,
       msSinceBlock: null,
       msSinceHide: null,
     });
 
-    const msCheck = viewtime + msTimeOver + cooldown;
+    const msCheck = msViewtime;
     const action = limit.action(time(msCheck), page);
 
     const expected: LimitAction = {
-      action: "RESET",
-      resets: [
-        { type: PageReset.VIEWTIME, time: time(viewtime + cooldown) }
-      ]
+      action: "BLOCK",
+      time: time(msCheck)
     };
     expect(action).toStrictEqual(expected);
   })
