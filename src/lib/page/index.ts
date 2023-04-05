@@ -35,8 +35,9 @@ export interface IPage extends IPageMetrics {
   /**
    * Removes a block from this page at the current time.
    * 
+   * @param time: unblock time
    */
-  unblock(): void;
+  unblock(time: Date): void;
   
   /**
    * Convert the page to an object representation. The representation must
@@ -96,6 +97,14 @@ export interface IPageMetrics {
    * @returns milliseconds since most recent hide
    */
   msSinceHide(time: Date): number | null;
+  
+  /**
+   * Milliseconds since last time the page was updated in any way.
+   * 
+   * @param time the current time
+   * @returns milliseconds since most recent update
+   */
+  msSinceUpdate(time: Date): number | null;
 }
 
 

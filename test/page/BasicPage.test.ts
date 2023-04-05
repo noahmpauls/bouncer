@@ -10,7 +10,8 @@ type ObservedPage = {
   msSinceInitialVisit: ReturnType<IPage["msSinceInitialVisit"]>,
   msViewtime: ReturnType<IPage["msViewtime"]>
   msSinceBlock: ReturnType<IPage["msSinceBlock"]>,
-  msSinceHide: ReturnType<IPage["msSinceHide"]>
+  msSinceHide: ReturnType<IPage["msSinceHide"]>,
+  msSinceUpdate: ReturnType<IPage["msSinceHide"]>,
 }
 
 type ExpectedObservedPage = Partial<ObservedPage>;
@@ -22,7 +23,8 @@ function observePage(page: IPage, time: Date): ObservedPage {
     msSinceInitialVisit: page.msSinceInitialVisit(time),
     msViewtime: page.msViewtime(time),
     msSinceBlock: page.msSinceBlock(time),
-    msSinceHide: page.msSinceHide(time)
+    msSinceHide: page.msSinceHide(time),
+    msSinceUpdate: page.msSinceUpdate(time),
   }
 }
 
@@ -39,6 +41,7 @@ describe("BasicPage", () => {
       msViewtime: 0,
       msSinceBlock: null,
       msSinceHide: null,
+      msSinceUpdate: null,
     }
     expect(observed).toMatchObject(expected);
   })
@@ -57,7 +60,8 @@ describe("BasicPage", () => {
       msSinceInitialVisit: msFromVisit,
       msViewtime: 0,
       msSinceBlock: null,
-      msSinceHide: null
+      msSinceHide: null,
+      msSinceUpdate: msFromVisit,
     }
     expect(observed).toMatchObject(expected);
   })
@@ -77,6 +81,7 @@ describe("BasicPage", () => {
       msViewtime: msFromShow,
       msSinceBlock: null,
       msSinceHide: null,
+      msSinceUpdate: msFromShow,
     }
     expect(observed).toMatchObject(expected);
   })
@@ -97,6 +102,7 @@ describe("BasicPage", () => {
       msViewtime: 0,
       msSinceBlock: null,
       msSinceHide: null,
+      msSinceUpdate: msFromVisit,
     }
     expect(observed).toMatchObject(expected);
   })
@@ -118,6 +124,7 @@ describe("BasicPage", () => {
       msViewtime: msViewtime,
       msSinceBlock: null,
       msSinceHide: msFromShow - msViewtime,
+      msSinceUpdate: msFromShow - msViewtime,
     }
     expect(observed).toMatchObject(expected);
   })
@@ -136,6 +143,7 @@ describe("BasicPage", () => {
       isShowing: false,
       msViewtime: msViewtime,
       msSinceHide: msObserveDelay,
+      msSinceUpdate: msObserveDelay,
     };
     expect(observed).toMatchObject(expected);
   })
@@ -154,6 +162,7 @@ describe("BasicPage", () => {
       isShowing: false,
       msViewtime: msViewtime,
       msSinceHide: msObserveDelay,
+      msSinceUpdate: msObserveDelay,
     };
     expect(observed).toMatchObject(expected);
   })
@@ -172,6 +181,7 @@ describe("BasicPage", () => {
       isShowing: false,
       msViewtime: 0,
       msSinceHide: msObserveDelay - msViewtime,
+      msSinceUpdate: msObserveDelay,
     };
     expect(observed).toMatchObject(expected);
   })
@@ -190,13 +200,34 @@ describe("BasicPage", () => {
       page.recordEvent(time(session.start), PageEvent.SHOW, "");
       page.recordEvent(time(session.end), PageEvent.HIDE, "");
     }
-    const observed = observePage(page, time());
+    const msObserve = 1_000_000;
+    const observed = observePage(page, time(msObserve));
 
     const totalViewtime = sessions.map(s => Math.max(0, s.end - s.start)).reduce((a, b) => a + b, 0);
     const expected: ExpectedObservedPage = {
       isShowing: false,
       msViewtime: totalViewtime,
+      msSinceUpdate: msObserve - Math.max(...sessions.map(s => Math.max(s.start, s.end))),
     };
+    expect(observed).toMatchObject(expected);
+  })
+  
+
+  test("shows from different viewers", () => {
+    const time = timeGenerator();
+    const page = new BasicPage();
+    const msShowA = 1000;
+    const msShowB = msShowA + 1;
+    page.recordEvent(time(msShowA), PageEvent.SHOW, "A");
+    page.recordEvent(time(msShowB), PageEvent.SHOW, "B");
+    const msObserve = msShowB + 1;
+    const observed = observePage(page, time(msObserve));
+
+    const expected: ExpectedObservedPage = {
+      isShowing: true,
+      msViewtime: msObserve - msShowA,
+      msSinceUpdate: msObserve - msShowB,
+    }
     expect(observed).toMatchObject(expected);
   })
 
@@ -206,25 +237,28 @@ describe("BasicPage", () => {
     const page = new BasicPage();
     page.recordEvent(time(), PageEvent.SHOW, "A");
     page.recordEvent(time(1000), PageEvent.SHOW, "B");
-    page.recordEvent(time(2000), PageEvent.HIDE, "A");
+    const msFirstHide = 2000;
+    page.recordEvent(time(msFirstHide), PageEvent.HIDE, "A");
 
     const msShowingObserve = 5_000;
     const observedShowing = observePage(page, time(msShowingObserve));
     const expectedShowing: ExpectedObservedPage = {
       isShowing: true,
       msViewtime: msShowingObserve,
-      msSinceHide: null
+      msSinceHide: null,
+      msSinceUpdate: msShowingObserve - msFirstHide,
     };
-    expect(expectedShowing).toMatchObject(expectedShowing);
+    expect(observedShowing).toMatchObject(expectedShowing);
 
-    const msHide = 10_000;
-    page.recordEvent(time(msHide), PageEvent.HIDE, "B");
+    const msLastHide = 10_000;
+    page.recordEvent(time(msLastHide), PageEvent.HIDE, "B");
     const msHiddenObserve = 20_000;
     const observedHidden = observePage(page, time(msHiddenObserve));
     const expectedHidden: ExpectedObservedPage = {
       isShowing: false,
-      msViewtime: msHide,
-      msSinceHide: msHiddenObserve - msHide
+      msViewtime: msLastHide,
+      msSinceHide: msHiddenObserve - msLastHide,
+      msSinceUpdate: msHiddenObserve - msLastHide,
     };
     expect(observedHidden).toMatchObject(expectedHidden);
   })
@@ -256,6 +290,7 @@ describe("BasicPage", () => {
       isShowing: false,
       msViewtime: msLastHide,
       msSinceHide: msObserveDelay,
+      msSinceUpdate: msObserveDelay,
     };
     expect(observed).toMatchObject(expected);
   })
@@ -272,7 +307,8 @@ describe("BasicPage", () => {
     const observed = observePage(page, time(msObserve));
 
     const expected: ExpectedObservedPage = {
-      msSinceInitialVisit: msObserve - visitTimes[0]
+      msSinceInitialVisit: msObserve - visitTimes[0],
+      msSinceUpdate: msObserve - visitTimes[0],
     };
     expect(observed).toMatchObject(expected);
   })
@@ -289,7 +325,8 @@ describe("BasicPage", () => {
     const observed = observePage(page, time(msObserve));
 
     const expected: ExpectedObservedPage = {
-      msSinceInitialVisit: msObserve - visitTimes[0]
+      msSinceInitialVisit: msObserve - visitTimes[0],
+      msSinceUpdate: msObserve - visitTimes[0],
     };
     expect(observed).toMatchObject(expected);
   })
@@ -306,7 +343,8 @@ describe("BasicPage", () => {
     const observed = observePage(page, time(msObserve));
 
     const expected: ExpectedObservedPage = {
-      msViewtime: msObserve - showTimes[0]
+      msViewtime: msObserve - showTimes[0],
+      msSinceUpdate: msObserve - showTimes[0],
     };
     expect(observed).toMatchObject(expected);
   })
@@ -323,7 +361,8 @@ describe("BasicPage", () => {
     const observed = observePage(page, time(msObserve));
 
     const expected: ExpectedObservedPage = {
-      msViewtime: msObserve - showTimes[0]
+      msViewtime: msObserve - showTimes[0],
+      msSinceUpdate: msObserve - showTimes[0],
     };
     expect(observed).toMatchObject(expected);
   })
@@ -342,6 +381,7 @@ describe("BasicPage", () => {
 
     const expected: ExpectedObservedPage = {
       msViewtime: hideTimes[0],
+      msSinceUpdate: msObserve - hideTimes[0],
     };
     expect(observed).toMatchObject(expected);
   })
@@ -360,6 +400,7 @@ describe("BasicPage", () => {
 
     const expected: ExpectedObservedPage = {
       msViewtime: hideTimes[0],
+      msSinceUpdate: msObserve - hideTimes[0],
     };
     expect(observed).toMatchObject(expected);
   })
@@ -376,7 +417,8 @@ describe("BasicPage", () => {
     
     const expected: ExpectedObservedPage = {
       msSinceInitialVisit: msObserve,
-      msSinceHide: null
+      msSinceHide: null,
+      msSinceUpdate: msObserve - msReset,
     };
     expect(observed).toMatchObject(expected);
   })
@@ -394,7 +436,8 @@ describe("BasicPage", () => {
     const expected: ExpectedObservedPage = {
       isShowing: true,
       msViewtime: msObserve - msReset,
-      msSinceHide: null
+      msSinceHide: null,
+      msSinceUpdate: msObserve - msReset,
     }
     expect(observed).toMatchObject(expected);
   })
@@ -412,7 +455,8 @@ describe("BasicPage", () => {
     const expected: ExpectedObservedPage = {
       isShowing: true,
       msViewtime: msObserve,
-      msSinceHide: null
+      msSinceHide: null,
+      msSinceUpdate: msObserve,
     }
     expect(observed).toMatchObject(expected);
   })
@@ -448,6 +492,7 @@ describe("BasicPage", () => {
       isShowing: false,
       msViewtime: 0,
       msSinceHide: msObserve - msHide,
+      msSinceUpdate: msObserve - msReset,
     };
     expect(observed).toMatchObject(expected);
   })
@@ -468,6 +513,7 @@ describe("BasicPage", () => {
       isShowing: false,
       msViewtime: 0,
       msSinceHide: msObserve - msHide,
+      msSinceUpdate: msObserve - msHide,
     };
     expect(observed).toMatchObject(expected);
   })
@@ -484,6 +530,7 @@ describe("BasicPage", () => {
     
     const expected: ExpectedObservedPage = {
       msSinceInitialVisit: null,
+      msSinceUpdate: msObserve - msReset,
     };
     expect(observed).toMatchObject(expected);
   })
@@ -503,7 +550,8 @@ describe("BasicPage", () => {
     const expected: ExpectedObservedPage = {
       isShowing: true,
       msViewtime: msObserve - msShow,
-      msSinceInitialVisit: msObserve - msReset
+      msSinceInitialVisit: msObserve - msReset,
+      msSinceUpdate: msObserve - msReset,
     };
     expect(observed).toMatchObject(expected);
   })
@@ -523,7 +571,8 @@ describe("BasicPage", () => {
     const expected: ExpectedObservedPage = {
       isShowing: true,
       msViewtime: msObserve - msShow,
-      msSinceInitialVisit: msObserve - msShow
+      msSinceInitialVisit: msObserve - msShow,
+      msSinceUpdate: msObserve - msShow,
     };
     expect(observed).toMatchObject(expected);
   })
@@ -546,6 +595,7 @@ describe("BasicPage", () => {
       isShowing: false,
       msViewtime: msHide - msShow,
       msSinceInitialVisit: null,
+      msSinceUpdate: msObserve - msReset,
     };
     expect(observed).toMatchObject(expected);
   })
@@ -561,6 +611,7 @@ describe("BasicPage", () => {
     const expected: ExpectedObservedPage = {
       access: PageAccess.BLOCKED,
       msSinceBlock: msObserve,
+      msSinceUpdate: msObserve,
       isShowing: false,
       msSinceInitialVisit: null,
       msSinceHide: null,
@@ -581,6 +632,7 @@ describe("BasicPage", () => {
     const expected: ExpectedObservedPage = {
       access: PageAccess.BLOCKED,
       msSinceBlock: msObserve,
+      msSinceUpdate: msObserve,
       isShowing: false,
       msSinceInitialVisit: null,
       msSinceHide: null,
@@ -601,6 +653,7 @@ describe("BasicPage", () => {
     const expected: ExpectedObservedPage = {
       access: PageAccess.BLOCKED,
       msSinceBlock: msObserve,
+      msSinceUpdate: msObserve,
       isShowing: false,
       msSinceInitialVisit: null,
       msSinceHide: null,
@@ -624,6 +677,7 @@ describe("BasicPage", () => {
     const expected: ExpectedObservedPage = {
       access: PageAccess.BLOCKED,
       msSinceBlock: msObserve - msBlock,
+      msSinceUpdate: msObserve - msBlock,
       isShowing: false,
       msSinceInitialVisit: null,
       msSinceHide: null,
@@ -648,6 +702,7 @@ describe("BasicPage", () => {
     const expected: ExpectedObservedPage = {
       access: PageAccess.BLOCKED,
       msSinceBlock: 0,
+      msSinceUpdate: 0,
       isShowing: false,
       msSinceInitialVisit: null,
       msSinceHide: null,
@@ -661,13 +716,16 @@ describe("BasicPage", () => {
     const time = timeGenerator();
     const page = new BasicPage();
     page.block(time());
-    page.recordEvent(time(), PageEvent.VISIT, "");
-    const observed = observePage(page, time());
+    const msVisit = 30;
+    page.recordEvent(time(msVisit), PageEvent.VISIT, "");
+    const msObserve = 60;
+    const observed = observePage(page, time(msObserve));
 
     const expected: ExpectedObservedPage = {
       access: PageAccess.BLOCKED,
-      msSinceBlock: 0,
+      msSinceBlock: msObserve,
       msSinceInitialVisit: null,
+      msSinceUpdate: msObserve,
     }
     expect(observed).toMatchObject(expected);
   })
@@ -677,7 +735,8 @@ describe("BasicPage", () => {
     const time = timeGenerator();
     const page = new BasicPage();
     page.block(time());
-    page.recordEvent(time(), PageEvent.SHOW, "");
+    const msShow = 2;
+    page.recordEvent(time(msShow), PageEvent.SHOW, "");
     const msObserve = 5;
     const observed = observePage(page, time(msObserve));
 
@@ -686,6 +745,7 @@ describe("BasicPage", () => {
       msSinceBlock: msObserve,
       isShowing: false,
       msViewtime: 0,
+      msSinceUpdate: msObserve,
     }
     expect(observed).toMatchObject(expected);
   })
@@ -706,6 +766,7 @@ describe("BasicPage", () => {
       msSinceBlock: msObserve,
       isShowing: false,
       msViewtime: 0,
+      msSinceUpdate: msObserve,
     }
     expect(observed).toMatchObject(expected);
   })
@@ -715,16 +776,19 @@ describe("BasicPage", () => {
     const time = timeGenerator();
     const page = new BasicPage();
     page.block(time());
-    page.recordReset(PageReset.VIEWTIME, time(100_000));
-    const observed = observePage(page, time());
+    const msReset = 100_000;
+    page.recordReset(PageReset.VIEWTIME, time(msReset));
+    const msObserve = msReset;
+    const observed = observePage(page, time(msObserve));
 
     const expected: ExpectedObservedPage = {
       access: PageAccess.BLOCKED,
-      msSinceBlock: 0,
+      msSinceBlock: msObserve,
       isShowing: false,
       msSinceInitialVisit: null,
       msSinceHide: null,
       msViewtime: 0,
+      msSinceUpdate: msObserve,
     }
     expect(observed).toMatchObject(expected);
   })
@@ -734,16 +798,19 @@ describe("BasicPage", () => {
     const time = timeGenerator();
     const page = new BasicPage();
     page.block(time());
-    page.recordReset(PageReset.INITIALVISIT, time(100_000));
-    const observed = observePage(page, time());
+    const msReset = 100_000;
+    page.recordReset(PageReset.INITIALVISIT, time(msReset));
+    const msObserve = msReset;
+    const observed = observePage(page, time(msObserve));
 
     const expected: ExpectedObservedPage = {
       access: PageAccess.BLOCKED,
-      msSinceBlock: 0,
+      msSinceBlock: msObserve,
       isShowing: false,
       msSinceInitialVisit: null,
       msSinceHide: null,
       msViewtime: 0,
+      msSinceUpdate: msObserve,
     }
     expect(observed).toMatchObject(expected);
   })
@@ -752,7 +819,7 @@ describe("BasicPage", () => {
   test("unblock before block", () => {
     const time = timeGenerator();
     const page = new BasicPage();
-    page.unblock();
+    page.unblock(time(-10));
     page.block(time());
     const observed = observePage(page, time());
 
@@ -763,6 +830,7 @@ describe("BasicPage", () => {
       msSinceInitialVisit: null,
       msSinceHide: null,
       msViewtime: 0,
+      msSinceUpdate: 0,
     }
     expect(observed).toMatchObject(expected);
   })
@@ -772,8 +840,10 @@ describe("BasicPage", () => {
     const time = timeGenerator();
     const page = new BasicPage();
     page.block(time());
-    page.unblock();
-    const observed = observePage(page, time());
+    const msUnblock = 800;
+    page.unblock(time(msUnblock));
+    const msObserve = msUnblock + 10;
+    const observed = observePage(page, time(msObserve));
 
     const expected: ExpectedObservedPage = {
       access: PageAccess.ALLOWED,
@@ -782,6 +852,7 @@ describe("BasicPage", () => {
       msSinceInitialVisit: null,
       msSinceHide: null,
       msViewtime: 0,
+      msSinceUpdate: msObserve - msUnblock,
     }
     expect(observed).toMatchObject(expected);
   })
@@ -794,7 +865,8 @@ describe("BasicPage", () => {
     page.recordEvent(time(), PageEvent.SHOW, "");
     const viewtime = 1;
     page.recordEvent(time(viewtime), PageEvent.HIDE, "");
-    page.unblock();
+    const msUnblock = viewtime + 3;
+    page.unblock(time(msUnblock));
     const msObserve = 500;
     const observed = observePage(page, time(msObserve));
 
@@ -805,6 +877,7 @@ describe("BasicPage", () => {
       msSinceInitialVisit: msObserve,
       msSinceHide: msObserve - viewtime,
       msViewtime: viewtime,
+      msSinceUpdate: msObserve - msUnblock,
     }
     expect(observed).toMatchObject(expected);
   })

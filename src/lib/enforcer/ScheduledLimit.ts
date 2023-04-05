@@ -52,10 +52,10 @@ export class ScheduledLimit implements IEnforcer {
       } else if (action.action === "BLOCK" && pageAccess === PageAccess.ALLOWED) {
         page.block(action.time);
       } else if (action.action === "UNBLOCK" && pageAccess === PageAccess.BLOCKED) {
-        page.unblock();
+        page.unblock(time);
       }
     } else if (page.access() === PageAccess.BLOCKED) {
-      page.unblock();
+      page.unblock(time);
     }
   }
   

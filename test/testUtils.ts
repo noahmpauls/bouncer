@@ -39,6 +39,7 @@ export function pageMetrics(metrics: {
   msViewtime?: number,
   msSinceBlock?: number | null,
   msSinceHide?: number | null,
+  msSinceUpdate?: number | null,
 }): IPageMetrics {
   return {
     access: () => metrics.access ?? PageAccess.ALLOWED,
@@ -47,6 +48,7 @@ export function pageMetrics(metrics: {
     msViewtime: (t) => metrics.msViewtime ?? 0,
     msSinceBlock: (t) => metrics.msSinceBlock ?? null,
     msSinceHide: (t) => metrics.msSinceHide ?? null,
+    msSinceUpdate: (t) => metrics.msSinceUpdate ?? null,
   }
 }
 
