@@ -7,15 +7,18 @@ import { Synchronizer } from "@bouncer/utils";
 import { CachedBouncerContext, IBouncerContext } from "@bouncer/context";
 
 
+// TOOD: move most of this to its own ADT
+
 const synchronizer: Synchronizer = new Synchronizer();
 const cache: IBouncerContext = new CachedBouncerContext(new StoredBouncerData(new BrowserStorage()));
 
+// TODO: abstractify messaging, add explicit types to messages
 browser.runtime.onMessage.addListener(async (message, sender) => await synchronizer.sync(async () => {
   console.log(`${message.time.getTime()} back: received ${message.type}`);
 
   let messageType: string = message.type;
   let messageTime: Date = message.time;
-  // TODO: this is just yike
+
   let url = new URL(sender.url ?? "");
   let senderId = constructSenderId(sender);
   let response: any = null;
@@ -67,8 +70,8 @@ async function handlePageEvent(time: Date, event: PageEvent | null, url: URL, se
     policy.enforcer.applyTo(time, policy.page);
     if (event !== null) {
       policy.page.recordEvent(time, event, sender);
+      policy.enforcer.applyTo(time, policy.page);
     }
-    policy.enforcer.applyTo(time, policy.page);
     block ||= policy.page.access() === PageAccess.BLOCKED;
     // if page isn't showing, don't perform viewtime check
     if (policy.page.isShowing()) {

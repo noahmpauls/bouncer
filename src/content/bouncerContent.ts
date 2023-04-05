@@ -1,14 +1,23 @@
 import browser from "webextension-polyfill";
 
+// This is effectively an IIFE.
 doBouncer();
 
 async function doBouncer() {
+  // TODO: move all this to its own ADT.
+
   const currentTime = new Date();
-  let listening = false;
+  // whether event listeners are set
+  let listening = false; 
+  // checker for viewtime-based blocks
   let viewtimeChecker: NodeJS.Timeout | null = null;
+  // checker for window-based blocks
   let windowChecker: NodeJS.Timeout | null = null;
+  // whether the page is blocked
   let blocked = false;
 
+  
+  // first thing's first: see what Bouncer has to say about this page
   await onCheck(currentTime);
   
   if (blocked) {
@@ -20,6 +29,7 @@ async function doBouncer() {
     await onShow(currentTime);
   }
 
+  // carry out instructions received from service worker
   async function enforce(status: any) {
     switch (status.status) {
       case "BLOCKED":
@@ -76,6 +86,9 @@ async function doBouncer() {
   async function handleHide() { await onHide(new Date()); }
   async function handleVisibilty() { await onVisiblity(new Date()); }
 
+  /**
+   * Set listeners for events related to page browsing.
+   */
   function addListeners() {
     if (!listening) {
       const options = { capture: true };
@@ -86,6 +99,9 @@ async function doBouncer() {
     }
   }
 
+  /**
+   * Remove listeners.
+   */
   function removeListeners() {
     if (listening) {
       const options = { capture: true };
@@ -96,6 +112,12 @@ async function doBouncer() {
     }
   }
   
+  /**
+   * Set the viewtime checker to send a check to the service worker at the
+   * given time.
+   * 
+   * @param checkTime time at which checker should fire
+   */
   function resetViewtimeChecker(checkTime: Date) {
     clearViewtimeChecker();
     const msToCheck = checkTime.getTime() - Date.now();
@@ -105,6 +127,9 @@ async function doBouncer() {
     }, msToCheck);
   }
   
+  /**
+   * Clear the viewtime checker if it is currently set.
+   */
   function clearViewtimeChecker() {
     if (viewtimeChecker !== null) {
       clearTimeout(viewtimeChecker);
@@ -112,6 +137,12 @@ async function doBouncer() {
     }
   }
   
+  /**
+   * Set the window checker to send a check to the service worker at the given
+   * time.
+   *
+   * @param checkTime time at which checker should fire
+   */
   function resetWindowChecker(checkTime: Date) {
     clearWindowChecker();
     const msToCheck = checkTime.getTime() - Date.now();
@@ -121,6 +152,9 @@ async function doBouncer() {
     }, msToCheck);
   }
   
+  /**
+   * Clear the window checker if it is currently set.
+   */
   function clearWindowChecker() {
     if (windowChecker !== null) {
       clearTimeout(windowChecker);
@@ -128,11 +162,15 @@ async function doBouncer() {
     }
   }
 
-  // TODO: change Bouncer to effectively end on pagehide, restart on pageshow?
-  //       can't rely on unload event to clear bfcache
+  /**
+   * Enforce a block on the current page.
+   */
   function block(): void {
     // invalidate the bfcache for the page otherwise script state at block time
     // is preserved, so hitting back button doesn't trigger block
+    // 
+    // TODO: change Bouncer to not rely on bfcache invalidation via unload, as
+    //  this is unreliable. Maybe restart content script on each pageshow?
     window.addEventListener("unload", () => { });
     removeListeners();
     if (viewtimeChecker !== null) {
@@ -145,15 +183,26 @@ async function doBouncer() {
 }
 
 
+/** Whether the current page is visible or not. */
 function pageVisible(): boolean { return document.visibilityState === "visible"; }
 
+
 type MessageType =
-    "CHECK"
+    "CHECK"  // no event, just check current state
   | "VISIT"
   | "SHOW"
   | "HIDE"
   ;
 
+/**
+ * Send a message/event to the Bouncer service worker.
+ * 
+ * TODO: abstractify messaging
+ * 
+ * @param type type of message to send
+ * @param time manually specified message time
+ * @returns instructions from the Bouncer service worker
+ */
 async function sendMessage(type: MessageType, time: Date): Promise<any> {
   console.log(`${time.getTime()} cont: sending ${type}`);
   const status = await browser.runtime.sendMessage({ type, time });
