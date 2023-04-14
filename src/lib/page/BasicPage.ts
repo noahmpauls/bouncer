@@ -1,5 +1,5 @@
 import { assert, assertTimeSequence } from "@bouncer/utils";
-import { PageAccess, PageEvent, PageReset } from "./enums";
+import { PageAccess, PageActionType, PageEvent } from "./enums";
 import { IPage } from ".";
 
 /**
@@ -172,23 +172,33 @@ export class BasicPage implements IPage {
     return true;
   }
   
-  recordReset(type: PageReset, resetTime: Date): void {
-    if (this.access() === PageAccess.BLOCKED) {
-      return;
-    }
+  recordAction(type: PageActionType, time: Date): void {
     switch (type) {
-      case PageReset.INITIALVISIT:
-        this.resetInitialVisit(resetTime);
+      case PageActionType.BLOCK:
+        this.block(time);
         break;
-      case PageReset.VIEWTIME:
-        this.resetViewtime(resetTime);
+      case PageActionType.UNBLOCK:
+        this.unblock(time);
         break;
+      case PageActionType.RESET_METRICS:
+        this.resetInitialVisit(time);
+        this.resetViewtime(time);
+        break;
+      case PageActionType.RESET_INITIALVISIT:
+        this.resetInitialVisit(time);
+        break;
+      case PageActionType.RESET_VIEWTIME:
+        this.resetViewtime(time);
+        break;
+      default:
+        throw new Error("unreachable");
     }
-    this.setTimeLastUpdate(resetTime);
     this.checkRep();
   }
+  
 
   private resetViewtime(resetTime: Date): void {
+    if (this.access() === PageAccess.BLOCKED) { return; }
     this.msViewtimeAccrued = 0;
     if (this.isShowing()) {
       // if showing, viewtime is already accruing since reset
@@ -198,18 +208,22 @@ export class BasicPage implements IPage {
       this.timeLastShow = null;
       this.viewers.clear();
     }
+    this.setTimeLastUpdate(resetTime);
   }
   
   private resetInitialVisit(resetTime: Date): void {
+    if (this.access() === PageAccess.BLOCKED) { return; }
     if (this.isShowing()) {
       const initialVisit = new Date(Math.max(resetTime.getTime(), this.timeLastShow!.getTime()));
       this.timeInitialVisit = initialVisit;
     } else {
       this.timeInitialVisit = null;
     }
+    this.setTimeLastUpdate(resetTime);
   }
 
-  block(time: Date): void {
+  private block(time: Date): void {
+    if (this.access() === PageAccess.BLOCKED) { return; }
     this.timeBlock = time;
     this.timeInitialVisit = null;
     this.msViewtimeAccrued = 0;
@@ -217,13 +231,12 @@ export class BasicPage implements IPage {
     this.timeLastHide = null;
     this.viewers.clear();
     this.setTimeLastUpdate(time);
-    this.checkRep();
   }
   
-  unblock(time: Date): void {
+  private unblock(time: Date): void {
+    if (this.access() === PageAccess.ALLOWED) { return; }
     this.timeBlock = null;
     this.setTimeLastUpdate(time);
-    this.checkRep();
   }
   
   isShowing(): boolean {

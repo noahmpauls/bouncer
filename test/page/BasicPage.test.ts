@@ -1,6 +1,5 @@
 import { describe, test, expect } from "@jest/globals";
-import { BasicPage, IPage, PageAccess, PageEvent, PageReset } from "@bouncer/page";
-import { BasicPageData } from "@bouncer/page/BasicPage";
+import { BasicPage, IPage, PageAccess, PageActionType, PageEvent } from "@bouncer/page";
 import { timeGenerator } from "../testUtils";
 
 
@@ -411,7 +410,7 @@ describe("BasicPage", () => {
     const page = new BasicPage();
     page.recordEvent(time(), PageEvent.VISIT, "");
     const msReset = 500;
-    page.recordReset(PageReset.VIEWTIME, time(msReset));
+    page.recordAction(PageActionType.RESET_VIEWTIME, time(msReset));
     const msObserve = 1000;
     const observed = observePage(page, time(msObserve))
     
@@ -429,7 +428,7 @@ describe("BasicPage", () => {
     const page = new BasicPage();
     page.recordEvent(time(), PageEvent.SHOW, "");
     const msReset = 2000;
-    page.recordReset(PageReset.VIEWTIME, time(msReset));
+    page.recordAction(PageActionType.RESET_VIEWTIME, time(msReset));
     const msObserve = 5000;
     const observed = observePage(page, time(msObserve));
 
@@ -449,7 +448,7 @@ describe("BasicPage", () => {
     page.recordEvent(time(), PageEvent.SHOW, "");
     const msReset = -1000;
     const msObserve = 5000;
-    page.recordReset(PageReset.VIEWTIME, time(msReset));
+    page.recordAction(PageActionType.RESET_VIEWTIME, time(msReset));
     const observed = observePage(page, time(msObserve));
 
     const expected: ExpectedObservedPage = {
@@ -484,7 +483,7 @@ describe("BasicPage", () => {
     const msHide = 5000;
     page.recordEvent(time(msHide), PageEvent.HIDE, "");
     const msReset = 5500;
-    page.recordReset(PageReset.VIEWTIME, time(msReset));
+    page.recordAction(PageActionType.RESET_VIEWTIME, time(msReset));
     const msObserve = 6000;
     const observed = observePage(page, time(msObserve));
     
@@ -506,7 +505,7 @@ describe("BasicPage", () => {
     page.recordEvent(time(msHide), PageEvent.HIDE, "");
     const msReset = 4000;
     const msObserve = 6000;
-    page.recordReset(PageReset.VIEWTIME, time(msReset));
+    page.recordAction(PageActionType.RESET_VIEWTIME, time(msReset));
     const observed = observePage(page, time(msObserve));
     
     const expected: ExpectedObservedPage = {
@@ -524,7 +523,7 @@ describe("BasicPage", () => {
     const page = new BasicPage();
     page.recordEvent(time(), PageEvent.VISIT, "");
     const msReset = 100;
-    page.recordReset(PageReset.INITIALVISIT, time(msReset));
+    page.recordAction(PageActionType.RESET_INITIALVISIT, time(msReset));
     const msObserve = 300; 
     const observed = observePage(page, time(msObserve));
     
@@ -543,7 +542,7 @@ describe("BasicPage", () => {
     const msShow = 150;
     page.recordEvent(time(msShow), PageEvent.SHOW, "");
     const msReset = 200;
-    page.recordReset(PageReset.INITIALVISIT, time(msReset));
+    page.recordAction(PageActionType.RESET_INITIALVISIT, time(msReset));
     const msObserve = 300; 
     const observed = observePage(page, time(msObserve));
     
@@ -564,7 +563,7 @@ describe("BasicPage", () => {
     const msShow = 150;
     page.recordEvent(time(msShow), PageEvent.SHOW, "");
     const msReset = 100;
-    page.recordReset(PageReset.INITIALVISIT, time(msReset));
+    page.recordAction(PageActionType.RESET_INITIALVISIT, time(msReset));
     const msObserve = 300; 
     const observed = observePage(page, time(msObserve));
     
@@ -587,7 +586,7 @@ describe("BasicPage", () => {
     const msHide = 175;
     page.recordEvent(time(msHide), PageEvent.HIDE, "");
     const msReset = 200;
-    page.recordReset(PageReset.INITIALVISIT, time(msReset));
+    page.recordAction(PageActionType.RESET_INITIALVISIT, time(msReset));
     const msObserve = 300; 
     const observed = observePage(page, time(msObserve));
     
@@ -604,7 +603,7 @@ describe("BasicPage", () => {
   test("block fresh page", () => {
     const time = timeGenerator();
     const page = new BasicPage();
-    page.block(time());
+    page.recordAction(PageActionType.BLOCK, time());
     const msObserve = 25;
     const observed = observePage(page, time(msObserve));
 
@@ -625,7 +624,7 @@ describe("BasicPage", () => {
     const time = timeGenerator();
     const page = new BasicPage();
     page.recordEvent(time(), PageEvent.VISIT, "");
-    page.block(time());
+    page.recordAction(PageActionType.BLOCK, time());
     const msObserve = 25;
     const observed = observePage(page, time(msObserve));
 
@@ -646,7 +645,7 @@ describe("BasicPage", () => {
     const time = timeGenerator();
     const page = new BasicPage();
     page.recordEvent(time(), PageEvent.SHOW, "");
-    page.block(time());
+    page.recordAction(PageActionType.BLOCK, time());
     const msObserve = 25;
     const observed = observePage(page, time(msObserve));
 
@@ -670,7 +669,7 @@ describe("BasicPage", () => {
     const viewtime = 1234;
     page.recordEvent(time(viewtime), PageEvent.HIDE, "");
     const msBlock = viewtime + 1;
-    page.block(time(msBlock));
+    page.recordAction(PageActionType.BLOCK, time(msBlock));
     const msObserve = msBlock;
     const observed = observePage(page, time(msObserve));
 
@@ -695,7 +694,7 @@ describe("BasicPage", () => {
     const viewtime = 1234;
     page.recordEvent(time(viewtime), PageEvent.HIDE, "");
     const msBlock = viewtime + 1;
-    page.block(time(msBlock));
+    page.recordAction(PageActionType.BLOCK, time(msBlock));
     const msObserve = msBlock - 1;
     const observed = observePage(page, time(msObserve));
 
@@ -715,7 +714,7 @@ describe("BasicPage", () => {
   test("visit while blocked", () => {
     const time = timeGenerator();
     const page = new BasicPage();
-    page.block(time());
+    page.recordAction(PageActionType.BLOCK, time());
     const msVisit = 30;
     page.recordEvent(time(msVisit), PageEvent.VISIT, "");
     const msObserve = 60;
@@ -734,7 +733,7 @@ describe("BasicPage", () => {
   test("show while blocked", () => {
     const time = timeGenerator();
     const page = new BasicPage();
-    page.block(time());
+    page.recordAction(PageActionType.BLOCK, time());
     const msShow = 2;
     page.recordEvent(time(msShow), PageEvent.SHOW, "");
     const msObserve = 5;
@@ -754,7 +753,7 @@ describe("BasicPage", () => {
   test("show and hide while blocked", () => {
     const time = timeGenerator();
     const page = new BasicPage();
-    page.block(time());
+    page.recordAction(PageActionType.BLOCK, time());
     page.recordEvent(time(), PageEvent.SHOW, "");
     const msHide = 5;
     page.recordEvent(time(msHide), PageEvent.HIDE, "");
@@ -775,9 +774,9 @@ describe("BasicPage", () => {
   test("reset viewtime while blocekd", () => {
     const time = timeGenerator();
     const page = new BasicPage();
-    page.block(time());
+    page.recordAction(PageActionType.BLOCK, time());
     const msReset = 100_000;
-    page.recordReset(PageReset.VIEWTIME, time(msReset));
+    page.recordAction(PageActionType.RESET_VIEWTIME, time(msReset));
     const msObserve = msReset;
     const observed = observePage(page, time(msObserve));
 
@@ -797,9 +796,9 @@ describe("BasicPage", () => {
   test("reset initial visit while blocked", () => {
     const time = timeGenerator();
     const page = new BasicPage();
-    page.block(time());
+    page.recordAction(PageActionType.BLOCK, time());
     const msReset = 100_000;
-    page.recordReset(PageReset.INITIALVISIT, time(msReset));
+    page.recordAction(PageActionType.RESET_INITIALVISIT, time(msReset));
     const msObserve = msReset;
     const observed = observePage(page, time(msObserve));
 
@@ -819,8 +818,8 @@ describe("BasicPage", () => {
   test("unblock before block", () => {
     const time = timeGenerator();
     const page = new BasicPage();
-    page.unblock(time(-10));
-    page.block(time());
+    page.recordAction(PageActionType.UNBLOCK, time(-10));
+    page.recordAction(PageActionType.BLOCK, time());
     const observed = observePage(page, time());
 
     const expected: ExpectedObservedPage = {
@@ -839,9 +838,9 @@ describe("BasicPage", () => {
   test("unblock after block", () => {
     const time = timeGenerator();
     const page = new BasicPage();
-    page.block(time());
+    page.recordAction(PageActionType.BLOCK, time());
     const msUnblock = 800;
-    page.unblock(time(msUnblock));
+    page.recordAction(PageActionType.UNBLOCK, time(msUnblock));
     const msObserve = msUnblock + 10;
     const observed = observePage(page, time(msObserve));
 
@@ -866,7 +865,7 @@ describe("BasicPage", () => {
     const viewtime = 1;
     page.recordEvent(time(viewtime), PageEvent.HIDE, "");
     const msUnblock = viewtime + 3;
-    page.unblock(time(msUnblock));
+    page.recordAction(PageActionType.UNBLOCK, time(msUnblock));
     const msObserve = 500;
     const observed = observePage(page, time(msObserve));
 
@@ -877,7 +876,7 @@ describe("BasicPage", () => {
       msSinceInitialVisit: msObserve,
       msSinceHide: msObserve - viewtime,
       msViewtime: viewtime,
-      msSinceUpdate: msObserve - msUnblock,
+      msSinceUpdate: msObserve - viewtime,
     }
     expect(observed).toMatchObject(expected);
   })

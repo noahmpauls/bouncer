@@ -1,6 +1,6 @@
 import { assert } from "@bouncer/utils";
-import { IPageMetrics, PageReset } from "@bouncer/page";
-import { ILimit, LimitAction } from ".";
+import { IPageMetrics, PageAction, PageActionType } from "@bouncer/page";
+import { ILimit } from ".";
 
 /**
  * Represents a limit that allows viewing for a specified amount of time after
@@ -44,27 +44,24 @@ export class WindowCooldownLimit implements ILimit {
   }
 
   
-  action(time: Date, page: IPageMetrics): LimitAction {
+  actions(time: Date, page: IPageMetrics): PageAction[] {
     const msSinceBlock = page.msSinceBlock(time);
     if (msSinceBlock !== null && msSinceBlock >= this.msCooldown) {
-      return { action: "UNBLOCK" };
+      return [{ type: PageActionType.UNBLOCK, time }];
     }
     const msSinceInitialVisit = page.msSinceInitialVisit(time) ?? 0;
     if (msSinceInitialVisit >= this.msWindow) {
       const blockTime = new Date(time.getTime() - msSinceInitialVisit + this.msWindow);
       // cooldown not complete
       if (msSinceInitialVisit < this.msWindow + this.msCooldown) {
-        return { action: "BLOCK", time: blockTime };
+        return [{ type: PageActionType.BLOCK, time: blockTime }];
         // cooldown complete, reset triggered at end of cooldown
       } else {
         const resetTime = new Date(blockTime.getTime() + this.msCooldown);
-        return {
-          action: "RESET",
-          resets: [{ type: PageReset.INITIALVISIT, time: resetTime }]
-        };
+        return [{ type: PageActionType.RESET_INITIALVISIT, time: resetTime }];
       }
     }
-    return { action: "NONE" };
+    return [];
   }
   
 

@@ -19,13 +19,29 @@ export enum PageEvent {
   /** Page becomes hidden. */
   HIDE = "hide",
 }
-  
+
 /**
- * Represents resets that can be applied to a page.
+ * Represents actions that can be taken on a page.
  */
-export enum PageReset {
-  /** Viewtime reset. */
-  VIEWTIME = "viewtime",
-  /** Initial visit time reset. */
-  INITIALVISIT = "initialVisit",
+export enum PageActionType {
+  /** Block the page. */
+  BLOCK = "block",
+  /** Clear a block from the page. */
+  UNBLOCK = "unblock",
+  /** Reset all page metrics. */
+  RESET_METRICS = "reset-metrics",
+  /** Reset initial visit metrics. */
+  RESET_INITIALVISIT = "reset-initialvisit",
+  /** Reset viewtime metrics. */
+  RESET_VIEWTIME = "reset-viewtime",
+}
+
+/**
+ * Represents an action taken on a page at a certain time.
+ */
+export type PageAction = {
+  /** Type of action. */
+  type: PageActionType,
+  /** Time of action. */
+  time: Date,
 }

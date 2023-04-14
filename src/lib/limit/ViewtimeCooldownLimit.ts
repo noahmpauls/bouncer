@@ -1,6 +1,6 @@
 import { assert } from "@bouncer/utils";
-import { IPageMetrics, PageReset } from "@bouncer/page";
-import { ILimit, LimitAction } from ".";
+import { IPageMetrics, PageAction, PageActionType } from "@bouncer/page";
+import { ILimit } from ".";
 
 /**
  * Represents a limit that provides an allotment of viewtime, followed by a
@@ -44,31 +44,31 @@ export class ViewtimeCooldownLimit implements ILimit {
   }
 
 
-  action(time: Date, page: IPageMetrics): LimitAction {
+  actions(time: Date, page: IPageMetrics): PageAction[] {
     const msSinceBlock = page.msSinceBlock(time);
     if (msSinceBlock !== null && msSinceBlock >= this.msCooldown) {
-      return { action: "UNBLOCK" };
+      return [{ type: PageActionType.UNBLOCK, time }];
     }
     const viewtime = page.msViewtime(time);
     if (viewtime >= this.msViewtime) {
       if (page.isShowing()) {
-        return { action: "BLOCK", time: time }
+        return [{ type: PageActionType.BLOCK, time }];
       } else {
         // treat time of last hide as the time when a block should be applied
         // at this point, the last hide time should never be null...
         const hideTime = new Date(time.getTime() - (page.msSinceHide(time) ?? 0))
         if (time.getTime() - hideTime.getTime() < this.msCooldown) {
-          return { action: "BLOCK", time: hideTime }
+          return [{ type: PageActionType.BLOCK, time: hideTime }];
         } else {
           const resetTime = new Date(hideTime.getTime() + this.msCooldown);
-          return { 
-            action: "RESET",
-            resets: [{ type: PageReset.VIEWTIME, time: resetTime }]
-          }
+          return [{
+            type: PageActionType.RESET_VIEWTIME,
+            time: resetTime,
+          }];
         }
       }
     }
-    return { action: "NONE" };
+    return [];
   }
 
   

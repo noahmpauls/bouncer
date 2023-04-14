@@ -1,6 +1,6 @@
 import { describe, test, expect } from "@jest/globals";
-import { AlwaysBlock, LimitAction } from "@bouncer/limit";
-import { BasicPage, PageEvent } from "@bouncer/page";
+import { AlwaysBlock } from "@bouncer/limit";
+import { BasicPage, PageAction, PageActionType, PageEvent } from "@bouncer/page";
 import { pageWithMutations } from "../testUtils";
 
 
@@ -10,13 +10,13 @@ describe("AlwaysBlock action", () => {
   ])("$name", ({time, page}) => {
     const limit = new AlwaysBlock();
     
-    const action = limit.action(time, page);
+    const actions = limit.actions(time, page);
 
-    const expected: LimitAction = {
-      action: "BLOCK",
+    const expected: PageAction[] = [{
+      type: PageActionType.BLOCK,
       time
-    };
-    expect(action).toStrictEqual(expected);
+    }]
+    expect(actions).toStrictEqual(expected);
   })
 })
 

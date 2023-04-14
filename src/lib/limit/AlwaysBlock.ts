@@ -1,6 +1,6 @@
 import { assert } from "@bouncer/utils";
-import { IPageMetrics } from "@bouncer/page";
-import { ILimit, LimitAction } from ".";
+import { IPageMetrics, PageAccess, PageAction, PageActionType } from "@bouncer/page";
+import { ILimit } from ".";
 
 /**
  * Represents a limit that always recommends blocking no matter what.
@@ -21,11 +21,12 @@ export class AlwaysBlock implements ILimit {
   }
 
 
-  action(time: Date, page: IPageMetrics): LimitAction {
-    return {
-      action: "BLOCK",
-      time
-    };
+  actions(time: Date, page: IPageMetrics): PageAction[] {
+    if (page.access() !== PageAccess.BLOCKED) {
+      return [{ type: PageActionType.BLOCK, time }];
+    } else {
+      return [];
+    }
   }
 
   

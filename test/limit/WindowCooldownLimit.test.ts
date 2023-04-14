@@ -1,5 +1,5 @@
-import { LimitAction, WindowCooldownLimit } from "@bouncer/limit";
-import { PageAccess, PageReset } from "@bouncer/page";
+import { WindowCooldownLimit } from "@bouncer/limit";
+import { PageAccess, PageAction, PageActionType } from "@bouncer/page";
 import { describe, test, expect } from "@jest/globals";
 import { pageMetrics, timeGenerator } from "../testUtils";
 
@@ -20,10 +20,10 @@ describe("WindowCooldownLimit action", () => {
       msSinceHide: null,
     });
     
-    const action = limit.action(time(), page);
+    const actions = limit.actions(time(), page);
 
-    const expected: LimitAction = { action: "NONE" };
-    expect(action).toStrictEqual(expected);
+    const expected: PageAction[] = [];
+    expect(actions).toStrictEqual(expected);
   })
   
 
@@ -43,10 +43,10 @@ describe("WindowCooldownLimit action", () => {
       msSinceHide: null,
     });
     
-    const action = limit.action(time(), page);
+    const actions = limit.actions(time(), page);
 
-    const expected: LimitAction = { action: "NONE" };
-    expect(action).toStrictEqual(expected);
+    const expected: PageAction[] = [];
+    expect(actions).toStrictEqual(expected);
   })
   
 
@@ -67,10 +67,13 @@ describe("WindowCooldownLimit action", () => {
     });
     
     const msCheck = 0;
-    const action = limit.action(time(msCheck), page);
+    const actions = limit.actions(time(msCheck), page);
 
-    const expected: LimitAction = { action: "BLOCK", time: time(msCheck) }
-    expect(action).toStrictEqual(expected);
+    const expected: PageAction[] = [{
+      type: PageActionType.BLOCK,
+      time: time(msCheck),
+    }];
+    expect(actions).toStrictEqual(expected);
   })
   
 
@@ -92,10 +95,13 @@ describe("WindowCooldownLimit action", () => {
     });
     
     const msCheck = 0;
-    const action = limit.action(time(msCheck), page);
+    const actions = limit.actions(time(msCheck), page);
 
-    const expected: LimitAction = { action: "BLOCK", time: time(msCheck - msOver) }
-    expect(action).toStrictEqual(expected);
+    const expected: PageAction[] = [{
+      type: PageActionType.BLOCK,
+      time: time(msCheck - msOver),
+    }];
+    expect(actions).toStrictEqual(expected);
   })
   
 
@@ -117,15 +123,13 @@ describe("WindowCooldownLimit action", () => {
     });
     
     const msCheck = 0;
-    const action = limit.action(time(msCheck), page);
+    const actions = limit.actions(time(msCheck), page);
 
-    const expected: LimitAction = { 
-      action: "RESET",
-      resets: [
-        { type: PageReset.INITIALVISIT, time: time(msCheck) }
-      ]
-    }
-    expect(action).toStrictEqual(expected);
+    const expected: PageAction[] = [{
+      type: PageActionType.RESET_INITIALVISIT,
+      time: time(msCheck),
+    }];
+    expect(actions).toStrictEqual(expected);
   })
   
 
@@ -147,15 +151,13 @@ describe("WindowCooldownLimit action", () => {
     });
     
     const msCheck = 0;
-    const action = limit.action(time(msCheck), page);
+    const actions = limit.actions(time(msCheck), page);
 
-    const expected: LimitAction = { 
-      action: "RESET",
-      resets: [
-        { type: PageReset.INITIALVISIT, time: time(msCheck - msOverCooldown) }
-      ]
-    }
-    expect(action).toStrictEqual(expected);
+    const expected: PageAction[] = [{
+      type: PageActionType.RESET_INITIALVISIT,
+      time: time(msCheck - msOverCooldown),
+    }];
+    expect(actions).toStrictEqual(expected);
   })
 
 
@@ -177,15 +179,13 @@ describe("WindowCooldownLimit action", () => {
     });
     
     const msCheck = 0;
-    const action = limit.action(time(msCheck), page);
+    const actions = limit.actions(time(msCheck), page);
 
-    const expected: LimitAction = { 
-      action: "RESET",
-      resets: [
-        { type: PageReset.INITIALVISIT, time: time(msCheck - msOverCooldown) }
-      ]
-    }
-    expect(action).toStrictEqual(expected);
+    const expected: PageAction[] = [{
+      type: PageActionType.RESET_INITIALVISIT,
+      time: time(msCheck - msOverCooldown),
+    }];
+    expect(actions).toStrictEqual(expected);
   })
   
 
@@ -206,10 +206,10 @@ describe("WindowCooldownLimit action", () => {
     });
     
     const msCheck = 0;
-    const action = limit.action(time(msCheck), page);
+    const actions = limit.actions(time(msCheck), page);
 
-    const expected: LimitAction = { action: "NONE" };
-    expect(action).toStrictEqual(expected);
+    const expected: PageAction[] = [];
+    expect(actions).toStrictEqual(expected);
   })
   
   
@@ -230,10 +230,13 @@ describe("WindowCooldownLimit action", () => {
     });
     
     const msCheck = 0;
-    const action = limit.action(time(msCheck), page);
+    const actions = limit.actions(time(msCheck), page);
 
-    const expected: LimitAction = { action: "UNBLOCK" };
-    expect(action).toStrictEqual(expected);
+    const expected: PageAction[] = [{
+      type: PageActionType.UNBLOCK,
+      time: time(msCheck),
+    }];
+    expect(actions).toStrictEqual(expected);
   })
   
 
@@ -254,10 +257,13 @@ describe("WindowCooldownLimit action", () => {
     });
     
     const msCheck = 0;
-    const action = limit.action(time(msCheck), page);
+    const actions = limit.actions(time(msCheck), page);
 
-    const expected: LimitAction = { action: "UNBLOCK" };
-    expect(action).toStrictEqual(expected);
+    const expected: PageAction[] = [{
+      type: PageActionType.UNBLOCK,
+      time: time(msCheck),
+    }];
+    expect(actions).toStrictEqual(expected);
   })
 })
 

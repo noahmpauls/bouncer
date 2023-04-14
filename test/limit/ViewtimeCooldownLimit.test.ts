@@ -1,6 +1,6 @@
-import { LimitAction, ViewtimeCooldownLimit } from "@bouncer/limit";
+import { ViewtimeCooldownLimit } from "@bouncer/limit";
 import { describe, test, expect } from "@jest/globals";
-import { BasicPage, PageAccess, PageEvent, PageReset } from "@bouncer/page";
+import { PageAccess, PageAction, PageActionType } from "@bouncer/page";
 import { pageMetrics, timeGenerator } from "../testUtils";
 
 
@@ -50,12 +50,10 @@ describe("ViewtimeCooldownLimit action", () => {
       msSinceHide: null,
     });
 
-    const action = limit.action(new Date(), page);
+    const actions = limit.actions(new Date(), page);
 
-    const expected: LimitAction = {
-      action: "NONE"
-    };
-    expect(action).toStrictEqual(expected);
+    const expected: PageAction[] = [];
+    expect(actions).toStrictEqual(expected);
   })
 
 
@@ -72,12 +70,10 @@ describe("ViewtimeCooldownLimit action", () => {
       msSinceHide: null,
     });
 
-    const action = limit.action(new Date(), page);
+    const actions = limit.actions(new Date(), page);
 
-    const expected: LimitAction = {
-      action: "NONE"
-    };
-    expect(action).toStrictEqual(expected);
+    const expected: PageAction[] = [];
+    expect(actions).toStrictEqual(expected);
   })
   
 
@@ -97,13 +93,13 @@ describe("ViewtimeCooldownLimit action", () => {
       msSinceHide,
     });
 
-    const action = limit.action(time(), page);
+    const actions = limit.actions(time(), page);
 
-    const expected: LimitAction = {
-      action: "BLOCK",
+    const expected: PageAction[] = [{
+      type: PageActionType.BLOCK,
       time: time(-msSinceHide),
-    };
-    expect(action).toStrictEqual(expected);
+    }];
+    expect(actions).toStrictEqual(expected);
   })
   
 
@@ -124,13 +120,13 @@ describe("ViewtimeCooldownLimit action", () => {
     });
 
     const msCheck = viewtime + msTimeOver;
-    const action = limit.action(time(msCheck), page);
+    const actions = limit.actions(time(msCheck), page);
 
-    const expected: LimitAction = {
-      action: "BLOCK",
+    const expected: PageAction[] = [{
+      type: PageActionType.BLOCK,      
       time: time(msCheck),
-    };
-    expect(action).toStrictEqual(expected);
+    }];
+    expect(actions).toStrictEqual(expected);
   })
   
 
@@ -152,15 +148,13 @@ describe("ViewtimeCooldownLimit action", () => {
     });
 
     const msCheck = msViewtime + cooldown;
-    const action = limit.action(time(msCheck), page);
+    const actions = limit.actions(time(msCheck), page);
 
-    const expected: LimitAction = {
-      action: "RESET",
-      resets: [
-        { type: PageReset.VIEWTIME, time: time(msCheck) }
-      ]
-    };
-    expect(action).toStrictEqual(expected);
+    const expected: PageAction[] = [{
+      type: PageActionType.RESET_VIEWTIME,
+      time: time(msCheck),
+    }];
+    expect(actions).toStrictEqual(expected);
   })
   
 
@@ -182,15 +176,13 @@ describe("ViewtimeCooldownLimit action", () => {
     });
 
     const msCheck = viewtime + msTimeOver + cooldown + msOverCooldown;
-    const action = limit.action(time(msCheck), page);
+    const actions = limit.actions(time(msCheck), page);
 
-    const expected: LimitAction = {
-      action: "RESET",
-      resets: [
-        { type: PageReset.VIEWTIME, time: time(msCheck - msOverCooldown) }
-      ]
-    };
-    expect(action).toStrictEqual(expected);
+    const expected: PageAction[] = [{
+      type: PageActionType.RESET_VIEWTIME,
+      time: time(msCheck - msOverCooldown)
+    }];
+    expect(actions).toStrictEqual(expected);
   })
 
 
@@ -212,13 +204,13 @@ describe("ViewtimeCooldownLimit action", () => {
     });
 
     const msCheck = msViewtime;
-    const action = limit.action(time(msCheck), page);
+    const actions = limit.actions(time(msCheck), page);
 
-    const expected: LimitAction = {
-      action: "BLOCK",
-      time: time(msCheck)
-    };
-    expect(action).toStrictEqual(expected);
+    const expected: PageAction[] = [{
+      type: PageActionType.BLOCK,      
+      time: time(msCheck),
+    }];
+    expect(actions).toStrictEqual(expected);
   })
 
 
@@ -238,12 +230,10 @@ describe("ViewtimeCooldownLimit action", () => {
     });
     
     const msCheck = viewtime + cooldown - 1;
-    const action = limit.action(time(msCheck), page);
+    const actions = limit.actions(time(msCheck), page);
     
-    const expected: LimitAction = {
-      action: "NONE"
-    }
-    expect(action).toStrictEqual(expected);
+    const expected: PageAction[] = [];
+    expect(actions).toStrictEqual(expected);
   })
   
 
@@ -263,12 +253,13 @@ describe("ViewtimeCooldownLimit action", () => {
     });
     
     const msCheck = viewtime + cooldown;
-    const action = limit.action(time(msCheck), page);
+    const actions = limit.actions(time(msCheck), page);
     
-    const expected: LimitAction = {
-      action: "UNBLOCK"
-    }
-    expect(action).toStrictEqual(expected);
+    const expected: PageAction[] = [{
+      type: PageActionType.UNBLOCK,
+      time: time(msCheck),
+    }];
+    expect(actions).toStrictEqual(expected);
   })
   
 
@@ -288,12 +279,13 @@ describe("ViewtimeCooldownLimit action", () => {
     });
     
     const msCheck = viewtime + cooldown;
-    const action = limit.action(time(msCheck), page);
+    const actions = limit.actions(time(msCheck), page);
     
-    const expected: LimitAction = {
-      action: "UNBLOCK"
-    }
-    expect(action).toStrictEqual(expected);
+    const expected: PageAction[] = [{
+      type: PageActionType.UNBLOCK,
+      time: time(msCheck),
+    }];
+    expect(actions).toStrictEqual(expected);
   })
 })
 

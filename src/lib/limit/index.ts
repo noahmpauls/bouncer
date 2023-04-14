@@ -1,31 +1,7 @@
-import { IPageMetrics, PageReset } from "@bouncer/page";
+import { IPageMetrics, PageAction } from "@bouncer/page";
 import { AlwaysBlock, AlwaysBlockData } from "./AlwaysBlock";
 import { ViewtimeCooldownLimit, ViewtimeCooldownData } from "./ViewtimeCooldownLimit";
 import { WindowCooldownData, WindowCooldownLimit } from "./WindowCooldownLimit";
-
-
-/**
- * Represents a suggested action to take on a page.
- */
-export type LimitAction = 
-{ action: "NONE" | "UNBLOCK" } | 
-{
-  action: "BLOCK",
-  time: Date,
-} |
-{
-  action: "RESET",
-  resets: ResetAction[]
-}
-
-/**
- * Represents a type of reset to apply to a page, and the time to apply the
- * reset at.
- */
-export type ResetAction = {
-  type: PageReset,
-  time: Date
-}
 
 
 /**
@@ -39,7 +15,7 @@ export interface ILimit {
    * @param page the page to apply the limit to
    * @returns the recommended action to take on the page
    */
-  action(time: Date, page: IPageMetrics): LimitAction;
+  actions(time: Date, page: IPageMetrics): PageAction[];
 
 
   /**

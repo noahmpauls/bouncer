@@ -1,5 +1,5 @@
 import { BasicPage, BasicPageData } from "./BasicPage";
-import { PageAccess, PageEvent, PageReset } from "./enums";
+import { PageAccess, PageActionType, PageEvent } from "./enums";
 
 
 /**
@@ -17,28 +17,13 @@ export interface IPage extends IPageMetrics {
   recordEvent(time: Date, event: PageEvent, viewer: string): void;
   
   /**
-   * Reset page metrics according to the specified type of reset and the time
-   * at which the reset occurred.
+   * Take an action on the page at the given time.
    * 
-   * @param type the type of reset to apply
-   * @param resetTime time at which the reset should occur
+   * @param type the type of action to take
+   * @param time the time of the action
    */
-  recordReset(type: PageReset, resetTime: Date): void;
+  recordAction(type: PageActionType, time: Date): void;
 
-  /**
-   * Add a block to this page at the given time.
-   * 
-   * @param time block time
-   */
-  block(time: Date): void;
-  
-  /**
-   * Removes a block from this page at the current time.
-   * 
-   * @param time: unblock time
-   */
-  unblock(time: Date): void;
-  
   /**
    * Convert the page to an object representation. The representation must
    * include a field "type" that indicates the type of page represented.
