@@ -7,6 +7,7 @@ import { ScheduledLimit } from "@bouncer/enforcer";
 import { AlwaysSchedule } from "@bouncer/schedule";
 import { BasicPage } from "@bouncer/page";
 import browser from "webextension-polyfill";
+import { MinuteSchedule } from "@bouncer/schedule/MinuteSchedule";
 
 const policyForm: HTMLInputElement = document.getElementById("add-policy") as HTMLInputElement;
 const nameInput: HTMLInputElement = document.getElementById("name") as HTMLInputElement;
@@ -19,6 +20,13 @@ hostInput.value = "www.example.com";
 durationInput.value = "10000";
 cooldownInput.value = "10000";
 
+const startSecondInput: HTMLInputElement = document.getElementById("startSecond") as HTMLInputElement;
+const endSecondInput: HTMLInputElement = document.getElementById("endSecond") as HTMLInputElement;
+
+startSecondInput.value = "15";
+endSecondInput.value = "45";
+
+
 const bouncerData: IBouncerData = new StoredBouncerData(new BrowserStorage());
 
 policyForm.addEventListener("submit", event => {
@@ -28,20 +36,23 @@ policyForm.addEventListener("submit", event => {
   const host = hostInput.value;
   const duration = Number(durationInput.value);
   const cooldown = Number(cooldownInput.value);
+  const startSecond = Number(startSecondInput.value);
+  const endSecond = Number(endSecondInput.value);
 
   nameInput.value = "";
   hostInput.value = "";
   durationInput.value = "";
-  cooldownInput.value = ""
+  cooldownInput.value = "";
+  startSecondInput.value = "";
+  endSecondInput.value = "";
   const policy: IPolicy = new BasicPolicy(
     "",
     name,
     true,
     new ExactHostnameMatcher(host),
     new ScheduledLimit(
-      new AlwaysSchedule(),
+      new MinuteSchedule(startSecond, endSecond),
       new ViewtimeCooldownLimit(duration, cooldown)
-      // new AlwaysBlock()
     ),
     new BasicPage(),
   );

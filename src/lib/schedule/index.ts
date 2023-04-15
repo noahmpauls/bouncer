@@ -1,4 +1,6 @@
+import { IPageMetrics, PageAction } from "@bouncer/page";
 import { AlwaysSchedule, AlwaysScheduleData } from "./AlwaysSchedule";
+import { MinuteSchedule, MinuteScheduleData } from "./MinuteSchedule";
 
 /**
  * Represents a specified subset of all times.
@@ -14,7 +16,17 @@ export interface ISchedule {
    * @returns whether the given time is in the schedule
    */
   contains(time: Date): boolean;
-
+  
+  /**
+   * Get any recommended actions to take on the given page based on schedule
+   * changes in the given time range.
+   * 
+   * @param from start of relevant time range
+   * @param to end of relevant time range
+   * @param page the page to apply the schedule to
+   * @returns the recommended actions to take on the page
+   */
+  actions(from: Date, to : Date, page: IPageMetrics): PageAction[];
 
   /**
    * Convert schedule to an object representation. The representation must
@@ -36,6 +48,8 @@ export function deserializeSchedule(obj: ScheduleData): ISchedule {
   switch (obj.type) {
     case "AlwaysSchedule":
       return AlwaysSchedule.fromObject(obj);
+    case "MinuteSchedule":
+      return MinuteSchedule.fromObject(obj);
     default:
       throw new Error(`invalid schedule type ${(obj as any).type} cannot be deserialized`);
   }
@@ -57,7 +71,9 @@ export function serializeSchedule(schedule: ISchedule): ScheduleData {
  * Union of all types that represent schedules in their serialized form.
  */
 export type ScheduleData =
-  AlwaysScheduleData;
+    AlwaysScheduleData
+  | MinuteScheduleData
+  ;
 
 
 export { AlwaysSchedule } from "./AlwaysSchedule";

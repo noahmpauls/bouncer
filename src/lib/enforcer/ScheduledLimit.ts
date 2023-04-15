@@ -42,6 +42,17 @@ export class ScheduledLimit implements IEnforcer {
   }
   
   applyTo(time: Date, page: IPage): void {
+    // apply schedule actions
+    // TODO: shouldn't use last page update time to define this range...
+    const msSinceUpdate = page.msSinceUpdate(time);
+    if (msSinceUpdate !== null) {
+      const lastUpdateTime = new Date(time.getTime() - msSinceUpdate);
+      const scheduleActions = this.schedule.actions(lastUpdateTime, time, page).sort((a1, a2) => a1.time.getTime() - a2.time.getTime());
+      for (const action of scheduleActions) {
+        page.recordAction(action.type, action.time);
+      }
+    }
+    // apply limit actions
     if (this.schedule.contains(time)) {
       const pageAccess = page.access();
       const actions = this.limit.actions(time, page).sort((a1, a2) => a1.time.getTime() - a2.time.getTime());
@@ -52,10 +63,12 @@ export class ScheduledLimit implements IEnforcer {
   }
   
   remainingViewtime(time: Date, page: IPage): number {
+    // TODO: account for schedule???
     return this.limit.remainingViewtime(time, page);
   }
   
   remainingWindow(time: Date, page: IPage): number {
+    // TODO: account for schedule???
     return this.limit.remainingWindow(time, page);
   }
   

@@ -1,3 +1,4 @@
+import { IPageMetrics, PageAction } from "@bouncer/page";
 import { ISchedule } from ".";
 import { assert } from "@bouncer/utils";
 
@@ -19,6 +20,9 @@ export class AlwaysSchedule implements ISchedule {
     assert(obj.type === "AlwaysSchedule", `cannot make AlwaysSchedule from data with type ${obj.type}`);
     return new AlwaysSchedule();
   }
+  
+
+  actions(from: Date, to: Date, page: IPageMetrics): PageAction[] { return []; }
 
 
   contains(time: Date): boolean { return true; }
