@@ -90,6 +90,7 @@ export class MinuteSchedule implements ISchedule {
 
     let nearest = new Date(max.getTime());
     nearest.setSeconds(seconds);
+    nearest.setMilliseconds(0);
     if (max < nearest) {
       nearest = new Date(nearest.getTime() - 60_000);
     }

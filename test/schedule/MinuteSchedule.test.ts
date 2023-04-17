@@ -4,7 +4,7 @@ import { MinuteSchedule } from "@bouncer/schedule/MinuteSchedule";
 import { describe, test, expect } from "@jest/globals";
 
 
-const REFTIME = DateTime.fromISO("2000-01-01");
+const REFTIME = DateTime.fromISO("2000-01-01T00:00:00.500");
 
 
 describe("MinuteSchedule", () => {
@@ -61,7 +61,7 @@ describe("MinuteSchedule", () => {
     const endRange = REFTIME.set({ second: startSec }).toJSDate();
     const actions = schedule.actions(startRange, endRange, page);
 
-    const resetTime = REFTIME.set({ second: startSec }).toJSDate();
+    const resetTime = REFTIME.set({ second: startSec, millisecond: 0 }).toJSDate();
     const expected: PageAction[] = [
       { type: PageActionType.RESET_METRICS, time: resetTime }
     ];
@@ -79,7 +79,7 @@ describe("MinuteSchedule", () => {
     const endRange = REFTIME.set({ second: endSec + 1 }).toJSDate();
     const actions = schedule.actions(startRange, endRange, page);
 
-    const resetTime = REFTIME.set({ second: endSec }).toJSDate();
+    const resetTime = REFTIME.set({ second: endSec, millisecond: 0 }).toJSDate();
     const expected: PageAction[] = [
       { type: PageActionType.RESET_METRICS, time: resetTime }
     ];
@@ -98,7 +98,7 @@ describe("MinuteSchedule", () => {
     const endRange = REFTIME.set({ second: startSec + 1 }).toJSDate();
     const actions = schedule.actions(startRange, endRange, page);
 
-    const resetTime = REFTIME.set({ second: startSec }).toJSDate();
+    const resetTime = REFTIME.set({ second: startSec, millisecond: 0 }).toJSDate();
     const expected: PageAction[] = [
       { type: PageActionType.RESET_METRICS, time: resetTime }
     ];
@@ -117,7 +117,7 @@ describe("MinuteSchedule", () => {
     const endRange = REFTIME.set({ second: startSec + 1 }).toJSDate();
     const actions = schedule.actions(startRange, endRange, page);
 
-    const resetTime = REFTIME.set({ second: startSec }).toJSDate();
+    const resetTime = REFTIME.set({ second: startSec, millisecond: 0 }).toJSDate();
     const expected: PageAction[] = [
       { type: PageActionType.RESET_METRICS, time: resetTime }
     ];
@@ -136,7 +136,7 @@ describe("MinuteSchedule", () => {
     const endRange = REFTIME.plus({ minutes: 1 }).set({ second: endSec + 1 }).toJSDate();
     const actions = schedule.actions(startRange, endRange, page);
 
-    const resetTime = REFTIME.plus({ minutes: 1 }).set({ second: endSec }).toJSDate();
+    const resetTime = REFTIME.plus({ minutes: 1 }).set({ second: endSec, millisecond: 0 }).toJSDate();
     const expected: PageAction[] = [
       { type: PageActionType.RESET_METRICS, time: resetTime }
     ];
@@ -156,7 +156,6 @@ describe("MinuteSchedule", () => {
     const endRange = REFTIME.set({ second: startSec }).toJSDate();
     const actions = schedule.actions(startRange, endRange, page);
 
-    const resetTime = REFTIME.set({ second: startSec }).toJSDate();
     const expected: PageAction[] = [];
     expect(actions).toStrictEqual(expected);
   })
@@ -174,7 +173,7 @@ describe("MinuteSchedule", () => {
     const endRange = DateTime.fromJSDate(startRange).plus({ seconds: 5 }).toJSDate();
     const actions = schedule.actions(startRange, endRange, page);
 
-    const resetTime = REFTIME.set({ second: endSec }).toJSDate();
+    const resetTime = REFTIME.set({ second: endSec, millisecond: 0 }).toJSDate();
     const expected: PageAction[] = [
       { type: PageActionType.UNBLOCK, time: resetTime }
     ];
@@ -194,8 +193,8 @@ describe("MinuteSchedule", () => {
     const endRange = REFTIME.set({ second: startSec + 1 }).toJSDate();
     const actions = schedule.actions(startRange, endRange, page);
 
-    const unblockTime = REFTIME.set({ second: endSec }).toJSDate();
-    const resetTime = REFTIME.set({ second: startSec }).toJSDate();
+    const unblockTime = REFTIME.set({ second: endSec, millisecond: 0 }).toJSDate();
+    const resetTime = REFTIME.set({ second: startSec, millisecond: 0 }).toJSDate();
     const expected: PageAction[] = [
       { type: PageActionType.RESET_METRICS, time: resetTime },
       { type: PageActionType.UNBLOCK, time: unblockTime }
@@ -216,8 +215,8 @@ describe("MinuteSchedule", () => {
     const endRange = REFTIME.set({ second: startSec + 1 }).toJSDate();
     const actions = schedule.actions(startRange, endRange, page);
 
-    const unblockTime = REFTIME.set({ second: endSec }).toJSDate();
-    const resetTime = REFTIME.set({ second: startSec }).toJSDate();
+    const unblockTime = REFTIME.set({ second: endSec, millisecond: 0 }).toJSDate();
+    const resetTime = REFTIME.set({ second: startSec, millisecond: 0 }).toJSDate();
     const expected: PageAction[] = [
       { type: PageActionType.RESET_METRICS, time: resetTime },
       { type: PageActionType.UNBLOCK, time: unblockTime }
@@ -238,7 +237,7 @@ describe("MinuteSchedule", () => {
     const endRange = REFTIME.plus({ minutes: 1 }).set({ second: endSec + 1 }).toJSDate();
     const actions = schedule.actions(startRange, endRange, page);
 
-    const unblockTime = REFTIME.plus({ minutes: 1 }).set({ second: endSec }).toJSDate();
+    const unblockTime = REFTIME.plus({ minutes: 1 }).set({ second: endSec, millisecond: 0 }).toJSDate();
     const expected: PageAction[] = [
       { type: PageActionType.UNBLOCK, time: unblockTime }
     ];
@@ -256,7 +255,7 @@ describe("MinuteSchedule", () => {
     const endRange = REFTIME.plus({ minutes: 15 }).set({ second: startSec + 1 }).toJSDate();
     const actions = schedule.actions(startRange, endRange, page);
     
-    const resetTime = REFTIME.plus({ minutes: 15 }).set({ second: startSec }).toJSDate();
+    const resetTime = REFTIME.plus({ minutes: 15 }).set({ second: startSec, millisecond: 0 }).toJSDate();
     const expected: PageAction[] = [
       { type: PageActionType.RESET_METRICS, time: resetTime }
     ];
@@ -275,8 +274,8 @@ describe("MinuteSchedule", () => {
     const endRange = REFTIME.plus({ minutes: 15 }).set({ second: startSec + 1 }).toJSDate();
     const actions = schedule.actions(startRange, endRange, page);
     
-    const unblockTime = REFTIME.plus({ minutes: 14 }).set({ second: endSec }).toJSDate(); 
-    const resetTime = REFTIME.plus({ minutes: 15 }).set({ second: startSec }).toJSDate();
+    const unblockTime = REFTIME.plus({ minutes: 14 }).set({ second: endSec, millisecond: 0 }).toJSDate(); 
+    const resetTime = REFTIME.plus({ minutes: 15 }).set({ second: startSec, millisecond: 0 }).toJSDate();
     const expected: PageAction[] = [
       { type: PageActionType.UNBLOCK, time: unblockTime },
       { type: PageActionType.RESET_METRICS, time: resetTime }
