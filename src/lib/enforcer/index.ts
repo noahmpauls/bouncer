@@ -14,21 +14,26 @@ export interface IEnforcer {
   applyTo(time: Date, page: IPage): void;
 
   /**
-   * Get the amount of viewtime remaining until the next viewtime-based block.
+   * Get the datetime of the next enforcement event triggered by browsing
+   * activity. Only events that aid block enforcement are considered; an event
+   * that triggers an unblock is not.
    * 
    * @param time the current time
-   * @param page page to be blocked
-   * @returns amount of viewtime until the page is blocked, in ms
+   * @param page the current page
+   * @returns the date of the next enforcement event triggered by viewtime use
    */
-  remainingViewtime(time: Date, page: IPage): number;
+  nextViewEvent(time: Date, page: IPage): Date | null;
 
   /**
+   * Get the datetime of the next enforcement event triggered by the passage of
+   * time. Only events that aid block enforcement are considered; an event that
+   * triggers an unblock is not.
    * 
    * @param time the current time
-   * @param page page to be blocked
-   * @returns remaining time in window until the page is blocked, in ms
+   * @param page the current page
+   * @returns the date of the next scheduled enforcement event
    */
-  remainingWindow(time: Date, page: IPage): number;
+  nextTimelineEvent(time: Date, page: IPage): Date | null;
 
   /**
    * Convert enforcer to an object representation. The representation must

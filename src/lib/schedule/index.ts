@@ -27,6 +27,15 @@ export interface ISchedule {
    * @returns the recommended actions to take on the page
    */
   actions(from: Date, to : Date, page: IPageMetrics): PageAction[];
+  
+  /**
+   * Get the datetime of the next schedule start after the given time, if a
+   * start exists.
+   * 
+   * @param time the current time
+   * @returns the next nearest schedule start after `time`, if one exists
+   */
+  nextStart(time: Date): Date | null;
 
   /**
    * Convert schedule to an object representation. The representation must

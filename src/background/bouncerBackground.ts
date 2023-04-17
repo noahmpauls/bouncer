@@ -62,8 +62,8 @@ async function handlePageEvent(time: Date, event: PageEvent | null, url: URL, se
   }
 
   let block = false;
-  let viewtimeCheck = Infinity;
-  let windowCheck = Infinity;
+  let viewtimeChecks: Date[] = [];
+  let windowChecks: Date[] = [];
 
   for (const policy of applicable) {
     // apply any necessary resets prior to recording event
@@ -73,17 +73,28 @@ async function handlePageEvent(time: Date, event: PageEvent | null, url: URL, se
       policy.enforcer.applyTo(time, policy.page);
     }
     block ||= policy.page.access() === PageAccess.BLOCKED;
-    // if page isn't showing, don't perform viewtime check
-    if (policy.page.isShowing()) {
-      viewtimeCheck = Math.min(viewtimeCheck, time.getTime() + policy.enforcer.remainingViewtime(time, policy.page));
+
+    const viewtimeCheck = policy.enforcer.nextViewEvent(time, policy.page);
+    if (viewtimeCheck !== null) {
+      viewtimeChecks.push(viewtimeCheck);
     }
-    windowCheck = Math.min(windowCheck, time.getTime() + policy.enforcer.remainingWindow(time, policy.page));
+    const windowCheck = policy.enforcer.nextTimelineEvent(time, policy.page);
+    if (windowCheck !== null) {
+      windowChecks.push(windowCheck);
+    }
   }
+  
+  const viewtimeCheck = viewtimeChecks.length > 0
+    ? new Date(Math.min(...viewtimeChecks.filter(d => d !== null).map(d => d!.getTime())))
+    : undefined;
+  const windowCheck = windowChecks.length > 0
+    ? new Date(Math.min(...windowChecks.filter(d => d !== null).map(d => d!.getTime())))
+    : undefined;
 
   return {
     status: block ? "BLOCKED" : "ALLOWED",
-    viewtimeCheck: viewtimeCheck < Infinity ? new Date(viewtimeCheck) : undefined,
-    windowCheck: windowCheck < Infinity ? new Date(windowCheck) : undefined,
+    viewtimeCheck,
+    windowCheck,
   };
 }
 

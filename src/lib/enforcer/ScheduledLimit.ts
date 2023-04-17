@@ -62,14 +62,38 @@ export class ScheduledLimit implements IEnforcer {
     }
   }
   
-  remainingViewtime(time: Date, page: IPage): number {
-    // TODO: account for schedule???
-    return this.limit.remainingViewtime(time, page);
+  nextViewEvent(time: Date, page: IPage): Date | null {
+    const scheduleActive = this.schedule.contains(time);
+    if (scheduleActive && page.isShowing()) {
+      const remainingViewtime = this.limit.remainingViewtime(time, page);
+      return remainingViewtime === Infinity
+        ? null
+        : new Date(time.getTime() + remainingViewtime);
+    } else {
+      return null
+    }
   }
   
-  remainingWindow(time: Date, page: IPage): number {
-    // TODO: account for schedule???
-    return this.limit.remainingWindow(time, page);
+  nextTimelineEvent(time: Date, page: IPage): Date | null {
+    const scheduleActive = this.schedule.contains(time);
+    const nextStart = this.schedule.nextStart(time);
+    if (scheduleActive) {
+      const remainingWindow = this.limit.remainingWindow(time, page);
+      const nextWindowEvent = remainingWindow === Infinity
+        ? null
+        : new Date(time.getTime() + remainingWindow);
+      // this makes me cringe...
+      if (nextStart !== null && nextWindowEvent !== null) {
+        return new Date(Math.max(nextStart.getTime(), nextWindowEvent.getTime()));
+      } else if (nextStart !== null) {
+        return nextStart
+      } else if (nextWindowEvent !== null) {
+        return nextWindowEvent
+      }
+      return null;
+    } else {
+      return nextStart;
+    }
   }
   
   toObject(): ScheduledLimitData {

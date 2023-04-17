@@ -98,6 +98,16 @@ export class MinuteSchedule implements ISchedule {
       ? nearest
       : null;
   }
+  
+  nextStart(time: Date): Date | null {
+    let next = new Date(time.getTime());
+    next.setSeconds(this.startSecond);
+    next.setMilliseconds(0);
+    if (time >= next) {
+      next = new Date(next.getTime() + 60_000);
+    }
+    return next;
+  }
 
   toObject(): MinuteScheduleData {
     return {

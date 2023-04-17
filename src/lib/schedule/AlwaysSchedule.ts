@@ -26,6 +26,9 @@ export class AlwaysSchedule implements ISchedule {
 
 
   contains(time: Date): boolean { return true; }
+  
+
+  nextStart(time: Date): Date | null { return null; }
 
 
   toObject(): AlwaysScheduleData {
