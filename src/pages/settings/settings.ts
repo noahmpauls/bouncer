@@ -8,6 +8,7 @@ import { AlwaysSchedule } from "@bouncer/schedule";
 import { BasicPage } from "@bouncer/page";
 import browser from "webextension-polyfill";
 import { MinuteSchedule } from "@bouncer/schedule/MinuteSchedule";
+import { WeekSchedule } from "@bouncer/schedule/WeekSchedule";
 
 const policyForm: HTMLInputElement = document.getElementById("add-policy") as HTMLInputElement;
 const nameInput: HTMLInputElement = document.getElementById("name") as HTMLInputElement;
@@ -45,13 +46,26 @@ policyForm.addEventListener("submit", event => {
   cooldownInput.value = "";
   startSecondInput.value = "";
   endSecondInput.value = "";
+  
+  const SECOND_MS = 1000;
+  const MINUTE_MS = 60 * SECOND_MS;
+  const HOUR_MS = 60 * MINUTE_MS;
+  const DAY_MS = 24 * HOUR_MS;
+  const testWeekSchedule = new WeekSchedule(
+    [
+      { start: (3 * DAY_MS), end: (4 * DAY_MS) },
+      { start: (5 * DAY_MS), end: (6 * DAY_MS) },
+    ]
+  )
+
   const policy: IPolicy = new BasicPolicy(
     "",
     name,
     true,
     new ExactHostnameMatcher(host),
     new ScheduledLimit(
-      new MinuteSchedule(startSecond, endSecond),
+      // new MinuteSchedule(startSecond, endSecond),
+      testWeekSchedule,
       new ViewtimeCooldownLimit(duration, cooldown)
     ),
     new BasicPage(),

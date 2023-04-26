@@ -3,6 +3,8 @@ import { ScheduledLimit } from "@bouncer/enforcer";
 import { ViewtimeCooldownLimit, WindowCooldownLimit } from "@bouncer/limit";
 import { BasicPage, PageAccess, PageEvent } from "@bouncer/page";
 import { AlwaysSchedule } from "@bouncer/schedule";
+import { WeekSchedule } from "@bouncer/schedule/WeekSchedule";
+import { timeGenerator } from "./testUtils";
 
 
 describe("ScheduledLimit -> WindowCooldownLimit", () => {
@@ -72,3 +74,36 @@ describe("ScheduledLimit -> ViewtimeCooldownLimit", () => {
     expect(page.access()).toEqual(PageAccess.ALLOWED);
   });
 });
+
+describe("regression tests", () => {
+  const DAY_MS = 24 * 60 * 60 * 1000;
+  const schedule = new AlwaysSchedule();
+  // const schedule = new WeekSchedule (
+  //   [
+  //     { start: (3 * DAY_MS), end: (4 * DAY_MS) },
+  //     { start: (5 * DAY_MS), end: (6 * DAY_MS) },
+  //   ]
+  // );
+  
+  const duration = 10_000, cooldown = 10_000;
+  const limit = new ViewtimeCooldownLimit(duration, cooldown);
+  const enforcer = new ScheduledLimit(schedule, limit);
+  
+  const startTime = new Date("2023-04-26T18:00:00.000Z");
+  const t = timeGenerator(startTime);
+
+  const page = new BasicPage();
+
+  // first show
+  page.recordEvent(t(0), PageEvent.VISIT, "");
+  page.recordEvent(t(0), PageEvent.SHOW, "");
+
+  enforcer.applyTo(t(50), page);
+  expect(page.access()).toEqual(PageAccess.ALLOWED);
+  expect(page.msViewtime(t(50))).toEqual(50);
+  const nextViewEvent = enforcer.nextViewEvent(t(50), page);
+  expect(nextViewEvent).toEqual(t(10_000));
+
+  enforcer.applyTo(t(10_050), page);
+  expect(page.access()).toEqual(PageAccess.BLOCKED);
+})

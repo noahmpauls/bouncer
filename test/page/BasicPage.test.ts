@@ -883,6 +883,23 @@ describe("BasicPage", () => {
 })
 
 
+describe("regression", () => {
+  test("viewtime accrual", () => {
+    const startTime = new Date("2023-04-26T18:00:00.000Z");
+    const t = timeGenerator(startTime);
+
+    const page = new BasicPage();
+
+    // first show
+    page.recordEvent(t(0), PageEvent.VISIT, "");
+    page.recordEvent(t(0), PageEvent.SHOW, "");
+
+    expect(page.isShowing()).toBe(true);
+    expect(page.msViewtime(t(50))).toEqual(50);
+  })
+})
+
+
 describe("BasicPage from/toObject", () => {
 
   test("from/toObject does not mutate", () => {

@@ -1,6 +1,7 @@
 import { IPageMetrics, PageAction } from "@bouncer/page";
 import { AlwaysSchedule, AlwaysScheduleData } from "./AlwaysSchedule";
 import { MinuteSchedule, MinuteScheduleData } from "./MinuteSchedule";
+import { WeekSchedule, WeekScheduleData } from "./WeekSchedule";
 
 /**
  * Represents a specified subset of all times.
@@ -59,6 +60,8 @@ export function deserializeSchedule(obj: ScheduleData): ISchedule {
       return AlwaysSchedule.fromObject(obj);
     case "MinuteSchedule":
       return MinuteSchedule.fromObject(obj);
+    case "WeekSchedule":
+      return WeekSchedule.fromObject(obj);
     default:
       throw new Error(`invalid schedule type ${(obj as any).type} cannot be deserialized`);
   }
@@ -82,6 +85,7 @@ export function serializeSchedule(schedule: ISchedule): ScheduleData {
 export type ScheduleData =
     AlwaysScheduleData
   | MinuteScheduleData
+  | WeekScheduleData
   ;
 
 

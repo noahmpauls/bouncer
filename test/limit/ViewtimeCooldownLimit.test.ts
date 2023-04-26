@@ -290,6 +290,28 @@ describe("ViewtimeCooldownLimit action", () => {
 })
 
 
+describe("remainingViewtime", () => {
+  test("non-zero viewtime", () => {
+    const viewtime = 1000;
+    const limit = new ViewtimeCooldownLimit(1000, Infinity);
+
+    const pageViewtime = 50;
+    const page = pageMetrics({
+      access: PageAccess.ALLOWED,
+      msSinceBlock: null,
+      isShowing: false,
+      msViewtime: pageViewtime,
+      msSinceInitialVisit: 100,
+      msSinceHide: 200,
+    });
+
+    const remainingViewtime = limit.remainingViewtime(new Date(), page);
+    const expected = viewtime - pageViewtime;
+    expect(remainingViewtime).toEqual(expected);
+  })
+})
+
+
 describe("ViewtimeCooldownLimit from/toObject", () => {
   test("from/toObject does not mutate", () => {
     const expected = new ViewtimeCooldownLimit(1000, 5000).toObject();
