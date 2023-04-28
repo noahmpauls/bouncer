@@ -3,6 +3,7 @@ import { AlwaysSchedule, AlwaysScheduleData } from "./AlwaysSchedule";
 import { MinuteSchedule, MinuteScheduleData } from "./MinuteSchedule";
 import { WeekSchedule, WeekScheduleData } from "./WeekSchedule";
 import { DaySchedule, DayScheduleData } from "./DaySchedule";
+import { PeriodicSchedule, PeriodicScheduleData } from "./PeriodicSchedule";
 
 /**
  * Represents a specified subset of all times.
@@ -65,6 +66,8 @@ export function deserializeSchedule(obj: ScheduleData): ISchedule {
       return DaySchedule.fromObject(obj);
     case "WeekSchedule":
       return WeekSchedule.fromObject(obj);
+    case "PeriodicSchedule":
+      return PeriodicSchedule.fromObject(obj);
     default:
       throw new Error(`invalid schedule type ${(obj as any).type} cannot be deserialized`);
   }
@@ -90,7 +93,12 @@ export type ScheduleData =
   | MinuteScheduleData
   | DayScheduleData
   | WeekScheduleData
+  | PeriodicScheduleData
   ;
 
 
 export { AlwaysSchedule } from "./AlwaysSchedule";
+export { MinuteSchedule } from "./MinuteSchedule";
+export { DaySchedule } from "./DaySchedule";
+export { WeekSchedule } from "./WeekSchedule";
+export { PeriodicSchedule } from "./PeriodicSchedule";

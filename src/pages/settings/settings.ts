@@ -4,12 +4,9 @@ import { AlwaysBlock, ViewtimeCooldownLimit, WindowCooldownLimit } from "@bounce
 import { ExactHostnameMatcher } from "@bouncer/matcher";
 import { BasicPolicy, IPolicy, PolicyData } from "@bouncer/policy";
 import { ScheduledLimit } from "@bouncer/enforcer";
-import { AlwaysSchedule } from "@bouncer/schedule";
+import { AlwaysSchedule, PeriodicSchedule } from "@bouncer/schedule";
 import { BasicPage } from "@bouncer/page";
 import browser from "webextension-polyfill";
-import { MinuteSchedule } from "@bouncer/schedule/MinuteSchedule";
-import { WeekSchedule } from "@bouncer/schedule/WeekSchedule";
-import { DaySchedule } from "@bouncer/schedule/DaySchedule";
 
 const policyForm: HTMLInputElement = document.getElementById("add-policy") as HTMLInputElement;
 const nameInput: HTMLInputElement = document.getElementById("name") as HTMLInputElement;
@@ -52,10 +49,10 @@ policyForm.addEventListener("submit", event => {
   const MINUTE_MS = 60 * SECOND_MS;
   const HOUR_MS = 60 * MINUTE_MS;
   const DAY_MS = 24 * HOUR_MS;
-  const testDaySchedule = new DaySchedule(
+  const testSchedule = new PeriodicSchedule("minute",
     [
-      { start: (8 * HOUR_MS), end: (12 * HOUR_MS) },
-      { start: (12 * HOUR_MS) + (30 * MINUTE_MS), end: (17 * HOUR_MS) },
+      { start: 15_000, end: 26_000 },
+      { start: 40_000, end: 3_000 },
     ]
   )
 
@@ -66,7 +63,7 @@ policyForm.addEventListener("submit", event => {
     new ExactHostnameMatcher(host),
     new ScheduledLimit(
       // new MinuteSchedule(startSecond, endSecond),
-      testDaySchedule,
+      testSchedule,
       new ViewtimeCooldownLimit(duration, cooldown)
     ),
     new BasicPage(),
