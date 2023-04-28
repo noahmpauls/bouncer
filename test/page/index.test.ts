@@ -1,4 +1,4 @@
-import { BasicPage, deserializePage, IPage, serializePage } from "@bouncer/page";
+import { BasicPage, deserializePage, type IPage, serializePage } from "@bouncer/page";
 import { describe, test, expect } from "@jest/globals";
 
 

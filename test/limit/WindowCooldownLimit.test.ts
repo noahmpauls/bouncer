@@ -1,5 +1,5 @@
 import { WindowCooldownLimit } from "@bouncer/limit";
-import { PageAccess, PageAction, PageActionType } from "@bouncer/page";
+import { PageAccess, type PageAction, PageActionType } from "@bouncer/page";
 import { describe, test, expect } from "@jest/globals";
 import { pageMetrics, timeGenerator } from "../testUtils";
 

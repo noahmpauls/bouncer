@@ -1,6 +1,6 @@
 import { assert } from "@bouncer/utils";
-import { ISchedule } from ".";
-import { IPageMetrics, PageAccess, PageAction, PageActionType } from "@bouncer/page";
+import { type ISchedule } from "./types";
+import { type IPageMetrics, PageAccess, type PageAction, PageActionType } from "@bouncer/page";
 
 const SECOND_MS = 1000;
 const MINUTE_MS = SECOND_MS * 60;

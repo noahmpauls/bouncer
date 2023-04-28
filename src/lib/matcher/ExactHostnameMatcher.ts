@@ -1,5 +1,5 @@
 import { assert } from "@bouncer/utils";
-import { IUrlMatcher } from ".";
+import { type IUrlMatcher } from "./types";
 
 /**
  * Union of all types that represent matchers in their serialized form.

@@ -1,5 +1,5 @@
-import { IPageMetrics, PageAction } from "@bouncer/page";
-import { ISchedule } from ".";
+import { type IPageMetrics, type PageAction } from "@bouncer/page";
+import { type ISchedule } from "./types";
 import { assert } from "@bouncer/utils";
 
 /**

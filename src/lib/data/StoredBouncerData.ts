@@ -1,6 +1,6 @@
-import { IPolicy, deserializePolicy, serializePolicy } from "@bouncer/policy";
-import { IStorage } from "@bouncer/storage";
-import { IBouncerData } from ".";
+import { type IPolicy, deserializePolicy, serializePolicy } from "@bouncer/policy";
+import { type IStorage } from "@bouncer/storage";
+import { type IBouncerData } from "./types";
 
 /**
  * Represents a Bouncer data provider that uses a persistent storage solution.

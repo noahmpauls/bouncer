@@ -1,10 +1,10 @@
 import browser from "webextension-polyfill";
 import { BrowserStorage } from "@bouncer/storage";
 import { StoredBouncerData } from "@bouncer/data";
-import { IPage, PageAccess, PageEvent } from "@bouncer/page";
-import { IPolicy } from "@bouncer/policy";
+import { type IPage, PageAccess, PageEvent } from "@bouncer/page";
+import { type IPolicy } from "@bouncer/policy";
 import { Synchronizer } from "@bouncer/utils";
-import { CachedBouncerContext, IBouncerContext } from "@bouncer/context";
+import { CachedBouncerContext, type IBouncerContext } from "@bouncer/context";
 
 
 // TOOD: move most of this to its own ADT

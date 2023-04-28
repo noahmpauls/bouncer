@@ -1,4 +1,4 @@
-import { IStorage } from ".";
+import { type IStorage } from "./types";
 
 /**
  * Represents in-memory storage. Useful for testing.

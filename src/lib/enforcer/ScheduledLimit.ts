@@ -1,8 +1,8 @@
-import { ILimit, deserializeLimit, serializeLimit, LimitData } from "@bouncer/limit";
-import { IPage, PageAccess } from "@bouncer/page";
-import { ISchedule, deserializeSchedule, serializeSchedule, ScheduleData } from "@bouncer/schedule";
+import { type ILimit, deserializeLimit, serializeLimit, type LimitData } from "@bouncer/limit";
+import { type IPage, PageAccess } from "@bouncer/page";
+import { type ISchedule, deserializeSchedule, serializeSchedule, type ScheduleData } from "@bouncer/schedule";
 import { assert } from "@bouncer/utils";
-import { IEnforcer } from ".";
+import { type IEnforcer } from "./types";
 
 /**
  * Represents a browsing limit that applies on a schedule.

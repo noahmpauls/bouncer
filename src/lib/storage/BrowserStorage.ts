@@ -1,5 +1,5 @@
 import browser from "webextension-polyfill";
-import { IStorage } from ".";
+import { type IStorage } from "./types";
 
 /**
  * Persistent data manipulation through browser local extension storage.

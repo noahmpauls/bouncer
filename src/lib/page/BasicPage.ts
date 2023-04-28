@@ -1,6 +1,6 @@
 import { assert, assertTimeSequence } from "@bouncer/utils";
 import { PageAccess, PageActionType, PageEvent } from "./enums";
-import { IPage } from ".";
+import { type IPage } from "./types";
 
 /**
  * Represents a webpage that can be browsed and blocked.

@@ -1,6 +1,6 @@
 import { assert } from "@bouncer/utils";
-import { IPageMetrics, PageAccess, PageAction, PageActionType } from "@bouncer/page";
-import { ILimit } from ".";
+import { type IPageMetrics, PageAccess, type PageAction, PageActionType } from "@bouncer/page";
+import { type ILimit } from "./types";
 
 /**
  * Represents a limit that always recommends blocking no matter what.

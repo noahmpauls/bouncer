@@ -1,7 +1,7 @@
-import { IBouncerData } from "@bouncer/data";
-import { IPolicy } from "@bouncer/policy";
+import { type IBouncerData } from "@bouncer/data";
+import { type IPolicy } from "@bouncer/policy";
 import { Synchronizer } from "@bouncer/utils";
-import { IBouncerContext } from ".";
+import { type IBouncerContext } from "./types";
 
 
 /**

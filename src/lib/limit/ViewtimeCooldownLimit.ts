@@ -1,6 +1,6 @@
 import { assert } from "@bouncer/utils";
-import { IPageMetrics, PageAction, PageActionType } from "@bouncer/page";
-import { ILimit } from ".";
+import { type IPageMetrics, type PageAction, PageActionType } from "@bouncer/page";
+import { type ILimit } from "./types";
 
 /**
  * Represents a limit that provides an allotment of viewtime, followed by a

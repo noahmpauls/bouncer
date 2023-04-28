@@ -1,8 +1,8 @@
-import { IEnforcer, deserializeEnforcer, serializeEnforcer, EnforcerData } from "@bouncer/enforcer";
-import { IUrlMatcher, deserializeMatcher, serializeMatcher, UrlMatcherData } from "@bouncer/matcher";
-import { IPage, deserializePage, serializePage, PageData } from "@bouncer/page";
+import { type IEnforcer, deserializeEnforcer, serializeEnforcer, type EnforcerData } from "@bouncer/enforcer";
+import { type IUrlMatcher, deserializeMatcher, serializeMatcher, type UrlMatcherData } from "@bouncer/matcher";
+import { type IPage, deserializePage, serializePage, type PageData } from "@bouncer/page";
 import { assert } from "@bouncer/utils";
-import { IPolicy } from ".";
+import { type IPolicy } from "./types";
 
 /**
  * Represents the mapping between a page/set of pages and an enforcement action

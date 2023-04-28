@@ -1,5 +1,4 @@
-import { BasicPage, IPage, IPageMetrics, PageAccess, PageEvent } from "@bouncer/page"
-import { BasicPageData } from "@bouncer/page/BasicPage";
+import { BasicPage, type IPage, type IPageMetrics, PageAccess, PageEvent } from "@bouncer/page"
 
 type PageMutation = {
   type: PageEvent,

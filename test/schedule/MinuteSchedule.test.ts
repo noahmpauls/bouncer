@@ -1,5 +1,5 @@
 import { DateTime } from "luxon";
-import { BasicPage, PageAction, PageActionType } from "@bouncer/page";
+import { BasicPage, type PageAction, PageActionType } from "@bouncer/page";
 import { MinuteSchedule } from "@bouncer/schedule";
 import { describe, test, expect } from "@jest/globals";
 

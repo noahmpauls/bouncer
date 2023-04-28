@@ -1,6 +1,6 @@
 import { ViewtimeCooldownLimit } from "@bouncer/limit";
 import { describe, test, expect } from "@jest/globals";
-import { PageAccess, PageAction, PageActionType } from "@bouncer/page";
+import { PageAccess, type PageAction, PageActionType } from "@bouncer/page";
 import { pageMetrics, timeGenerator } from "../testUtils";
 
 

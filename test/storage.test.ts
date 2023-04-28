@@ -2,7 +2,7 @@
 // crap makes me hate web development with a burning passion.
 
 import { describe, expect, test, jest, afterEach } from "@jest/globals";
-import { BrowserStorage, IStorage } from "@bouncer/storage";
+import { BrowserStorage, type IStorage } from "@bouncer/storage";
 
 jest.mock("webextension-polyfill", () => ({
   storage: {
