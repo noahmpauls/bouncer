@@ -1,23 +1,23 @@
 import { DateTime } from "luxon";
 import { BasicPage, PageAction, PageActionType } from "@bouncer/page";
-import { MinuteSchedule } from "@bouncer/schedule";
 import { describe, test, expect } from "@jest/globals";
+import { PeriodicSchedule } from "@bouncer/schedule";
 
 
 const REFTIME = DateTime.fromISO("2000-01-01T00:00:00.500");
 
 
-describe("MinuteSchedule", () => {
+describe("PeriodicSchedule (minute)", () => {
   test("rejects invalid 1", () => {
     expect(() => {
-      const schedule = new MinuteSchedule(0, 60);
+      const schedule = new PeriodicSchedule("minute", [{ start: 0 * 1000, end: 60 * 1000 }]);
     }).toThrow();
   })
 
 
   test("rejects invalid 2", () => {
     expect(() => {
-      const schedule = new MinuteSchedule(-1, 59);
+      const schedule = new PeriodicSchedule("minute", [{ start: -1 * 1000, end: 59 * 1000 }]);
     }).toThrow();
   })
   
@@ -28,7 +28,7 @@ describe("MinuteSchedule", () => {
     { s: 45, ms: 0, contains: true },
     { s: 44, ms: 999, contains: true },
   ])("wrap-around all-inclusive contains $s s, $ms ms: $contains", ({ s, ms, contains }) => {
-    const schedule = new MinuteSchedule(45, 45);
+    const schedule = new PeriodicSchedule("minute", [{ start: 45 * 1000, end: 45 * 1000 }]);
 
     const date = new Date(2000, 3, 12, 5, 15, s, ms);
 
@@ -42,7 +42,7 @@ describe("MinuteSchedule", () => {
     { s: 35, ms: 0, contains: false },
     { s: 0, ms: 500, contains: false },
   ])("wrap-around gapped contains $s s, $ms ms: $contains", ({ s, ms, contains }) => {
-    const schedule = new MinuteSchedule(34, 35);
+    const schedule = new PeriodicSchedule("minute", [{ start: 34 * 1000, end: 35 * 1000 }]);
 
     const date = new Date(2000, 3, 12, 5, 15, s, ms);
 
@@ -53,7 +53,7 @@ describe("MinuteSchedule", () => {
   test("start in range", () => {
     const startSec = 30;
     const endSec = 59;
-    const schedule = new MinuteSchedule(startSec, endSec);
+    const schedule = new PeriodicSchedule("minute", [{ start: startSec * 1000, end: endSec * 1000 }]);
 
     const page = new BasicPage();
     
@@ -72,7 +72,7 @@ describe("MinuteSchedule", () => {
   test("end in range", () => {
     const startSec = 59;
     const endSec = 30;
-    const schedule = new MinuteSchedule(startSec, endSec);
+    const schedule = new PeriodicSchedule("minute", [{ start: startSec * 1000, end: endSec * 1000 }]);
 
     const page = new BasicPage();
     const startRange = REFTIME.set({ second: endSec - 1 }).toJSDate();
@@ -90,7 +90,7 @@ describe("MinuteSchedule", () => {
   test("end then start in range, no gap", () => {
     const startSec = 10;
     const endSec = startSec;
-    const schedule = new MinuteSchedule(startSec, endSec);
+    const schedule = new PeriodicSchedule("minute", [{ start: startSec * 1000, end: endSec * 1000 }]);
 
     const page = new BasicPage();
     
@@ -109,7 +109,7 @@ describe("MinuteSchedule", () => {
   test("end then start in range, gapped", () => {
     const startSec = 40;
     const endSec = 20;
-    const schedule = new MinuteSchedule(startSec, endSec);
+    const schedule = new PeriodicSchedule("minute", [{ start: startSec * 1000, end: endSec * 1000 }]);
 
     const page = new BasicPage();
     
@@ -128,7 +128,7 @@ describe("MinuteSchedule", () => {
   test("start then end in range, gapped", () => {
     const startSec = 40;
     const endSec = 20;
-    const schedule = new MinuteSchedule(startSec, endSec);
+    const schedule = new PeriodicSchedule("minute", [{ start: startSec * 1000, end: endSec * 1000 }]);
 
     const page = new BasicPage();
     
@@ -147,7 +147,7 @@ describe("MinuteSchedule", () => {
   test("start in range while blocked", () => {
     const startSec = 30;
     const endSec = 59;
-    const schedule = new MinuteSchedule(startSec, endSec);
+    const schedule = new PeriodicSchedule("minute", [{ start: startSec * 1000, end: endSec * 1000 }]);
 
     const page = new BasicPage();
     page.recordAction(PageActionType.BLOCK, REFTIME.minus({ seconds: 1 }).toJSDate());
@@ -164,7 +164,7 @@ describe("MinuteSchedule", () => {
   test("end in range while blocked", () => {
     const startSec = 30;
     const endSec = 59;
-    const schedule = new MinuteSchedule(startSec, endSec);
+    const schedule = new PeriodicSchedule("minute", [{ start: startSec * 1000, end: endSec * 1000 }]);
 
     const page = new BasicPage();
     page.recordAction(PageActionType.BLOCK, REFTIME.minus({ seconds: 1 }).toJSDate());
@@ -184,7 +184,7 @@ describe("MinuteSchedule", () => {
   test("end then start in range while blocked, no gap", () => {
     const startSec = 10;
     const endSec = startSec;
-    const schedule = new MinuteSchedule(startSec, endSec);
+    const schedule = new PeriodicSchedule("minute", [{ start: startSec * 1000, end: endSec * 1000 }]);
 
     const page = new BasicPage();
     page.recordAction(PageActionType.BLOCK, REFTIME.minus({ seconds: 1 }).toJSDate());
@@ -206,7 +206,7 @@ describe("MinuteSchedule", () => {
   test("end then start in range while blocked, gapped", () => {
     const startSec = 40;
     const endSec = 20;
-    const schedule = new MinuteSchedule(startSec, endSec);
+    const schedule = new PeriodicSchedule("minute", [{ start: startSec * 1000, end: endSec * 1000 }]);
 
     const page = new BasicPage();
     page.recordAction(PageActionType.BLOCK, REFTIME.minus({ seconds: 1 }).toJSDate());
@@ -228,7 +228,7 @@ describe("MinuteSchedule", () => {
   test("start then end in range while blocked", () => {
     const startSec = 40;
     const endSec = 20;
-    const schedule = new MinuteSchedule(startSec, endSec);
+    const schedule = new PeriodicSchedule("minute", [{ start: startSec * 1000, end: endSec * 1000 }]);
 
     const page = new BasicPage();
     page.recordAction(PageActionType.BLOCK, REFTIME.minus({ seconds: 1 }).toJSDate());
@@ -248,7 +248,7 @@ describe("MinuteSchedule", () => {
   test("multiple starts and ends", () => {
     const startSec = 15;
     const endSec = 45;
-    const schedule = new MinuteSchedule(startSec, endSec);
+    const schedule = new PeriodicSchedule("minute", [{ start: startSec * 1000, end: endSec * 1000 }]);
 
     const page = new BasicPage();
     const startRange = REFTIME.set({ second: startSec + 1 }).toJSDate();
@@ -266,7 +266,7 @@ describe("MinuteSchedule", () => {
   test("multiple starts and ends while blocked", () => {
     const startSec = 15;
     const endSec = 45;
-    const schedule = new MinuteSchedule(startSec, endSec);
+    const schedule = new PeriodicSchedule("minute", [{ start: startSec * 1000, end: endSec * 1000 }]);
 
     const page = new BasicPage();
     page.recordAction(PageActionType.BLOCK, REFTIME.minus({ seconds: 1 }).toJSDate());
@@ -287,8 +287,8 @@ describe("MinuteSchedule", () => {
 
 describe("MinuteSchedule from/toObject", () => {
   test("from/toObject does not mutate", () => {
-    const expected = new MinuteSchedule(0, 59).toObject();
-    const actual = MinuteSchedule.fromObject(expected).toObject();
+    const expected = new PeriodicSchedule("minute", [{ start: 0 * 1000, end: 59 * 1000 }]).toObject();
+    const actual = PeriodicSchedule.fromObject(expected).toObject();
     expect(actual).toStrictEqual(actual);
   });
 });

@@ -3,7 +3,6 @@ import { ScheduledLimit } from "@bouncer/enforcer";
 import { ViewtimeCooldownLimit, WindowCooldownLimit } from "@bouncer/limit";
 import { BasicPage, PageAccess, PageEvent } from "@bouncer/page";
 import { AlwaysSchedule } from "@bouncer/schedule";
-import { WeekSchedule } from "@bouncer/schedule/WeekSchedule";
 import { timeGenerator } from "./testUtils";
 
 
@@ -76,14 +75,7 @@ describe("ScheduledLimit -> ViewtimeCooldownLimit", () => {
 });
 
 describe("regression tests", () => {
-  const DAY_MS = 24 * 60 * 60 * 1000;
   const schedule = new AlwaysSchedule();
-  // const schedule = new WeekSchedule (
-  //   [
-  //     { start: (3 * DAY_MS), end: (4 * DAY_MS) },
-  //     { start: (5 * DAY_MS), end: (6 * DAY_MS) },
-  //   ]
-  // );
   
   const duration = 10_000, cooldown = 10_000;
   const limit = new ViewtimeCooldownLimit(duration, cooldown);

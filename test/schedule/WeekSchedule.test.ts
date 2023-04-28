@@ -1,4 +1,4 @@
-import { WeekSchedule } from "@bouncer/schedule/WeekSchedule";
+import { WeekSchedule } from "@bouncer/schedule";
 import { describe, test, expect } from "@jest/globals";
 import { timeGenerator } from "../testUtils";
 import { BasicPage, PageEvent } from "@bouncer/page";

@@ -212,6 +212,7 @@ export class PeriodicSchedule implements ISchedule {
     let periodStart = this.period.start(max);
     let nearest = new Date(periodStart.getTime() + periodOffset);
     if (nearest > max) {
+      // TODO: potential daylight savings bug in this conversion?
       nearest = new Date(nearest.getTime() - this.period.ms);
     }
     return (nearest > min)
