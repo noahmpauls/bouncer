@@ -1,73 +1,20 @@
 import { BrowserStorage } from "@bouncer/storage";
-import { IBouncerData, StoredBouncerData } from "@bouncer/data";
-import { AlwaysBlock, ViewtimeCooldownLimit, WindowCooldownLimit } from "@bouncer/limit";
-import { ExactHostnameMatcher } from "@bouncer/matcher";
-import { BasicPolicy, IPolicy, PolicyData } from "@bouncer/policy";
-import { ScheduledLimit } from "@bouncer/enforcer";
-import { AlwaysSchedule, PeriodicSchedule } from "@bouncer/schedule";
-import { BasicPage } from "@bouncer/page";
+import { type IBouncerData, StoredBouncerData } from "@bouncer/data";
+import { deserializePolicy } from "@bouncer/policy";
 import browser from "webextension-polyfill";
 
-const policyForm: HTMLInputElement = document.getElementById("add-policy") as HTMLInputElement;
-const nameInput: HTMLInputElement = document.getElementById("name") as HTMLInputElement;
-const hostInput: HTMLInputElement = document.getElementById("host") as HTMLInputElement;
-const durationInput: HTMLInputElement = document.getElementById("duration") as HTMLInputElement;
-const cooldownInput: HTMLInputElement = document.getElementById("cooldown") as HTMLInputElement;
-
-nameInput.value = "example";
-hostInput.value = "www.example.com";
-durationInput.value = "10000";
-cooldownInput.value = "10000";
-
-const startSecondInput: HTMLInputElement = document.getElementById("startSecond") as HTMLInputElement;
-const endSecondInput: HTMLInputElement = document.getElementById("endSecond") as HTMLInputElement;
-
-startSecondInput.value = "15";
-endSecondInput.value = "45";
+import { PolicyInput } from "components/policy/PolicyInput";
 
 
 const bouncerData: IBouncerData = new StoredBouncerData(new BrowserStorage());
 
-policyForm.addEventListener("submit", event => {
+const policyInput = document.getElementById("policy") as PolicyInput;
+const policySubmit = document.getElementById("policy-submit") as HTMLButtonElement;
+
+policySubmit.addEventListener("click", event => {
   event.preventDefault();
   
-  const name = nameInput.value;
-  const host = hostInput.value;
-  const duration = Number(durationInput.value);
-  const cooldown = Number(cooldownInput.value);
-  const startSecond = Number(startSecondInput.value);
-  const endSecond = Number(endSecondInput.value);
-
-  nameInput.value = "";
-  hostInput.value = "";
-  durationInput.value = "";
-  cooldownInput.value = "";
-  startSecondInput.value = "";
-  endSecondInput.value = "";
-  
-  const SECOND_MS = 1000;
-  const MINUTE_MS = 60 * SECOND_MS;
-  const HOUR_MS = 60 * MINUTE_MS;
-  const DAY_MS = 24 * HOUR_MS;
-  const testSchedule = new PeriodicSchedule("minute",
-    [
-      { start: 15_000, end: 26_000 },
-      { start: 40_000, end: 3_000 },
-    ]
-  )
-
-  const policy: IPolicy = new BasicPolicy(
-    "",
-    name,
-    true,
-    new ExactHostnameMatcher(host),
-    new ScheduledLimit(
-      // new MinuteSchedule(startSecond, endSecond),
-      testSchedule,
-      new ViewtimeCooldownLimit(duration, cooldown)
-    ),
-    new BasicPage(),
-  );
+  const policy = deserializePolicy(policyInput.value);
   bouncerData.addPolicy(policy)
     // TODO: formalize the policy refresh message to background script
     .then(() => browser.runtime.sendMessage({ type: "REFRESH", time: new Date() }))

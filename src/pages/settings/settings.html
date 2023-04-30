@@ -12,40 +12,9 @@
 
 <body>
   <h1>Bouncer</h1>
-  <h2>Settings</h2>
-  <h3>Policies</h3>
-  <form id="add-policy">
-    <h4>Limit</h4>
-    <ul>
-      <li>
-        <label for="name">Name:</label>
-        <input type="text" id="name" name="name" />
-      </li><li>
-        <label for="host">Host:</label>
-        <input type="text" id="host" name="host" />
-      </li>
-      <li>
-        <label for="duration">Duration:</label>
-        <input type="text" id="duration" name="duration" />
-      </li>
-      <li>
-        <label for="cooldown">Cooldown:</label>
-        <input type="text" id="cooldown" name="cooldown"/>
-      </li>
-    </ul>
-    <h4>Schedule</h4>
-    <ul>
-      <li>
-        <label for="startSecond">Start:</label>
-        <input type="number" id="startSecond" name="startSecond" />
-      </li>
-      <li>
-        <label for="endSecond">End:</label>
-        <input type="number" id="endSecond" name="endSecond"/>
-      </li>
-    </ul>
-    <button type="submit">Add Policy</button>
-  </form>
+  <h2>Policies</h2>
+  <policy-input id="policy"></policy-input>
+  <button id="policy-submit">Submit</button>
   <div id="policies"></div>
 </body>
 
