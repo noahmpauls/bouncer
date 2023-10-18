@@ -1,14 +1,16 @@
-const { pathsToModuleNameMapper } = require("ts-jest");
-const { compilerOptions } = require("./tsconfig");
+import { pathsToModuleNameMapper } from "ts-jest";
+import tsconfig from "./tsconfig.json" assert { type: "json" };
 
 /** @type {import('ts-jest').JestConfigWithTsJest} */
-module.exports = {
-  preset: 'ts-jest',
+export default {
+  transform: {
+    '.ts': [ 'ts-jest', { useESM: true, tsconfig: './tsconfig.jest.json' }]
+  },
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ["<rootDir>/test/jest/setup.ts"],
 
   // https://kulshekhar.github.io/ts-jest/docs/getting-started/paths-mapping/#jest-config-with-helper
   roots: ["<rootDir>"],
-  modulePaths: [compilerOptions.baseUrl],
-  moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths)
+  modulePaths: [tsconfig.compilerOptions.baseUrl],
+  moduleNameMapper: pathsToModuleNameMapper(tsconfig.compilerOptions.paths)
 };
