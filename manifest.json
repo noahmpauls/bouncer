@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Bouncer",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "description": "Ridiculously configurable website limiter.",
   
   "permissions": [
@@ -15,7 +15,7 @@
   "action": {
     "default_title": "Bouncer",
     "default_icon": "assets/code.svg",
-    "default_popup": "dist/pages/popup/popup.html"
+    "default_popup": "dist/ui/popup/index.html"
   },
   
   "background": {
@@ -36,8 +36,7 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "dist/pages/blocked/*",
-        "dist/pages/settings/*"
+        "dist/ui/*"
       ],
       "matches": ["<all_urls>"]
     }

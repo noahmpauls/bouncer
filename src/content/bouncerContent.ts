@@ -177,7 +177,7 @@ async function doBouncer() {
       clearInterval(viewtimeChecker);
       viewtimeChecker = null;
     }
-    location.assign(browser.runtime.getURL("dist/pages/blocked/blocked.html"));
+    location.assign(browser.runtime.getURL("dist/ui/blocked/index.html"));
     console.log(`${new Date().getTime()} BOUNCER: blocking page...`);
   }
 }

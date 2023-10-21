@@ -1,19 +1,21 @@
 {
   "name": "bouncer",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "type": "module",
   "description": "Ridiculously configurable website limiter.",
   "main": "manifest.json",
   "scripts": {
     "build": "rollup --config",
     "build:watch": "rollup --config --watch",
+    "ui:watch": "eleventy --watch --quiet",
     "webext:watch": "web-ext run",
-    "dev": "run-p -rl build:watch webext:watch",
+    "dev": "run-p -rl build:watch ui:watch webext:watch",
     "test": "jest"
   },
   "author": "Noah Pauls <noahmpauls@gmail.com>",
   "license": "ISC",
   "devDependencies": {
+    "@11ty/eleventy": "^2.0.1",
     "@jest/globals": "^29.4.3",
     "@rollup/plugin-commonjs": "^24.0.1",
     "@rollup/plugin-node-resolve": "^15.0.1",
@@ -24,7 +26,6 @@
     "luxon": "^3.3.0",
     "npm-run-all": "^4.1.5",
     "rollup": "^3.16.0",
-    "rollup-plugin-copy": "^3.4.0",
     "ts-jest": "^29.0.5",
     "tslib": "^2.5.0",
     "typescript": "^5.0.4",

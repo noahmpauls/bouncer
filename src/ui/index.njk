@@ -1,0 +1,13 @@
+{% extends "layouts/base.njk" %}
+
+{% block head %}
+<script src="/assets/scripts/settings.js" defer></script>
+{% endblock %}
+
+{% block body %}
+{% include "partials/header.njk" %}
+<h2>Policies</h2>
+<policy-input id="policy"></policy-input>
+<button id="policy-submit">Submit</button>
+<div id="policies"></div>
+{% endblock %}
