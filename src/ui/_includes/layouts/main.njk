@@ -1,0 +1,10 @@
+{% extends "layouts/base.njk" %}
+
+{% block body %}
+{% include "partials/header.njk" %}
+<main>
+  {% block main %}
+  {{ content | safe }}
+  {% endblock %}
+</main>
+{% endblock %}
