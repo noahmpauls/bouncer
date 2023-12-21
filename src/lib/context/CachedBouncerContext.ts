@@ -1,7 +1,7 @@
 import { type IBouncerData } from "@bouncer/data";
-import { type IPolicy } from "@bouncer/policy";
 import { Synchronizer } from "@bouncer/utils";
 import { type IBouncerContext } from "./types";
+import type { IGuard } from "@bouncer/guard";
 
 
 /**
@@ -10,7 +10,7 @@ import { type IBouncerContext } from "./types";
  */
 export class CachedBouncerContext implements IBouncerContext {
   data: IBouncerData;
-  cache: IPolicy[] | undefined = undefined;
+  cache: IGuard[] | undefined = undefined;
   sync: Synchronizer = new Synchronizer();
 
   constructor(data: IBouncerData) {
@@ -28,33 +28,33 @@ export class CachedBouncerContext implements IBouncerContext {
     }
     await this.sync.sync(async () => {
       if (this.cache === undefined) {
-        const data = await this.data.getPolicies();
+        const data = await this.data.getGuards();
         this.cache = data;
       }
     });
   }
   
-  async policies(): Promise<IPolicy[]> {
+  async guards(): Promise<IGuard[]> {
     if (this.cache === undefined) {
       await this.initCache();
-      return this.policies();
+      return this.guards();
     } else {
       return this.cache;
     }
   }
   
-  async applicablePolicies(url: URL): Promise<IPolicy[]> {
+  async applicableGuards(url: URL): Promise<IGuard[]> {
     if (this.cache === undefined) {
       await this.initCache();
-      return this.applicablePolicies(url);
+      return this.applicableGuards(url);
     } else {
-      return this.cache.filter(p => p.matcher.matches(url));
+      return this.cache.filter(g => g.policy.matcher.matches(url));
     }
   }
   
   async refresh(): Promise<void> {
     await this.sync.sync(async () => {
-      const data = await this.data.getPolicies();
+      const data = await this.data.getGuards();
       this.cache = data;
     });
   }
@@ -62,7 +62,7 @@ export class CachedBouncerContext implements IBouncerContext {
   async persist(): Promise<void> {
     await this.sync.sync(async () => {
       if (this.cache !== undefined) {
-        await this.data.setPolicies(this.cache);
+        await this.data.setGuards(this.cache);
       }
     });
   }

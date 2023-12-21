@@ -1,3 +1,4 @@
+import type { IGuard } from "@bouncer/guard";
 import type { IPolicy } from "@bouncer/policy";
 
 /**
@@ -5,24 +6,24 @@ import type { IPolicy } from "@bouncer/policy";
  */
 export interface IBouncerData {
   /**
-   * Get all policies.
+   * Get all guards.
    * 
-   * @returns all policies
+   * @returns all guards
    */
-  getPolicies(): Promise<IPolicy[]>;
+  getGuards(): Promise<IGuard[]>;
   
   /**
-   * Set all policies.
+   * Set all guards.
    * 
-   * @param policies policy entities
+   * @param guards guard entities
    */
-  setPolicies(policies: IPolicy[]): Promise<void>;
+  setGuards(guards: IGuard[]): Promise<void>;
   
   /**
    * Add a new policy.
    * 
-   * @param policy policy to add, with dummy ID
-   * @returns ID of added policy
+   * @param policy policy to add
+   * @returns guard created with policy
    */
-  addPolicy(policy: IPolicy): Promise<string>;
+  addPolicy(policy: IPolicy): Promise<IGuard>;
 }

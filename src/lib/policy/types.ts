@@ -1,6 +1,5 @@
 import type { IEnforcer } from "@bouncer/enforcer";
 import type { IUrlMatcher } from "@bouncer/matcher";
-import type { IPage } from "@bouncer/page";
 import type { BasicPolicyData } from "./BasicPolicy";
 
 /**
@@ -8,19 +7,9 @@ import type { BasicPolicyData } from "./BasicPolicy";
  */
 export interface IPolicy {
   /**
-   * Unique ID identifying a policy.
-   */
-  id: string;
-  
-  /**
    * Human-readable name of the policy.
    */
   name: string;
-  
-  /**
-   * Whether the policy is active or not.
-   */
-  active: boolean;
   
   /**
    * Matcher determining what URLs this policy matches.
@@ -31,11 +20,6 @@ export interface IPolicy {
    * Enforcer to apply to policy page.
    */
   enforcer: IEnforcer;
-
-  /**
-   * Blockable page associated with the policy.
-   */
-  page: IPage;
 
   /**
    * Convert the policy to an object representation. The representation must

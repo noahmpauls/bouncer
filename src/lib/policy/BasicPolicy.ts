@@ -1,6 +1,5 @@
 import { type IEnforcer, deserializeEnforcer, serializeEnforcer, type EnforcerData } from "@bouncer/enforcer";
 import { type IUrlMatcher, deserializeMatcher, serializeMatcher, type UrlMatcherData } from "@bouncer/matcher";
-import { type IPage, deserializePage, serializePage, type PageData } from "@bouncer/page";
 import { assert } from "@bouncer/utils";
 import { type IPolicy } from "./types";
 
@@ -10,27 +9,18 @@ import { type IPolicy } from "./types";
  */
 export class BasicPolicy implements IPolicy {
 
-  readonly id: string;
   name: string;
-  active: boolean;
   matcher: IUrlMatcher;
   enforcer: IEnforcer;
-  readonly page: IPage;
 
   constructor(
-    id: string,
     name: string,
-    active: boolean,
     matcher: IUrlMatcher,
     enforcer: IEnforcer,
-    page: IPage,
   ) {
-    this.id = id;
     this.name = name;
-    this.active = active;
     this.matcher = matcher;
     this.enforcer = enforcer;
-    this.page = page;
   }
 
   /**
@@ -40,27 +30,21 @@ export class BasicPolicy implements IPolicy {
    * @returns policy
    */
   static fromObject(obj: BasicPolicyData): BasicPolicy {
-    assert(obj.type === "BasicPolicy", `cannot make Basic Policy from data with type ${obj.type}`);
+    assert(obj.type === "BasicPolicy", `cannot make BasicPolicy from data with type ${obj.type}`);
     return new BasicPolicy(
-      obj.id,
       obj.data.name,
-      obj.data.active,
       deserializeMatcher(obj.data.matcher),
       deserializeEnforcer(obj.data.enforcer),
-      deserializePage(obj.data.page)
     );
   }
 
   toObject(): BasicPolicyData {
     return {
       type: "BasicPolicy",
-      id: this.id,
       data: {
         name: this.name,
-        active: this.active,
         matcher: serializeMatcher(this.matcher),
         enforcer: serializeEnforcer(this.enforcer),
-        page: serializePage(this.page),
       }
     }
   }
@@ -68,12 +52,9 @@ export class BasicPolicy implements IPolicy {
 
 export type BasicPolicyData = {
   type: "BasicPolicy",
-  id: string,
   data: {
     name: string,
-    active: boolean,
     matcher: UrlMatcherData,
     enforcer: EnforcerData,
-    page: PageData,
   }
 }

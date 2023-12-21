@@ -1,4 +1,4 @@
-import type { IPolicy } from "@bouncer/policy";
+import type { IGuard } from "@bouncer/guard";
 
 /**
  * Represents a data context that exposes entities related to Bouncer for
@@ -7,16 +7,16 @@ import type { IPolicy } from "@bouncer/policy";
  */
 export interface IBouncerContext {
   /**
-   * Get all policies.
+   * Get all guards.
    */
-  policies(): Promise<IPolicy[]>;
+  guards(): Promise<IGuard[]>;
 
   /**
-   * Get policies applicable to a specific URL.
+   * Get guards applicable to a specific URL.
    * 
-   * @param url the URL to which the policies should apply.
+   * @param url the URL to which the guards should apply.
    */
-  applicablePolicies(url: URL): Promise<IPolicy[]>;
+  applicableGuards(url: URL): Promise<IGuard[]>;
   
   /**
    * Refresh the context contents. Use when data is altered outside of the

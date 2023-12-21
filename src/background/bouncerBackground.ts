@@ -1,10 +1,10 @@
 import browser from "webextension-polyfill";
 import { BrowserStorage } from "@bouncer/storage";
 import { StoredBouncerData } from "@bouncer/data";
-import { type IPage, PageAccess, PageEvent } from "@bouncer/page";
-import { type IPolicy } from "@bouncer/policy";
+import { PageAccess, PageEvent } from "@bouncer/page";
 import { Synchronizer } from "@bouncer/utils";
 import { CachedBouncerContext, type IBouncerContext } from "@bouncer/context";
+import type { IGuard } from "@bouncer/guard";
 
 
 // TOOD: move most of this to its own ADT
@@ -54,7 +54,7 @@ browser.runtime.onMessage.addListener(async (message, sender) => await synchroni
 
 async function handlePageEvent(time: Date, event: PageEvent | null, url: URL, sender: string): Promise<any> {
   // get rules associated with this sender
-  const applicable: IPolicy[] = await cache.applicablePolicies(url);
+  const applicable: IGuard[] = await cache.applicableGuards(url);
   if (applicable.length === 0) {
     return {
       status: "UNTRACKED",
@@ -65,20 +65,22 @@ async function handlePageEvent(time: Date, event: PageEvent | null, url: URL, se
   let viewtimeChecks: Date[] = [];
   let windowChecks: Date[] = [];
 
-  for (const policy of applicable) {
+  for (const guard of applicable) {
+    const page = guard.page;
+    const policy = guard.policy
     // apply any necessary resets prior to recording event
-    policy.enforcer.applyTo(time, policy.page);
+    policy.enforcer.applyTo(time, page);
     if (event !== null) {
-      policy.page.recordEvent(time, event, sender);
-      policy.enforcer.applyTo(time, policy.page);
+      page.recordEvent(time, event, sender);
+      policy.enforcer.applyTo(time, page);
     }
-    block ||= policy.page.access() === PageAccess.BLOCKED;
+    block ||= page.access() === PageAccess.BLOCKED;
 
-    const viewtimeCheck = policy.enforcer.nextViewEvent(time, policy.page);
+    const viewtimeCheck = policy.enforcer.nextViewEvent(time, page);
     if (viewtimeCheck !== null) {
       viewtimeChecks.push(viewtimeCheck);
     }
-    const windowCheck = policy.enforcer.nextTimelineEvent(time, policy.page);
+    const windowCheck = policy.enforcer.nextTimelineEvent(time, page);
     if (windowCheck !== null) {
       windowChecks.push(windowCheck);
     }

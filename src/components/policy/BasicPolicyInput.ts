@@ -39,13 +39,10 @@ export class BasicPolicyInput extends HTMLElement {
     const enforcerInput = this.shadow.getElementById("enforcer") as EnforcerInput;
     return {
       type: "BasicPolicy",
-      id: "",
       data: {
         name: nameInput.value,
-        active: true,
         matcher: matcherInput.value,
         enforcer: enforcerInput.value,
-        page: new BasicPage().toObject()
       }
     }
   }

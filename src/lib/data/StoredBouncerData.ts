@@ -1,6 +1,8 @@
-import { type IPolicy, deserializePolicy, serializePolicy } from "@bouncer/policy";
+import { type IPolicy } from "@bouncer/policy";
 import { type IStorage } from "@bouncer/storage";
 import { type IBouncerData } from "./types";
+import { deserializeGuard, serializeGuard, type IGuard, BasicGuard } from "@bouncer/guard";
+import { BasicPage } from "@bouncer/page";
 
 /**
  * Represents a Bouncer data provider that uses a persistent storage solution.
@@ -16,27 +18,25 @@ export class StoredBouncerData implements IBouncerData {
   }
 
   
-  async getPolicies(): Promise<IPolicy[]> {
-    const policyData = await this.storage.get<any[]>("policies", []);
-    const policies = policyData.map(p => deserializePolicy(p));
-    return policies;
+  async getGuards(): Promise<IGuard[]> {
+    const data = await this.storage.get<any[]>("guards", []);
+    const objects = data.map(g => deserializeGuard(g));
+    return objects;
   }
   
-  async setPolicies(policies: IPolicy[]): Promise<void> {
-    const policyData = policies.map(p => serializePolicy(p));
-    await this.storage.set("policies", policyData);
+  async setGuards(guards: IGuard[]): Promise<void> {
+    const data = guards.map(g => serializeGuard(g));
+    await this.storage.set("guards", data);
   }
 
-  async addPolicy(policy: IPolicy): Promise<string> {
-    const policyData = await this.storage.get<any[]>("policies", []);
-    const id = policyData.length.toString();
-    // TODO: it is far from ideal to directly change the policy's serialized
-    //       representation, which should be entirely hidden. Need a way to
-    //       create policy objects without IDs.
-    const serializedPolicy = serializePolicy(policy);
-    serializedPolicy.id = id;
-    policyData.push(serializedPolicy);
-    await this.storage.set("policies", policyData);
-    return id;
+  async addPolicy(policy: IPolicy): Promise<IGuard> {
+    const data = await this.storage.get<any[]>("guards", []);
+    // TODO: generating IDs this way does not work...
+    const id = data.length.toString();
+    const guard = new BasicGuard(id, true, policy, new BasicPage());
+    const serializedGuard = serializeGuard(guard);
+    data.push(serializedGuard);
+    await this.storage.set("guards", data);
+    return guard;
   }
 }
