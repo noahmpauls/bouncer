@@ -29,5 +29,8 @@ main {
 
 pre {
   background-color: white;
-  padding: 1rem;
+}
+
+form.policy-editor textarea {
+  display: block;
 }
