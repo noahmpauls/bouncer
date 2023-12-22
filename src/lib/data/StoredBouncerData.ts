@@ -33,7 +33,7 @@ export class StoredBouncerData implements IBouncerData {
     const data = await this.storage.get<any[]>("guards", []);
     // TODO: generating IDs this way does not work...
     const id = data.length.toString();
-    const guard = new BasicGuard(id, true, policy, new BasicPage());
+    const guard = new BasicGuard(id, policy, new BasicPage());
     const serializedGuard = serializeGuard(guard);
     data.push(serializedGuard);
     await this.storage.set("guards", data);

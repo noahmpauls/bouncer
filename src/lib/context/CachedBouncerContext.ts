@@ -48,7 +48,7 @@ export class CachedBouncerContext implements IBouncerContext {
       await this.initCache();
       return this.applicableGuards(url);
     } else {
-      return this.cache.filter(g => g.policy.matcher.matches(url));
+      return this.cache.filter(g => g.policy.active && g.policy.matcher.matches(url));
     }
   }
   

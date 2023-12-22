@@ -41,6 +41,7 @@ export class BasicPolicyInput extends HTMLElement {
       type: "BasicPolicy",
       data: {
         name: nameInput.value,
+        active: true,
         matcher: matcherInput.value,
         enforcer: enforcerInput.value,
       }

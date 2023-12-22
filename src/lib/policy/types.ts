@@ -10,6 +10,11 @@ export interface IPolicy {
    * Human-readable name of the policy.
    */
   name: string;
+
+  /**
+   * Whether this policy is active.
+   */
+  active: boolean,
   
   /**
    * Matcher determining what URLs this policy matches.

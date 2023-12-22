@@ -5,18 +5,15 @@ import { assert } from "@bouncer/utils";
 
 export class BasicGuard implements IGuard {
   readonly id: string;
-  active: boolean;
   readonly policy: IPolicy;
   readonly page: IPage;
 
   constructor(
     id: string,
-    active: boolean,
     policy: IPolicy,
     page: IPage,
   ) {
     this.id = id;
-    this.active = active;
     this.policy = policy;
     this.page = page;
   }
@@ -31,7 +28,6 @@ export class BasicGuard implements IGuard {
     assert(obj.type === "BasicGuard", `cannot make BasicGuard from data with type ${obj.type}`);
     return new BasicGuard(
       obj.data.id,
-      obj.data.active,
       deserializePolicy(obj.data.policy),
       deserializePage(obj.data.page)
     );
@@ -42,7 +38,6 @@ export class BasicGuard implements IGuard {
       type: "BasicGuard",
       data: {
         id: this.id,
-        active: this.active,
         policy: serializePolicy(this.policy),
         page: serializePage(this.page),
       }
@@ -54,7 +49,6 @@ export type BasicGuardData = {
   type: "BasicGuard",
   data: {
     id: string,
-    active: boolean,
     policy: PolicyData
     page: PageData,
   }

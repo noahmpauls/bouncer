@@ -10,15 +10,18 @@ import { type IPolicy } from "./types";
 export class BasicPolicy implements IPolicy {
 
   name: string;
+  active: boolean;
   matcher: IUrlMatcher;
   enforcer: IEnforcer;
 
   constructor(
     name: string,
+    active: boolean,
     matcher: IUrlMatcher,
     enforcer: IEnforcer,
   ) {
     this.name = name;
+    this.active = active;
     this.matcher = matcher;
     this.enforcer = enforcer;
   }
@@ -33,6 +36,7 @@ export class BasicPolicy implements IPolicy {
     assert(obj.type === "BasicPolicy", `cannot make BasicPolicy from data with type ${obj.type}`);
     return new BasicPolicy(
       obj.data.name,
+      obj.data.active,
       deserializeMatcher(obj.data.matcher),
       deserializeEnforcer(obj.data.enforcer),
     );
@@ -43,6 +47,7 @@ export class BasicPolicy implements IPolicy {
       type: "BasicPolicy",
       data: {
         name: this.name,
+        active: this.active,
         matcher: serializeMatcher(this.matcher),
         enforcer: serializeEnforcer(this.enforcer),
       }
@@ -54,6 +59,7 @@ export type BasicPolicyData = {
   type: "BasicPolicy",
   data: {
     name: string,
+    active: boolean,
     matcher: UrlMatcherData,
     enforcer: EnforcerData,
   }

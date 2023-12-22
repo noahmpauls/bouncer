@@ -105,9 +105,9 @@ async function seedPolicies() {
 
   existingGuards.push(new BasicGuard(
     "0",
-    true,
     new BasicPolicy(
       "Block HackerNews",
+      true,
       new ExactHostnameMatcher("news.ycombinator.com"),
       new ScheduledLimit(
         new AlwaysSchedule(),
@@ -118,9 +118,9 @@ async function seedPolicies() {
   ));
   existingGuards.push(new BasicGuard(
     "1",
-    true,    
     new BasicPolicy(
       "Limit Noah Pauls",
+      true,
       new ExactHostnameMatcher("www.noahpauls.com"),
       new ScheduledLimit(
         new MinuteSchedule(45, 15),
