@@ -75,27 +75,55 @@ describe("ScheduledLimit -> ViewtimeCooldownLimit", () => {
 });
 
 describe("regression tests", () => {
-  const schedule = new AlwaysSchedule();
-  
-  const duration = 10_000, cooldown = 10_000;
-  const limit = new ViewtimeCooldownLimit(duration, cooldown);
-  const enforcer = new ScheduledLimit(schedule, limit);
-  
-  const startTime = new Date("2023-04-26T18:00:00.000Z");
-  const t = timeGenerator(startTime);
+  test("AlwaysSchedule and ViewtimeCooldownLimit produces proper nextViewEvent", () => {
+    const schedule = new AlwaysSchedule();
 
-  const page = new BasicPage();
+    const duration = 10_000, cooldown = 10_000;
+    const limit = new ViewtimeCooldownLimit(duration, cooldown);
+    const enforcer = new ScheduledLimit(schedule, limit);
 
-  // first show
-  page.recordEvent(t(0), PageEvent.VISIT, "");
-  page.recordEvent(t(0), PageEvent.SHOW, "");
+    const startTime = new Date("2023-04-26T18:00:00.000Z");
+    const t = timeGenerator(startTime);
 
-  enforcer.applyTo(t(50), page);
-  expect(page.access()).toEqual(PageAccess.ALLOWED);
-  expect(page.msViewtime(t(50))).toEqual(50);
-  const nextViewEvent = enforcer.nextViewEvent(t(50), page);
-  expect(nextViewEvent).toEqual(t(10_000));
+    const page = new BasicPage();
 
-  enforcer.applyTo(t(10_050), page);
-  expect(page.access()).toEqual(PageAccess.BLOCKED);
+    // first show
+    page.recordEvent(t(0), PageEvent.VISIT, "");
+    page.recordEvent(t(0), PageEvent.SHOW, "");
+
+    enforcer.applyTo(t(50), page);
+    expect(page.access()).toEqual(PageAccess.ALLOWED);
+    expect(page.msViewtime(t(50))).toEqual(50);
+    const nextViewEvent = enforcer.nextViewEvent(t(50), page);
+    expect(nextViewEvent).toEqual(t(10_000));
+
+    enforcer.applyTo(t(10_050), page);
+    expect(page.access()).toEqual(PageAccess.BLOCKED);
+  });
+
+  test("AlwaysSchedule and WindowCooldownLimit produces proper nextTimelineEvent", () => {
+    const schedule = new AlwaysSchedule();
+
+    const duration = 10_000, cooldown = 10_000;
+    const limit = new WindowCooldownLimit(duration, cooldown);
+    const enforcer = new ScheduledLimit(schedule, limit);
+
+    const startTime = new Date("2023-04-26T18:00:00.000Z");
+    const t = timeGenerator(startTime);
+
+    const page = new BasicPage();
+
+    // first show
+    page.recordEvent(t(0), PageEvent.VISIT, "");
+    page.recordEvent(t(0), PageEvent.SHOW, "");
+
+    enforcer.applyTo(t(50), page);
+    expect(page.access()).toEqual(PageAccess.ALLOWED);
+    expect(page.msViewtime(t(50))).toEqual(50);
+    const nextTimelineEvent = enforcer.nextTimelineEvent(t(50), page);
+    expect(nextTimelineEvent).toEqual(t(10_000));
+
+    enforcer.applyTo(t(10_050), page);
+    expect(page.access()).toEqual(PageAccess.BLOCKED);
+  });
 })

@@ -73,7 +73,16 @@ export class WindowCooldownLimit implements ILimit {
   remainingWindow(time: Date, page: IPageMetrics): number {
     if (page.msSinceBlock(time) === null) {
       const windowElapsed = page.msSinceInitialVisit(time) ?? 0;
-      return Math.max(0, windowElapsed - this.msWindow);
+      const remainingWindow = this.msWindow - windowElapsed;
+      if (remainingWindow > 0) {
+        return remainingWindow;
+      }
+      const remainingCooldown = this.msCooldown + remainingWindow;
+      if (remainingCooldown > 0) {
+        return 0
+      } else {
+        return this.msWindow + remainingCooldown;
+      }
     } else {
       return 0;
     }

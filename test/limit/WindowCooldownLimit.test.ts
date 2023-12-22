@@ -21,9 +21,12 @@ describe("WindowCooldownLimit action", () => {
     });
     
     const actions = limit.actions(time(), page);
+    const expectedActions: PageAction[] = [];
+    expect(actions).toStrictEqual(expectedActions);
 
-    const expected: PageAction[] = [];
-    expect(actions).toStrictEqual(expected);
+    const remaining = limit.remainingWindow(time(), page);
+    const expectedRemaining = window;
+    expect(remaining).toEqual(expectedRemaining);
   })
   
 
@@ -44,9 +47,12 @@ describe("WindowCooldownLimit action", () => {
     });
     
     const actions = limit.actions(time(), page);
+    const expectedActions: PageAction[] = [];
+    expect(actions).toStrictEqual(expectedActions);
 
-    const expected: PageAction[] = [];
-    expect(actions).toStrictEqual(expected);
+    const remaining = limit.remainingWindow(time(), page);
+    const expectedRemaining = window - msSinceVisit;
+    expect(remaining).toEqual(expectedRemaining);
   })
   
 
@@ -68,12 +74,15 @@ describe("WindowCooldownLimit action", () => {
     
     const msCheck = 0;
     const actions = limit.actions(time(msCheck), page);
-
-    const expected: PageAction[] = [{
+    const expectedActions: PageAction[] = [{
       type: PageActionType.BLOCK,
       time: time(msCheck),
     }];
-    expect(actions).toStrictEqual(expected);
+    expect(actions).toStrictEqual(expectedActions);
+
+    const remaining = limit.remainingWindow(time(msCheck), page);
+    const expectedRemaining = 0;
+    expect(remaining).toEqual(expectedRemaining);
   })
   
 
@@ -96,12 +105,15 @@ describe("WindowCooldownLimit action", () => {
     
     const msCheck = 0;
     const actions = limit.actions(time(msCheck), page);
-
-    const expected: PageAction[] = [{
+    const expectedActions: PageAction[] = [{
       type: PageActionType.BLOCK,
       time: time(msCheck - msOver),
     }];
-    expect(actions).toStrictEqual(expected);
+    expect(actions).toStrictEqual(expectedActions);
+
+    const remaining = limit.remainingWindow(time(msCheck), page);
+    const expectedRemaining = 0;
+    expect(remaining).toEqual(expectedRemaining);
   })
   
 
@@ -124,12 +136,15 @@ describe("WindowCooldownLimit action", () => {
     
     const msCheck = 0;
     const actions = limit.actions(time(msCheck), page);
-
-    const expected: PageAction[] = [{
+    const expectedActions: PageAction[] = [{
       type: PageActionType.RESET_INITIALVISIT,
       time: time(msCheck),
     }];
-    expect(actions).toStrictEqual(expected);
+    expect(actions).toStrictEqual(expectedActions);
+
+    const remaining = limit.remainingWindow(time(msCheck), page);
+    const expectedRemaining = window;
+    expect(remaining).toEqual(expectedRemaining);
   })
   
 
@@ -152,12 +167,15 @@ describe("WindowCooldownLimit action", () => {
     
     const msCheck = 0;
     const actions = limit.actions(time(msCheck), page);
-
-    const expected: PageAction[] = [{
+    const expectedActions: PageAction[] = [{
       type: PageActionType.RESET_INITIALVISIT,
       time: time(msCheck - msOverCooldown),
     }];
-    expect(actions).toStrictEqual(expected);
+    expect(actions).toStrictEqual(expectedActions);
+
+    const remaining = limit.remainingWindow(time(msCheck), page);
+    const expectedRemaining = window - msOverCooldown;
+    expect(remaining).toEqual(expectedRemaining);
   })
 
 
@@ -180,12 +198,15 @@ describe("WindowCooldownLimit action", () => {
     
     const msCheck = 0;
     const actions = limit.actions(time(msCheck), page);
-
-    const expected: PageAction[] = [{
+    const expectedActions: PageAction[] = [{
       type: PageActionType.RESET_INITIALVISIT,
       time: time(msCheck - msOverCooldown),
     }];
-    expect(actions).toStrictEqual(expected);
+    expect(actions).toStrictEqual(expectedActions);
+
+    const remaining = limit.remainingWindow(time(msCheck), page);
+    const expectedRemaining = window - msOverCooldown;
+    expect(remaining).toEqual(expectedRemaining);
   })
   
 
@@ -207,9 +228,12 @@ describe("WindowCooldownLimit action", () => {
     
     const msCheck = 0;
     const actions = limit.actions(time(msCheck), page);
+    const expectedActions: PageAction[] = [];
+    expect(actions).toStrictEqual(expectedActions);
 
-    const expected: PageAction[] = [];
-    expect(actions).toStrictEqual(expected);
+    const remaining = limit.remainingWindow(time(msCheck), page);
+    const expectedRemaining = 0;
+    expect(remaining).toEqual(expectedRemaining);
   })
   
   
@@ -232,11 +256,15 @@ describe("WindowCooldownLimit action", () => {
     const msCheck = 0;
     const actions = limit.actions(time(msCheck), page);
 
-    const expected: PageAction[] = [{
+    const expectedActions: PageAction[] = [{
       type: PageActionType.UNBLOCK,
       time: time(msCheck),
     }];
-    expect(actions).toStrictEqual(expected);
+    expect(actions).toStrictEqual(expectedActions);
+
+    const remaining = limit.remainingWindow(time(msCheck), page);
+    const expectedRemaining = 0;
+    expect(remaining).toEqual(expectedRemaining);
   })
   
 
@@ -258,12 +286,15 @@ describe("WindowCooldownLimit action", () => {
     
     const msCheck = 0;
     const actions = limit.actions(time(msCheck), page);
-
-    const expected: PageAction[] = [{
+    const expectedActions: PageAction[] = [{
       type: PageActionType.UNBLOCK,
       time: time(msCheck),
     }];
-    expect(actions).toStrictEqual(expected);
+    expect(actions).toStrictEqual(expectedActions);
+
+    const remaining = limit.remainingWindow(time(msCheck), page);
+    const expectedRemaining = 0;
+    expect(remaining).toEqual(expectedRemaining);
   })
 })
 
