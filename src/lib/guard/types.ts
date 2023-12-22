@@ -12,11 +12,6 @@ export interface IGuard {
   id: string,
 
   /**
-   * Whether this guard is active.
-   */
-  active: boolean,
-
-  /**
    * The guard's policy.
    */
   policy: IPolicy,
