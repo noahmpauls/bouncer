@@ -5,7 +5,7 @@ import browser from "webextension-polyfill";
 import { ScheduledLimit } from "@bouncer/enforcer";
 import { ExactHostnameMatcher } from "@bouncer/matcher";
 import { AlwaysBlock, ViewtimeCooldownLimit } from "@bouncer/limit";
-import { AlwaysSchedule, MinuteSchedule } from "@bouncer/schedule";
+import { AlwaysSchedule, MinuteSchedule, PeriodicSchedule } from "@bouncer/schedule";
 import { BasicGuard, type IGuard } from "@bouncer/guard";
 import { CachedBouncerContext, type IBouncerContext } from "@bouncer/context";
 import { BasicPage } from "@bouncer/page";
@@ -39,7 +39,7 @@ function createPolicyEditor(guard: IGuard) {
   textarea.cols = 80;
   textarea.addEventListener("input", e => {
     const lines = (e.target as HTMLTextAreaElement).value.split("\n").length;
-    textarea.rows = lines;
+    textarea.rows = Math.max(10, lines);
   })
 
   const deleteButton = document.createElement("button");
@@ -62,7 +62,7 @@ function createPolicyEditor(guard: IGuard) {
     const policyString = JSON.stringify(guard.policy.toObject(), null, 2);
     textarea.value = policyString;
     const lines = policyString.split("\n").length;
-    textarea.rows = lines;
+    textarea.rows = Math.max(10, lines);
   });
 
   const submitButton = document.createElement("button");
@@ -103,10 +103,9 @@ async function seedPolicies() {
     return;
   }
 
-  existingGuards.push(new BasicGuard(
-    "0",
+  const newGuards = [
     new BasicPolicy(
-      "Block HackerNews",
+      "Block HackerNews always",
       true,
       new ExactHostnameMatcher("news.ycombinator.com"),
       new ScheduledLimit(
@@ -114,21 +113,34 @@ async function seedPolicies() {
         new AlwaysBlock(),
       ),
     ),
-    new BasicPage()
-  ));
-  existingGuards.push(new BasicGuard(
-    "1",
     new BasicPolicy(
-      "Limit Noah Pauls",
+      "Limit Amazon annoyingly",
       true,
-      new ExactHostnameMatcher("www.noahpauls.com"),
+      new ExactHostnameMatcher("www.amazon.com"),
       new ScheduledLimit(
-        new MinuteSchedule(45, 15),
+        new MinuteSchedule(30, 10),
         new ViewtimeCooldownLimit(10000, 15000),
       ),
     ),
-    new BasicPage()
-  ));
+    new BasicPolicy(
+      "Limit CNBC during work hours",
+      true,
+      new ExactHostnameMatcher("www.cnbc.com"),
+      new ScheduledLimit(
+        new PeriodicSchedule(
+          "day",
+          [
+            { start: 2.88e+7, end: 6.12e+7 }
+          ]
+        ),
+        new AlwaysBlock(),
+      ),
+    ),
+  ].map((policy, i) => new BasicGuard(`${i}`, policy, new BasicPage()));
+
+  for (const guard of newGuards) {
+    existingGuards.push(guard);
+  }
 
   await bouncerData.persist();
 

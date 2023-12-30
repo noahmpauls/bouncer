@@ -60,7 +60,7 @@ export class PeriodicScheduleInput extends HTMLElement implements IScheduleInput
     return {
       type: "PeriodicSchedule",
       data: {
-        type: periodSelect.value as DumbPeriod,
+        period: periodSelect.value as DumbPeriod,
         intervals: intervals,
       }
     }

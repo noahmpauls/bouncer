@@ -39,4 +39,16 @@ export default [
       commonjs(),
     ]
   },
+  {
+    input: "src/ui/_assets/scripts/createPolicy.ts",
+    output: {
+      file: "dist/ui/assets/scripts/createPolicy.js",
+      format: "es"
+    },
+    plugins: [
+      typescript(),
+      nodeResolve(),
+      commonjs(),
+    ]
+  },
 ]

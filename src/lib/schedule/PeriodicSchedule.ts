@@ -102,7 +102,7 @@ export class PeriodicSchedule implements ISchedule {
   static fromObject(obj: PeriodicScheduleData): PeriodicSchedule {
     assert(obj.type === "PeriodicSchedule", `cannot make PeriodicSchedule from data with type ${obj.type}`);
     return new PeriodicSchedule(
-      obj.data.type,
+      obj.data.period,
       obj.data.intervals
     );
   }
@@ -246,7 +246,7 @@ export class PeriodicSchedule implements ISchedule {
     return {
       type: "PeriodicSchedule",
       data: {
-        type: this.period.type,
+        period: this.period.type,
         intervals: this.intervals,
       }
     }
@@ -256,7 +256,7 @@ export class PeriodicSchedule implements ISchedule {
 export type PeriodicScheduleData = {
   type: "PeriodicSchedule",
   data: {
-    type: Period,
+    period: Period,
     intervals: Interval[],
   }
 }

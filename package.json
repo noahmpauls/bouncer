@@ -9,10 +9,11 @@
     "build:watch": "rollup --config --watch",
     "ui:watch": "eleventy --watch --quiet",
     "webext:watch": "web-ext run",
+    "webext:build": "web-ext build",
     "dev": "run-p -rl build:watch ui:watch webext:watch",
     "test": "jest"
   },
-  "author": "Noah Pauls <noahmpauls@gmail.com>",
+  "author": "Noah Pauls <noah@noahpauls.com>",
   "license": "ISC",
   "devDependencies": {
     "@11ty/eleventy": "^2.0.1",

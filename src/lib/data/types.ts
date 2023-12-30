@@ -18,12 +18,4 @@ export interface IBouncerData {
    * @param guards guard entities
    */
   setGuards(guards: IGuard[]): Promise<void>;
-  
-  /**
-   * Add a new policy.
-   * 
-   * @param policy policy to add
-   * @returns guard created with policy
-   */
-  addPolicy(policy: IPolicy): Promise<IGuard>;
 }

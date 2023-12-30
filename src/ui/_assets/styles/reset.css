@@ -20,6 +20,8 @@ body {
 
 header {
   padding-block: 0.5em;
+  padding-inline: 1rem;
+  color: var(--theme-background);
   background-color: var(--theme-primary);
 }
 

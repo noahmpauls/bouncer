@@ -1,119 +1,17 @@
 {% extends "layouts/main.njk" %}
 
+{% block head %}
+<script src="/assets/scripts/createPolicy.js" defer></script>
+{% endblock %}
+
 {% block main %}
 <h2>Create a policy</h2>
-<form>
-  <section>
-    <h3>Describe</h3>
-    <p>Give your policy a name and description.</p>
-    <div>
-      <label>Name</label>
-      <input type="text"/>
-    </div>
-      <div>
-      <label>Description</label>
-      <input type="text"/>
-    </div>
-  </section>
-  <section>
-    <h3>Match</h3>
-    <p>What websites and pages will this policy apply to?</p>
-      <fieldset>
-      <legend>Hostnames to block</legend>
-      <div>
-        <div>
-          <label>Hostname:</label>
-          <input type="text">
-          <button>X</button>
-        </div>
-        <div>
-          <label>Hostname:</label>
-          <input type="text">
-          <button>X</button>
-        </div>
-        <div>
-          <label>Hostname:</label>
-          <input type="text">
-          <button>X</button>
-        </div>
-        <button>+ Add Another</button>
-      </div>
-    </fieldset>
-  </section>
-  <section>
-    <h3>Schedule</h3>
-    <p>When will this policy be active?</p>
-    <fieldset>
-      <legend>This schedule repeats...</legend>
-      <div>
-        <div>
-          <input type="radio">
-          <label>Never (always active)</label>
-        </div>
-        <div>
-          <input type="radio" checked>
-          <lable>Daily</label>
-        </div>
-      </div>
-    </fieldset>
-    <fieldset>
-      <legend>Daily intervals</legend>
-      <p><em>For example, 8am to 17:30.</em></p>
-      <div>
-        <div>
-          <label>From</label>
-          <input type="text" value="08:00">
-          <label>to</label>
-          <input type="text" value="17:00">
-          <button>X</button>
-        </div>
-        <div>
-          <label>From</label>
-          <input type="text" value="10pm">
-          <label>to</label>
-          <input type="text" value="6am">
-          <button>X</button>
-        </div>
-        <button>+ Add Interval</button>
-      </div>
-    </fieldset>
-  </section>
-  <section>
-    <h3>Block</h3>
-    <p>How will the policy determine whether to block a page?</p>
-    <fieldset>
-      <legend>Block is applied...</legend>
-      <div>
-        <div>
-          <input type="radio">
-          <label>Always</label>
-        </div>
-        <div>
-          <input type="radio" checked>
-          <lable>After a period of time has elapsed since first viewing</label>
-        </div>
-        <div>
-          <input type="radio">
-          <lable>After viewing for a certain amount of time</label>
-        </div>
-      </div>
-    </fieldset>
-    <fieldset>
-      <legend>Block parameters</legend>
-      <div>
-        <div>
-          <label>View window length:</label>
-          <input type="text" value="30:00">
-        </div>
-        <div>
-          <label>Cooldown period:</label>
-          <input type="text" value="2:00:00">
-        </div>
-      </div>
-    </fieldset>
-  </section>
-  <section>
-    <p>Submit button, with checkbox to set rule as active (defaults to true)</p>
-  </section>
-</form>
+<a href="/index.html">Back to policies</a>
+<div>
+  <form id="policy-creator" class="policy-editor" name="policyCreator">
+    <textarea rows="10" cols="80"></textarea>
+    <button type="submit">Create Policy</button>
+  </form>
+</div>
 {% endblock %}
+
