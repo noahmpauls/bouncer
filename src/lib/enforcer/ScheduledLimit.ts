@@ -84,7 +84,7 @@ export class ScheduledLimit implements IEnforcer {
         : new Date(time.getTime() + remainingWindow);
       // this makes me cringe...
       if (nextStart !== null && nextWindowEvent !== null) {
-        return new Date(Math.max(nextStart.getTime(), nextWindowEvent.getTime()));
+        return new Date(Math.min(nextStart.getTime(), nextWindowEvent.getTime()));
       } else if (nextStart !== null) {
         return nextStart
       } else if (nextWindowEvent !== null) {

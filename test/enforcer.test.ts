@@ -2,7 +2,7 @@ import { describe, test, expect } from "@jest/globals";
 import { ScheduledLimit } from "@bouncer/enforcer";
 import { ViewtimeCooldownLimit, WindowCooldownLimit } from "@bouncer/limit";
 import { BasicPage, PageAccess, PageEvent } from "@bouncer/page";
-import { AlwaysSchedule } from "@bouncer/schedule";
+import { AlwaysSchedule, PeriodicSchedule } from "@bouncer/schedule";
 import { timeGenerator } from "./testUtils";
 
 
@@ -125,5 +125,24 @@ describe("regression tests", () => {
 
     enforcer.applyTo(t(10_050), page);
     expect(page.access()).toEqual(PageAccess.BLOCKED);
+  });
+
+  test("enforcer with PeriodicSchedule and WindowCooldownLimit gives proper timeline events", () => {
+    const schedule = new PeriodicSchedule("day", [ { start: 0, end: 0 } ]);
+
+    const duration = 10_000, cooldown = 10_000;
+    const limit = new WindowCooldownLimit(duration, cooldown);
+    const enforcer = new ScheduledLimit(schedule, limit);
+
+    const startTime = new Date("2024-01-16T18:00:00.000Z");
+    const t = timeGenerator(startTime);
+
+    const page = new BasicPage();
+
+    page.recordEvent(t(0), PageEvent.VISIT, "");
+    page.recordEvent(t(0), PageEvent.SHOW, "");
+
+    const nextTimelineEvent = enforcer.nextTimelineEvent(startTime, page);
+    expect(nextTimelineEvent!.getTime() - startTime.getTime()).toEqual(duration);
   });
 })
