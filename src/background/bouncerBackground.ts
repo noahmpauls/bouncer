@@ -14,13 +14,17 @@ const cache: IBouncerContext = new CachedBouncerContext(new StoredBouncerData(ne
 
 // TODO: abstractify messaging, add explicit types to messages
 browser.runtime.onMessage.addListener(async (message, sender) => await synchronizer.sync(async () => {
-  console.log(`${message.time.getTime()} back: received ${message.type}`);
+  const senderId = constructSenderId(sender);
+  if (senderId === null) {
+    console.log(`${message.time.getTime()} back: received ${message.type} from null sender`);
+    return Promise.resolve(null);
+  }
+  console.log(`${message.time.getTime()} back: received ${message.type} from ${senderId}`);
 
   let messageType: string = message.type;
   let messageTime: Date = message.time;
 
   let url = new URL(sender.url ?? "");
-  let senderId = constructSenderId(sender);
   let response: any = null;
   switch (messageType) {
     case "CHECK":
@@ -101,11 +105,41 @@ async function handlePageEvent(time: Date, event: PageEvent | null, url: URL, se
 }
 
 
-function constructSenderId(sender: browser.Runtime.MessageSender): string {
-  const senderId = sender.id ?? "X";
-  const windowId = sender.tab?.windowId ?? "X";
-  const tabId = sender.tab?.id ?? "X";
-  const frameId = sender.frameId ?? "X";
-  const id = [senderId, windowId, tabId, frameId].join("-");
+function constructSenderId(sender: browser.Runtime.MessageSender): string | null {
+  const senderId = sender.id;
+  const tabId = sender.tab?.id;
+  const frameId = sender.frameId;
+  if (senderId === undefined || tabId === undefined || frameId === undefined) {
+    return null;
+  }
+  const id = [senderId, tabId, frameId].join("-");
   return id;
 }
+
+/*
+browser.tabs.onCreated.addListener((tab) => {
+  console.log(`${Date.now()} back: tab ${tab.id} onCreated with URL ${tab.url}`);
+})
+
+browser.tabs.onActivated.addListener((activeInfo) => {
+  const tab = browser.tabs.get(activeInfo.tabId).then(tab => {
+    console.log(`${Date.now()} back: tab ${activeInfo.tabId} onActivated with URL ${tab.url} and window ${activeInfo.windowId}`);
+  });
+})
+
+browser.tabs.onAttached.addListener((tabId, attachInfo) => {
+  console.log(`${Date.now()} back: tab ${tabId} onAttached to window ${attachInfo.newWindowId}`);
+})
+
+browser.tabs.onDetached.addListener((tabId, detachInfo) => {
+  console.log(`${Date.now()} back: tab ${tabId} onDetached from window ${detachInfo.oldWindowId}`);
+})
+
+browser.tabs.onRemoved.addListener((tabId, removeInfo) => {
+  console.log(`${Date.now()} back: tab ${tabId} onRemoved from window ${removeInfo.windowId}`);
+})
+
+browser.tabs.onUpdated.addListener((tabId, changeInfo) => {
+  console.log(`${Date.now()} back: tab ${tabId} onUpdated with URL ${changeInfo.url}`);
+}, { properties: ["url"]})
+*/

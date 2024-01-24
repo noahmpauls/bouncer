@@ -31,6 +31,9 @@ async function doBouncer() {
 
   // carry out instructions received from service worker
   async function enforce(status: any) {
+    if (status === null) {
+      return;
+    }
     switch (status.status) {
       case "BLOCKED":
         blocked = true;
@@ -206,6 +209,10 @@ type MessageType =
 async function sendMessage(type: MessageType, time: Date): Promise<any> {
   console.log(`${time.getTime()} cont: sending ${type}`);
   const status = await browser.runtime.sendMessage({ type, time });
+  if (status === null) {
+    console.log(`${time.getTime()} cont: ${type} received null`);
+    return null;
+  }
   console.log(`${time.getTime()} cont: ${type} received ${status.status}`);
   return status;
 }
