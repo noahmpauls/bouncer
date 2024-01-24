@@ -8,7 +8,7 @@ import { AlwaysBlock, ViewtimeCooldownLimit } from "@bouncer/limit";
 import { AlwaysSchedule, MinuteSchedule, PeriodicSchedule } from "@bouncer/schedule";
 import { BasicGuard, type IGuard } from "@bouncer/guard";
 import { CachedBouncerContext, type IBouncerContext } from "@bouncer/context";
-import { BasicPage } from "@bouncer/page";
+import { BasicPage, PageActionType } from "@bouncer/page";
 
 const bouncerData: IBouncerContext = new CachedBouncerContext(new StoredBouncerData(new BrowserStorage()));
 
@@ -82,6 +82,16 @@ function createPolicyEditor(guard: IGuard) {
     }
   });
 
+  const clearPageButton = document.createElement("button");
+  clearPageButton.innerText = "Clear Page";
+  clearPageButton.addEventListener("click", e => {
+    guard.page.recordAction(PageActionType.RESET_METRICS, new Date());
+    bouncerData.persist().then(() => {
+      sendRefreshMessage();
+      refreshPolicyDisplay();
+    });
+  });
+
   const form = document.createElement("form");
   form.id = `policy-editor-${guard.id}`;
   form.name = `policyEditor${guard.id}`;
@@ -92,6 +102,7 @@ function createPolicyEditor(guard: IGuard) {
   form.appendChild(deleteButton);
   form.appendChild(resetButton);
   form.appendChild(submitButton);
+  form.appendChild(clearPageButton);
 
   return form;
 }
