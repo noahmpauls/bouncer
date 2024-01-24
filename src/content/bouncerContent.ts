@@ -6,7 +6,8 @@ doBouncer();
 async function doBouncer() {
   // TODO: move all this to its own ADT.
 
-  const currentTime = new Date();
+  // whether content script has received its first message
+  let firstMessageReceived = false;
   // whether event listeners are set
   let listening = false; 
   // checker for viewtime-based blocks
@@ -16,18 +17,20 @@ async function doBouncer() {
   // whether the page is blocked
   let blocked = false;
 
-  
-  // first thing's first: see what Bouncer has to say about this page
-  await onCheck(currentTime);
-  
-  if (blocked) {
-    return;
+  async function onMessage(message: any, time: Date) {
+    if (message === null) {
+      console.log(`${time.getTime()} cont: received null`);
+      return;
+    }
+    console.log(`${time.getTime()} cont: received ${message.status}`);
+    enforce(message);
   }
 
-  await onVisit(currentTime);
-  if (pageVisible()) {
-    await onShow(currentTime);
-  }
+  async function handleMessage(message: any) { onMessage(message, new Date()) }
+
+  browser.runtime.onMessage.addListener(handleMessage);
+
+  onCheck(new Date());
 
   // carry out instructions received from service worker
   async function enforce(status: any) {
@@ -40,6 +43,12 @@ async function doBouncer() {
         block();
         break;
       case "ALLOWED":
+        if (!firstMessageReceived) {
+          firstMessageReceived = true;
+          const currentTime = new Date();
+          await onVisit(currentTime);
+          await onShow(currentTime);
+        }
         addListeners();
         if (status.viewtimeCheck !== undefined) {
           resetViewtimeChecker(status.viewtimeCheck);
@@ -52,23 +61,24 @@ async function doBouncer() {
         clearViewtimeChecker();
         clearWindowChecker();
         removeListeners();
+        browser.runtime.onMessage.removeListener(handleMessage);
         break;
     }
   }
 
   async function onVisit(time: Date) {
-    const status = await sendMessage("VISIT", time);
-    enforce (status);
+    await sendMessage("VISIT", time);
+    // enforce (status);
   }
 
   async function onShow(time: Date) {
-    const status = await sendMessage("SHOW", time);
-    enforce(status);
+    await sendMessage("SHOW", time);
+    // enforce(status);
   }
   
   async function onHide(time: Date) {
-    const status = await sendMessage("HIDE", time);
-    enforce(status);
+    await sendMessage("HIDE", time);
+    // enforce(status);
   }
   
   async function onVisiblity(time: Date) {
@@ -206,14 +216,8 @@ type MessageType =
  * @param time manually specified message time
  * @returns instructions from the Bouncer service worker
  */
-async function sendMessage(type: MessageType, time: Date): Promise<any> {
+function sendMessage(type: MessageType, time: Date) {
   console.log(`${time.getTime()} cont: sending ${type}`);
-  const status = await browser.runtime.sendMessage({ type, time });
-  if (status === null) {
-    console.log(`${time.getTime()} cont: ${type} received null`);
-    return null;
-  }
-  console.log(`${time.getTime()} cont: ${type} received ${status.status}`);
-  return status;
+  browser.runtime.sendMessage({ type, time });
 }
 

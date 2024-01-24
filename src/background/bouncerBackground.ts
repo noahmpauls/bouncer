@@ -52,7 +52,8 @@ browser.runtime.onMessage.addListener(async (message, sender) => await synchroni
   cache.persist();
   
   // return the response
-  return Promise.resolve(response);
+  // return Promise.resolve(response);
+  browser.tabs.sendMessage(sender.tab?.id!, response, { frameId: sender.frameId });
 }));
 
 
