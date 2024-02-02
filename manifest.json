@@ -19,13 +19,13 @@
   },
   
   "background": {
-    "scripts": ["dist/background/bouncerBackground.js"]
+    "scripts": ["dist/scripts/background.js"]
   },
 
   "content_scripts": [
     {
       "js": [
-        "dist/content/bouncerContent.js"
+        "dist/scripts/content.js"
       ],
       "matches": ["<all_urls>"],
       "run_at": "document_start",

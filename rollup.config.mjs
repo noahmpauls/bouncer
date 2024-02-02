@@ -4,9 +4,9 @@ import commonjs from '@rollup/plugin-commonjs';
 
 export default [
   {
-    input: "src/content/bouncerContent.ts",
+    input: "src/scripts/content.ts",
     output: {
-      file: "dist/content/bouncerContent.js",
+      file: "dist/scripts/content.js",
       format: "es"
     },
     plugins: [
@@ -16,9 +16,9 @@ export default [
     ],
   },
   {
-    input: "src/background/bouncerBackground.ts",
+    input: "src/scripts/background.ts",
     output: {
-      file: "dist/background/bouncerBackground.js",
+      file: "dist/scripts/background.js",
       format: "es"
     },
     plugins: [

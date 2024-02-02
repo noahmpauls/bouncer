@@ -64,5 +64,5 @@ submit?.addEventListener("click", e => {
 });
 
 function sendRefreshMessage() {
-  browser.runtime.sendMessage({ type: "REFRESH", time: new Date() });
+  browser.runtime.sendMessage({ type: "refresh", time: new Date() });
 }

@@ -1,4 +1,5 @@
 import browser from "webextension-polyfill";
+import { PageMessageType, type PageMessage, type BouncerMessage, PageStatus } from "./message";
 
 // This is effectively an IIFE.
 doBouncer();
@@ -6,8 +7,8 @@ doBouncer();
 async function doBouncer() {
   // TODO: move all this to its own ADT.
 
-  // whether content script has received its first message
-  let firstMessageReceived = false;
+  // whether content script has logged a visit
+  let visited = false;
   // whether event listeners are set
   let listening = false; 
   // checker for viewtime-based blocks
@@ -17,13 +18,11 @@ async function doBouncer() {
   // whether the page is blocked
   let blocked = false;
 
-  async function onMessage(message: any, time: Date) {
-    if (message === null) {
-      console.log(`${time.getTime()} cont: received null`);
-      return;
+  async function onMessage(message: BouncerMessage | null, time: Date) {
+    console.log(`${time.getTime()} cont: received ${message?.status}`);
+    if (message !== null) {
+      enforce(message);
     }
-    console.log(`${time.getTime()} cont: received ${message.status}`);
-    enforce(message);
   }
 
   async function handleMessage(message: any) { onMessage(message, new Date()) }
@@ -33,31 +32,28 @@ async function doBouncer() {
   onCheck(new Date());
 
   // carry out instructions received from service worker
-  async function enforce(status: any) {
-    if (status === null) {
-      return;
-    }
-    switch (status.status) {
-      case "BLOCKED":
+  async function enforce(message: BouncerMessage) {
+    const currentTime = new Date();
+    switch (message.status) {
+      case PageStatus.BLOCKED:
         blocked = true;
         block();
         break;
-      case "ALLOWED":
-        if (!firstMessageReceived) {
-          firstMessageReceived = true;
-          const currentTime = new Date();
-          await onVisit(currentTime);
-          await onShow(currentTime);
+      case PageStatus.ALLOWED:
+        if (!visited) {
+          visited = true;
+          onVisit(currentTime);
+          onShow(currentTime);
         }
         addListeners();
-        if (status.viewtimeCheck !== undefined) {
-          resetViewtimeChecker(status.viewtimeCheck);
+        if (message.viewtimeCheck !== undefined) {
+          resetViewtimeChecker(message.viewtimeCheck);
         }
-        if (status.windowCheck !== undefined) {
-          resetWindowChecker(status.windowCheck);
+        if (message.windowCheck !== undefined) {
+          resetWindowChecker(message.windowCheck);
         }
         break;
-      case "UNTRACKED":
+      case PageStatus.UNTRACKED:
         clearViewtimeChecker();
         clearWindowChecker();
         removeListeners();
@@ -66,38 +62,46 @@ async function doBouncer() {
     }
   }
 
-  async function onVisit(time: Date) {
-    await sendMessage("VISIT", time);
-    // enforce (status);
+  function onVisit(time: Date) {
+    sendMessage({
+      type: PageMessageType.VISIT,
+      time
+    });
   }
 
-  async function onShow(time: Date) {
-    await sendMessage("SHOW", time);
-    // enforce(status);
+  function onShow(time: Date) {
+    sendMessage({
+      type: PageMessageType.SHOW,
+      time
+    });
   }
   
-  async function onHide(time: Date) {
-    await sendMessage("HIDE", time);
-    // enforce(status);
+  function onHide(time: Date) {
+    sendMessage({
+      type: PageMessageType.HIDE,
+      time
+    });
   }
   
-  async function onVisiblity(time: Date) {
+  function onVisiblity(time: Date) {
     if (pageVisible()) {
-      await onShow(time);
+      onShow(time);
     } else {
-      await onHide(time);
+      onHide(time);
     }
   }
 
-  async function onCheck(time: Date) {
-    const status = await sendMessage("CHECK", time);
-    enforce(status);
+  function onCheck(time: Date) {
+    sendMessage({
+      type: PageMessageType.CHECK,
+      time
+    });
   }
 
 
-  async function handleShow() { await onShow(new Date()); }
-  async function handleHide() { await onHide(new Date()); }
-  async function handleVisibilty() { await onVisiblity(new Date()); }
+  async function handleShow() { onShow(new Date()); }
+  async function handleHide() { onHide(new Date()); }
+  async function handleVisibilty() { onVisiblity(new Date()); }
 
   /**
    * Set listeners for events related to page browsing.
@@ -136,7 +140,7 @@ async function doBouncer() {
     const msToCheck = checkTime.getTime() - Date.now();
     viewtimeChecker = setTimeout(async () => {
       const currentTime = new Date();
-      await onCheck(currentTime);
+      onCheck(currentTime);
     }, msToCheck);
   }
   
@@ -161,7 +165,7 @@ async function doBouncer() {
     const msToCheck = checkTime.getTime() - Date.now();
     windowChecker = setTimeout(async () => {
       const currentTime = new Date();
-      await onCheck(currentTime);
+      onCheck(currentTime);
     }, msToCheck);
   }
   
@@ -200,24 +204,15 @@ async function doBouncer() {
 function pageVisible(): boolean { return document.visibilityState === "visible"; }
 
 
-type MessageType =
-    "CHECK"  // no event, just check current state
-  | "VISIT"
-  | "SHOW"
-  | "HIDE"
-  ;
-
 /**
  * Send a message/event to the Bouncer service worker.
  * 
  * TODO: abstractify messaging
  * 
- * @param type type of message to send
- * @param time manually specified message time
- * @returns instructions from the Bouncer service worker
+ * @param message message to send
  */
-function sendMessage(type: MessageType, time: Date) {
-  console.log(`${time.getTime()} cont: sending ${type}`);
-  browser.runtime.sendMessage({ type, time });
+function sendMessage(message: PageMessage) {
+  console.log(`${message.time.getTime()} cont: sending ${message.type}`);
+  browser.runtime.sendMessage(message);
 }
 
