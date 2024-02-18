@@ -85,7 +85,9 @@ function createPolicyEditor(guard: IGuard) {
   const clearPageButton = document.createElement("button");
   clearPageButton.innerText = "Clear Page";
   clearPageButton.addEventListener("click", e => {
-    guard.page.recordAction(PageActionType.RESET_METRICS, new Date());
+    const time = new Date();
+    guard.page.recordAction(PageActionType.RESET_METRICS, time);
+    guard.page.recordAction(PageActionType.UNBLOCK, time)
     bouncerData.persist().then(() => {
       sendRefreshMessage();
       refreshPolicyDisplay();
