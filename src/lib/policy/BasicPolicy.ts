@@ -2,6 +2,7 @@ import { type IEnforcer, deserializeEnforcer, serializeEnforcer, type EnforcerDa
 import { type IUrlMatcher, deserializeMatcher, serializeMatcher, type UrlMatcherData } from "@bouncer/matcher";
 import { assert } from "@bouncer/utils";
 import { type IPolicy } from "./types";
+import type { IPage } from "@bouncer/page";
 
 /**
  * Represents the mapping between a page/set of pages and an enforcement action
@@ -11,8 +12,8 @@ export class BasicPolicy implements IPolicy {
 
   name: string;
   active: boolean;
-  matcher: IUrlMatcher;
-  enforcer: IEnforcer;
+  private matcher: IUrlMatcher;
+  private enforcer: IEnforcer;
 
   constructor(
     name: string,
@@ -40,6 +41,22 @@ export class BasicPolicy implements IPolicy {
       deserializeMatcher(obj.data.matcher),
       deserializeEnforcer(obj.data.enforcer),
     );
+  }
+
+  appliesTo(url: URL): boolean {
+    return this.matcher.matches(url);
+  }
+
+  enforce(time: Date, page: IPage): void {
+    this.enforcer.applyTo(time, page);
+  }
+
+  nextTimelineEvent(time: Date, page: IPage): Date | null {
+    return this.enforcer.nextTimelineEvent(time, page)
+  }
+
+  nextViewEvent(time: Date, page: IPage): Date | null {
+    return this.enforcer.nextViewEvent(time, page);
   }
 
   toObject(): BasicPolicyData {

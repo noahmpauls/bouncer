@@ -77,18 +77,18 @@ async function handlePageEvent(time: Date, event: PageEvent | null, url: URL, se
     const page = guard.page;
     const policy = guard.policy
     // apply any necessary resets prior to recording event
-    policy.enforcer.applyTo(time, page);
+    policy.enforce(time, page);
     if (event !== null) {
       page.recordEvent(time, event, sender);
-      policy.enforcer.applyTo(time, page);
+      policy.enforce(time, page);
     }
     block ||= page.access() === PageAccess.BLOCKED;
 
-    const viewtimeCheck = policy.enforcer.nextViewEvent(time, page);
+    const viewtimeCheck = policy.nextViewEvent(time, page);
     if (viewtimeCheck !== null) {
       viewtimeChecks.push(viewtimeCheck);
     }
-    const windowCheck = policy.enforcer.nextTimelineEvent(time, page);
+    const windowCheck = policy.nextTimelineEvent(time, page);
     if (windowCheck !== null) {
       windowChecks.push(windowCheck);
     }
