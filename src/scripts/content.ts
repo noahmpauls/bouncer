@@ -70,6 +70,8 @@ async function doBouncer() {
   }
 
   function onShow(time: Date) {
+    // sometimes pageshow events are delayed and fire after pagehide events...
+    if (!pageVisible()) { return; };
     sendMessage({
       type: PageMessageType.SHOW,
       time
@@ -77,6 +79,7 @@ async function doBouncer() {
   }
   
   function onHide(time: Date) {
+    if (pageVisible()) { return; };
     sendMessage({
       type: PageMessageType.HIDE,
       time
@@ -99,9 +102,15 @@ async function doBouncer() {
   }
 
 
-  async function handleShow() { onShow(new Date()); }
-  async function handleHide() { onHide(new Date()); }
-  async function handleVisibilty() { onVisiblity(new Date()); }
+  async function handleShow() {
+    onShow(new Date());
+  }
+  async function handleHide() {
+    onHide(new Date());
+  }
+  async function handleVisibilty() {
+    onVisiblity(new Date());
+  }
 
   /**
    * Set listeners for events related to page browsing.
