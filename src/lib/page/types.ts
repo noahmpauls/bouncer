@@ -11,9 +11,8 @@ export interface IPage extends IPageMetrics {
    * 
    * @param time event time
    * @param event the event to record
-   * @param viewer unique ID of the viewer
    */
-  recordEvent(time: Date, event: PageEvent, viewer: string): void;
+  recordEvent(time: Date, event: PageEvent): void;
   
   /**
    * Take an action on the page at the given time.

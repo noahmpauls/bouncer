@@ -1,7 +1,7 @@
 import { describe, test, expect } from "@jest/globals";
 import { ScheduledLimit } from "@bouncer/enforcer";
 import { ViewtimeCooldownLimit, WindowCooldownLimit } from "@bouncer/limit";
-import { BasicPage, PageAccess, PageEvent } from "@bouncer/page";
+import { BasicPage, PageAccess, PageEventType } from "@bouncer/page";
 import { AlwaysSchedule, PeriodicSchedule } from "@bouncer/schedule";
 import { timeGenerator } from "./testUtils";
 
@@ -10,11 +10,12 @@ describe("ScheduledLimit -> WindowCooldownLimit", () => {
   test("doesn't block after waiting window and cooldown", () => {
     const enforcer = new ScheduledLimit(new AlwaysSchedule(), new WindowCooldownLimit(1000, 1000));
     const page = new BasicPage();
+    const frame = { tabId: 0, frameId: 0 };
 
     // visit and show
-    page.recordEvent(new Date(0), PageEvent.VISIT, "a");
-    page.recordEvent(new Date(0), PageEvent.SHOW, "a");
-    page.recordEvent(new Date(900), PageEvent.HIDE, "a");
+    page.recordEvent(new Date(0), { type: PageEventType.FRAME_OPEN, frame });
+    page.recordEvent(new Date(0), { type: PageEventType.FRAME_SHOW, frame });
+    page.recordEvent(new Date(900), { type: PageEventType.FRAME_HIDE, frame });
     enforcer.applyTo(new Date(900), page);
 
     expect(page.access()).toEqual(PageAccess.ALLOWED);
@@ -27,11 +28,12 @@ describe("ScheduledLimit -> WindowCooldownLimit", () => {
   test("blocks for correct cooldown", () => {
     const enforcer = new ScheduledLimit(new AlwaysSchedule(), new WindowCooldownLimit(1000, 1000));
     const page = new BasicPage();
+    const frame = { tabId: 0, frameId: 0 };
 
     // visit and show
-    page.recordEvent(new Date(0), PageEvent.VISIT, "a");
-    page.recordEvent(new Date(0), PageEvent.SHOW, "a");
-    page.recordEvent(new Date(900), PageEvent.HIDE, "a");
+    page.recordEvent(new Date(0), { type: PageEventType.FRAME_OPEN, frame });
+    page.recordEvent(new Date(0), { type: PageEventType.FRAME_SHOW, frame });
+    page.recordEvent(new Date(900), { type: PageEventType.FRAME_HIDE, frame });
     enforcer.applyTo(new Date(900), page);
 
     expect(page.access()).toEqual(PageAccess.ALLOWED);
@@ -49,10 +51,11 @@ describe("ScheduledLimit -> ViewtimeCooldownLimit", () => {
   test("doesn't block after waiting viewtime and cooldown", () => {
     const enforcer = new ScheduledLimit(new AlwaysSchedule(), new ViewtimeCooldownLimit(1000, 1000));
     const page = new BasicPage();
+    const frame = { tabId: 0, frameId: 0 };
 
-    page.recordEvent(new Date(0), PageEvent.VISIT, "a");
-    page.recordEvent(new Date(0), PageEvent.SHOW, "a");
-    page.recordEvent(new Date(1100), PageEvent.HIDE, "a");
+    page.recordEvent(new Date(0), { type: PageEventType.FRAME_OPEN, frame });
+    page.recordEvent(new Date(0), { type: PageEventType.FRAME_SHOW, frame });
+    page.recordEvent(new Date(1100), { type: PageEventType.FRAME_HIDE, frame });
 
     enforcer.applyTo(new Date(2101), page);
     expect(page.access()).toEqual(PageAccess.ALLOWED);
@@ -61,10 +64,11 @@ describe("ScheduledLimit -> ViewtimeCooldownLimit", () => {
   test("blocks for correct cooldown", () => {
     const enforcer = new ScheduledLimit(new AlwaysSchedule(), new ViewtimeCooldownLimit(1000, 1000));
     const page = new BasicPage();
+    const frame = { tabId: 0, frameId: 0 };
 
-    page.recordEvent(new Date(0), PageEvent.VISIT, "a");
-    page.recordEvent(new Date(0), PageEvent.SHOW, "a");
-    page.recordEvent(new Date(1100), PageEvent.HIDE, "a");
+    page.recordEvent(new Date(0), { type: PageEventType.FRAME_OPEN, frame });
+    page.recordEvent(new Date(0), { type: PageEventType.FRAME_SHOW, frame });
+    page.recordEvent(new Date(1100), { type: PageEventType.FRAME_HIDE, frame });
     
     enforcer.applyTo(new Date(1500), page);
     expect(page.access()).toEqual(PageAccess.BLOCKED);
@@ -86,10 +90,11 @@ describe("regression tests", () => {
     const t = timeGenerator(startTime);
 
     const page = new BasicPage();
+    const frame = { tabId: 0, frameId: 0 };
 
     // first show
-    page.recordEvent(t(0), PageEvent.VISIT, "");
-    page.recordEvent(t(0), PageEvent.SHOW, "");
+    page.recordEvent(t(0), { type: PageEventType.FRAME_OPEN, frame });
+    page.recordEvent(t(0), { type: PageEventType.FRAME_SHOW, frame });
 
     enforcer.applyTo(t(50), page);
     expect(page.access()).toEqual(PageAccess.ALLOWED);
@@ -112,10 +117,11 @@ describe("regression tests", () => {
     const t = timeGenerator(startTime);
 
     const page = new BasicPage();
+    const frame = { tabId: 0, frameId: 0 };
 
     // first show
-    page.recordEvent(t(0), PageEvent.VISIT, "");
-    page.recordEvent(t(0), PageEvent.SHOW, "");
+    page.recordEvent(t(0), { type: PageEventType.FRAME_OPEN, frame });
+    page.recordEvent(t(0), { type: PageEventType.FRAME_SHOW, frame });
 
     enforcer.applyTo(t(50), page);
     expect(page.access()).toEqual(PageAccess.ALLOWED);
@@ -138,9 +144,10 @@ describe("regression tests", () => {
     const t = timeGenerator(startTime);
 
     const page = new BasicPage();
+    const frame = { tabId: 0, frameId: 0 };
 
-    page.recordEvent(t(0), PageEvent.VISIT, "");
-    page.recordEvent(t(0), PageEvent.SHOW, "");
+    page.recordEvent(t(0), { type: PageEventType.FRAME_OPEN, frame });
+    page.recordEvent(t(0), { type: PageEventType.FRAME_SHOW, frame });
 
     const nextTimelineEvent = enforcer.nextTimelineEvent(startTime, page);
     expect(nextTimelineEvent!.getTime() - startTime.getTime()).toEqual(duration);

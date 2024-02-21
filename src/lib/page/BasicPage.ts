@@ -1,6 +1,94 @@
 import { assert, assertTimeSequence } from "@bouncer/utils";
-import { PageAccess, PageActionType, PageEvent } from "./enums";
+import { PageAccess, PageActionType, type PageEvent, type Frame, type Tab, PageEventType } from "./enums";
 import { type IPage } from "./types";
+
+class PageViewers {
+  private readonly tabFrameMap: Map<number, Set<number>>;
+
+  constructor(viewers?: Map<number, Set<number>>) {
+    this.tabFrameMap = viewers ?? new Map();
+    this.checkRep();
+  }
+
+  private checkRep() {
+    for (const [tabId, frameSet] of this.tabFrameMap.entries()) {
+      assert(frameSet.size > 0, `tab ${tabId} must have at least one frame`)
+    }
+  }
+
+  static fromObject(obj: PageViewersData): PageViewers {
+    const map = new Map<number, Set<number>>();
+    for (const [t, f] of Object.entries(obj)) {
+      map.set(Number(t), new Set(f));
+    }
+    return new PageViewers(map);
+  }
+
+  any(): boolean {    
+    return this.tabFrameMap.size > 0;
+  }
+
+  has(tabId: number, frameId?: number): boolean {
+    throw new Error("not implemented");
+  }
+
+  addFrame(frame: Frame): boolean {
+    const { tabId: tabId, frameId } = frame;
+    const frames = this.tabFrameMap.get(tabId);
+    let isUpdate = false;
+    if (frames === undefined) {
+      this.tabFrameMap.set(tabId, new Set([frameId]));
+      isUpdate = true;
+    } else {
+      isUpdate = !frames.has(frameId);
+      frames.add(frameId);
+    }
+    this.checkRep();
+    return isUpdate;
+  }
+
+  removeFrame(frame: Frame): boolean {
+    const { tabId: tabId, frameId } = frame;
+    const frames = this.tabFrameMap.get(tabId);
+    if (frames === undefined) {
+      return false;
+    }
+    if (!frames.delete(frameId)) {
+      this.checkRep();
+      return false;
+    }
+    if (frames.size === 0) {
+      this.tabFrameMap.delete(tabId);
+    }
+    this.checkRep();
+    return true;
+  }
+
+  removeTab(tab: Tab): boolean {
+    const isUpdate = this.tabFrameMap.delete(tab.tabId);
+    this.checkRep();
+    return isUpdate;
+  }
+
+  clear(): boolean {
+    const isUpdate = this.any();
+    this.tabFrameMap.clear();
+    this.checkRep();
+    return isUpdate;
+  }
+
+  toObject(): PageViewersData {
+    const data: PageViewersData = {};
+    for (const [tabId, frameSet] of this.tabFrameMap.entries()) {
+      data[tabId] = [...frameSet];
+    }
+    return data;
+  }
+}
+
+type PageViewersData = {
+  [t: number]: number[];
+}
 
 /**
  * Represents a webpage that can be browsed and blocked.
@@ -12,7 +100,7 @@ export class BasicPage implements IPage {
   private timeBlock: Date | null;
   private timeLastShow: Date | null;
   private timeLastHide: Date | null;
-  private viewers: Set<string>;
+  private viewers: PageViewers; 
   private timeLastUpdate: Date | null;
 
   /**
@@ -27,7 +115,7 @@ export class BasicPage implements IPage {
     timeBlock?: Date | null,
     timeLastShow?: Date | null,
     timeLastHide?: Date | null,
-    viewers?: string[],
+    viewers?: PageViewers,
     timeLastUpdate?: Date | null,
   ) {
     this.timeInitialVisit = timeInitialVisit ?? null;
@@ -35,7 +123,7 @@ export class BasicPage implements IPage {
     this.timeBlock = timeBlock ?? null;
     this.timeLastShow = timeLastShow ?? null;
     this.timeLastHide = timeLastHide ?? null;
-    this.viewers = viewers !== undefined ? new Set(viewers) : new Set();
+    this.viewers = viewers ?? new PageViewers();
     this.timeLastUpdate = timeLastUpdate ?? null;
     this.checkRep();
   }
@@ -45,7 +133,7 @@ export class BasicPage implements IPage {
       assert(this.timeInitialVisit === null, `timeInitialVisit should be null when blocked (was ${this.timeInitialVisit})`);
       assert(this.timeLastShow === null, `timeLastShow should be null when blocked`);
       assert(this.msViewtimeAccrued === 0, `msViewtimeAccrued should be 0 when blocked`);
-      assert(this.viewers.size === 0, "no viewers allowed when blocked")
+      assert(!this.viewers.any(), "no viewers allowed when blocked")
     }
     
     if (this.timeInitialVisit !== null) {
@@ -54,9 +142,9 @@ export class BasicPage implements IPage {
     
     if (this.timeLastShow !== null) {
       assert(this.timeLastHide === null, `timeLastHide must be null when showing`);
-      assert(this.viewers.size > 0, `must have viewers while showing`);
+      assert(this.viewers.any(), `must have viewers while showing`);
     } else {
-      assert(this.viewers.size === 0, `no viewers allowed while not showing`);
+      assert(!this.viewers.any(), `no viewers allowed while not showing`);
     }
     
     if (this.timeLastUpdate !== null) {
@@ -86,7 +174,7 @@ export class BasicPage implements IPage {
       obj.data.timeBlock,
       obj.data.timeLastShow,
       obj.data.timeLastHide,
-      obj.data.viewers,
+      PageViewers.fromObject(obj.data.viewers),
       obj.data.timeLastUpdate,
     );
   }
@@ -107,24 +195,27 @@ export class BasicPage implements IPage {
     }
   }
 
-  recordEvent(time: Date, event: PageEvent, viewer: string): void {
+  recordEvent(time: Date, event: PageEvent): void {
     // cannot record events on blocked page
     if (this.access() === PageAccess.BLOCKED) {
       return;
     }
     let isUpdate = false;
-    switch (event) {
-      case PageEvent.VISIT:
-        isUpdate ||= this.handleVisit(time);
+    switch (event.type) {
+      case PageEventType.FRAME_OPEN:
+        isUpdate ||= this.handleVisit(time, event.frame);
         break;
-      case PageEvent.SHOW:
-        isUpdate ||= this.handleShow(time, viewer);
+      case PageEventType.FRAME_SHOW:
+        isUpdate ||= this.handleShow(time, event.frame);
         break;
-      case PageEvent.HIDE:
-        isUpdate ||= this.handleHide(time, viewer);
+      case PageEventType.FRAME_HIDE:
+        isUpdate ||= this.handleHide(time, event.frame);
+        break;
+      case PageEventType.TAB_CLOSE:
+        isUpdate ||= this.handleClose(time, event.tab);
         break;
       default:
-        throw "unreachable";
+        throw new Error("unreachable");
     }
     if (isUpdate) {
       this.setTimeLastUpdate(time);
@@ -132,7 +223,7 @@ export class BasicPage implements IPage {
     this.checkRep();
   }
 
-  private handleVisit(time: Date): boolean {
+  private handleVisit(time: Date, frame: Frame): boolean {
     // initial visit only set if previously cleared by block
     if (this.timeInitialVisit === null) {
       this.timeInitialVisit = time;
@@ -141,12 +232,8 @@ export class BasicPage implements IPage {
     return false;
   }
   
-  private handleShow(time: Date, viewer: string): boolean {
-    let isUpdate = false;
-    if (!this.viewers.has(viewer)) {
-      isUpdate = true;
-      this.viewers.add(viewer);
-    }
+  private handleShow(time: Date, frame: Frame): boolean {
+    let isUpdate = this.viewers.addFrame(frame);
     this.timeLastHide = null;
     // timeLastShow only set if previously cleared
     if (this.timeLastShow === null) {
@@ -156,14 +243,30 @@ export class BasicPage implements IPage {
     return isUpdate;
   }
   
-  private handleHide(time: Date, viewer: string): boolean {
-    this.viewers.delete(viewer);
+  private handleHide(time: Date, frame: Frame): boolean {
+    this.viewers.removeFrame(frame);
     if (this.timeLastShow === null) {
       return false;
     }
     const viewtime = Math.max(0, time.getTime() - this.timeLastShow.getTime());
     this.msViewtimeAccrued += viewtime;
-    if (this.viewers.size > 0) {
+    if (this.viewers.any()) {
+      this.timeLastShow = time;
+    } else {
+      this.timeLastShow = null;
+      this.timeLastHide = time;
+    }
+    return true;
+  }
+
+  private handleClose(time: Date, tab: Tab): boolean {
+    this.viewers.removeTab(tab);
+    if (this.timeLastShow === null) {
+      return false;
+    }
+    const viewtime = Math.max(0, time.getTime() - this.timeLastShow.getTime());
+    this.msViewtimeAccrued += viewtime;
+    if (this.viewers.any()) {
       this.timeLastShow = time;
     } else {
       this.timeLastShow = null;
@@ -240,7 +343,7 @@ export class BasicPage implements IPage {
   }
   
   isShowing(): boolean {
-    return this.viewers.size > 0;
+    return this.viewers.any();
   }
   
   msSinceInitialVisit(time: Date): number | null {
@@ -280,7 +383,7 @@ export class BasicPage implements IPage {
         timeBlock: this.timeBlock,
         timeLastShow: this.timeLastShow,
         timeLastHide: this.timeLastHide,
-        viewers: [...this.viewers],
+        viewers: this.viewers.toObject(),
         timeLastUpdate: this.timeLastUpdate,
       }
     };
@@ -295,7 +398,7 @@ export type BasicPageData = {
     timeBlock: Date | null,
     timeLastShow: Date | null,
     timeLastHide: Date | null,
-    viewers: string[],
+    viewers: PageViewersData,
     timeLastUpdate: Date | null,
   }
 }

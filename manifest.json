@@ -1,11 +1,12 @@
 {
   "manifest_version": 3,
   "name": "Bouncer",
-  "version": "0.11.3",
+  "version": "0.11.4",
   "description": "Ridiculously configurable website limiter.",
   
   "permissions": [
-    "storage"
+    "storage",
+    "webNavigation"
   ],
   
   "host_permissions": [

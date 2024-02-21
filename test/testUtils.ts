@@ -1,9 +1,8 @@
-import { BasicPage, type IPage, type IPageMetrics, PageAccess, PageEvent } from "@bouncer/page"
+import { BasicPage, type IPage, type IPageMetrics, PageAccess, type PageEvent } from "@bouncer/page"
 
 type PageMutation = {
-  type: PageEvent,
+  event: PageEvent,
   offsetMs?: number,
-  viewer?: string
 }
 
 
@@ -25,7 +24,7 @@ export function pageWithMutations(startTime: Date, mutations: PageMutation[]): I
   const startTimeMs = startTime.getTime();
   for (const mutation of mutations) {
     const time = new Date(startTimeMs + (mutation.offsetMs ?? 0));
-    page.recordEvent(time, mutation.type, mutation.viewer ?? "");
+    page.recordEvent(time, mutation.event);
   }
   return page;
 }

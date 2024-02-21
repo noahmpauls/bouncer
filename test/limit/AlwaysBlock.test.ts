@@ -1,6 +1,6 @@
 import { describe, test, expect } from "@jest/globals";
 import { AlwaysBlock } from "@bouncer/limit";
-import { BasicPage, type PageAction, PageActionType, PageEvent } from "@bouncer/page";
+import { BasicPage, type PageAction, PageActionType, PageEventType } from "@bouncer/page";
 import { pageWithMutations } from "../testUtils";
 
 
@@ -36,7 +36,8 @@ describe("AlwaysBlock remaining", () => {
   
   test("visited page", () => {
     const visitTime = new Date();
-    const page = pageWithMutations(visitTime, [{ type: PageEvent.VISIT }]);
+    const frame = { tabId: 0, frameId: 0 };
+    const page = pageWithMutations(visitTime, [{ event: { type: PageEventType.FRAME_OPEN, frame } }]);
 
     const checkTime = new Date(visitTime.getTime() + 1000);
     const limit = new AlwaysBlock();
@@ -50,10 +51,11 @@ describe("AlwaysBlock remaining", () => {
 
   test("hidden page with viewtime", () => {
     const visitTime = new Date();
+    const frame = { tabId: 0, frameId: 0 };
     const page = pageWithMutations(visitTime, [
-      { type: PageEvent.VISIT },
-      { type: PageEvent.SHOW },
-      { type: PageEvent.HIDE, offsetMs: 1000 }
+      { event: { type: PageEventType.FRAME_OPEN, frame } },
+      { event: { type: PageEventType.FRAME_SHOW, frame } },
+      { event: { type: PageEventType.FRAME_HIDE, frame }, offsetMs: 1000 }
     ]);
 
     const checkTime = new Date(visitTime.getTime() + 2000);
@@ -68,9 +70,10 @@ describe("AlwaysBlock remaining", () => {
 
   test("visible page with viewtime", () => {
     const visitTime = new Date();
+    const frame = { tabId: 0, frameId: 0 };
     const page = pageWithMutations(visitTime, [
-      { type: PageEvent.VISIT },
-      { type: PageEvent.SHOW },
+      { event: { type: PageEventType.FRAME_OPEN, frame } },
+      { event: { type: PageEventType.FRAME_SHOW, frame } },
     ]);
 
     const checkTime = new Date(visitTime.getTime() + 2000);

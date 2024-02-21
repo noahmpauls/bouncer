@@ -1,21 +1,19 @@
 import browser from "webextension-polyfill";
 import { BrowserStorage } from "@bouncer/storage";
 import { StoredBouncerData } from "@bouncer/data";
-import { PageAccess, PageEvent } from "@bouncer/page";
+import { PageAccess, PageEventType, type PageEvent } from "@bouncer/page";
 import { Synchronizer } from "@bouncer/utils";
 import { CachedBouncerContext, type IBouncerContext } from "@bouncer/context";
 import type { IGuard } from "@bouncer/guard";
 import { PageMessageType, type PageMessage, type BouncerMessage, PageStatus } from "./message";
 
 
-// TOOD: move most of this to its own ADT
-
+// TODO: move most of this to its own ADT
 const synchronizer: Synchronizer = new Synchronizer();
 const cache: IBouncerContext = new CachedBouncerContext(new StoredBouncerData(new BrowserStorage()));
 
 // TODO: abstractify messaging
 browser.runtime.onMessage.addListener(handleMessage);
-
 
 async function handleMessage(message: PageMessage, sender: browser.Runtime.MessageSender) {
  await synchronizer.sync(async () => {
@@ -30,16 +28,16 @@ async function handleMessage(message: PageMessage, sender: browser.Runtime.Messa
   let response: BouncerMessage | null = null;
   switch (message.type) {
     case PageMessageType.CHECK:
-      response = await handlePageEvent(message.time, null, url, senderId);
+      response = await handlePageEvent(message.time, null, url);
       break;
     case PageMessageType.VISIT:
-      response = await handlePageEvent(message.time, PageEvent.VISIT, url, senderId);
+      response = await handlePageEvent(message.time, { type: PageEventType.FRAME_OPEN, frame: { tabId: sender.tab!.id!, frameId: sender.frameId! }}, url);
       break;
     case PageMessageType.SHOW:
-      response = await handlePageEvent(message.time, PageEvent.SHOW, url, senderId);
+      response = await handlePageEvent(message.time, { type: PageEventType.FRAME_SHOW, frame: { tabId: sender.tab!.id!, frameId: sender.frameId! }}, url);
       break;
     case PageMessageType.HIDE:
-      response = await handlePageEvent(message.time, PageEvent.HIDE, url, senderId);
+      response = await handlePageEvent(message.time, { type: PageEventType.FRAME_HIDE, frame: { tabId: sender.tab!.id!, frameId: sender.frameId! }}, url);
       break;
     // rules were changed externally, so need to refresh them
     case PageMessageType.REFRESH:
@@ -60,7 +58,7 @@ async function handleMessage(message: PageMessage, sender: browser.Runtime.Messa
 }
 
 
-async function handlePageEvent(time: Date, event: PageEvent | null, url: URL, sender: string): Promise<BouncerMessage> {
+async function handlePageEvent(time: Date, event: PageEvent | null, url: URL): Promise<BouncerMessage> {
   // get rules associated with this sender
   const applicable: IGuard[] = await cache.applicableGuards(url);
   if (applicable.length === 0) {
@@ -79,7 +77,7 @@ async function handlePageEvent(time: Date, event: PageEvent | null, url: URL, se
     // apply any necessary resets prior to recording event
     policy.enforce(time, page);
     if (event !== null) {
-      page.recordEvent(time, event, sender);
+      page.recordEvent(time, event);
       policy.enforce(time, page);
     }
     block ||= page.access() === PageAccess.BLOCKED;
