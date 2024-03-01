@@ -1,25 +1,40 @@
+export interface IClientMessenger {
+  send(message: ClientMessage): void;
+  addReceiver(listener: (message: ControllerMessage) => void): void;
+  removeReceiver(listener: (message: ControllerMessage) => void): void;
+}
+
 /**
  * Represents a message sent from a page to Bouncer.
  */
-export type PageMessage = {
+export type FrameMessage = {
   /** Type of message to send. */
-  type: PageMessageType,
+  type: ClientMessageType.CHECK,
   /** Time of message. */
+  time: Date,
+}
+
+export type ClientMessage = {
+  type: ClientMessageType,
   time: Date,
 }
 
 /**
  * Represents the type of a page message.
  */
-export enum PageMessageType {
+export enum ClientMessageType {
   /** Check the status of the current page. */
   CHECK = "check",
   /** Trigger a refresh of the Bouncer data cache. */
   REFRESH = "refresh",
 }
 
+export interface IControllerMessenger {
+  send(tabId: number, frameId: number, message: ControllerMessage): void;
+}
+
 /** Represents a message sent from Bouncer to a page. */
-export type BouncerMessage = {
+export type ControllerMessage = {
   /** The access status of the page. */
   status: FrameStatus,
   /** The next time Bouncer recommends checking for a window-based update. */

@@ -1,5 +1,5 @@
 import browser from "webextension-polyfill";
-import { type PageMessage, PageMessageType } from "scripts/message";
+import { ClientMessageType, type ClientMessage } from "@bouncer/message";
 import { type BouncerStatusEvent, type BouncerRefreshEvent, type BouncerBrowseEvent, BouncerEventType, BrowseEventType, type EventHook, type IEventEmitter, type EventListener } from "./types";
 
 
@@ -80,7 +80,7 @@ export class BrowserEventTranslator implements IEventEmitter {
     });
   }
 
-  handleMessage = (message: PageMessage, sender: PartialMessageSender) => {
+  handleMessage = (message: ClientMessage, sender: PartialMessageSender) => {
     if (sender.tab?.id === undefined || sender.frameId === undefined) {
       console.warn("event translator: received message with undefined fields");
       return;
@@ -92,10 +92,10 @@ export class BrowserEventTranslator implements IEventEmitter {
     }
 
     switch (message.type) {
-      case PageMessageType.CHECK: 
+      case ClientMessageType.CHECK: 
         this.triggerListeners(this.listeners.status, { type: BouncerEventType.STATUS, ...event });
         break;
-      case PageMessageType.REFRESH:
+      case ClientMessageType.REFRESH:
         this.triggerListeners(this.listeners.refresh, { type: BouncerEventType.REFRESH, ...event });
         break;
       default:

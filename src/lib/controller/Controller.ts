@@ -1,8 +1,7 @@
-import browser from "webextension-polyfill";
 import type { IBouncerContext } from "@bouncer/context";
-import { BrowseEventType, type BouncerBrowseEvent, type BouncerRefreshEvent, type BouncerStatusEvent, type BrowseNavigateEvent, type BrowseTabActivateEvent, type BrowseTabRemoveEvent } from "@bouncer/events/types";
+import { BrowseEventType, type BouncerBrowseEvent, type BouncerRefreshEvent, type BouncerStatusEvent, type BrowseNavigateEvent, type BrowseTabActivateEvent, type BrowseTabRemoveEvent } from "@bouncer/events";
 import type { IGuard } from "@bouncer/guard";
-import { FrameStatus, type BouncerMessage } from "scripts/message";
+import { FrameStatus, type IControllerMessenger, BrowserControllerMessenger } from "@bouncer/message";
 import { PageAccess, PageEvent } from "@bouncer/page";
 import { Sets } from "@bouncer/utils";
 import { GuardPostings } from "./GuardPostings";
@@ -11,20 +10,23 @@ import { ActiveTabs } from "./ActiveTabs";
 
 export class Controller {
   private context: IBouncerContext;
+  private readonly messenger: IControllerMessenger;
   private guardPostings: GuardPostings;
   private activeTabs: ActiveTabs;
   
-  constructor(context: IBouncerContext, guardPostings: GuardPostings, activeTabs: ActiveTabs) {
+  constructor(context: IBouncerContext, messenger: IControllerMessenger, guardPostings: GuardPostings, activeTabs: ActiveTabs) {
     this.context = context;
+    this.messenger = messenger;
     this.guardPostings = guardPostings;
     this.activeTabs = activeTabs;
   }
   
-  static async new(context: IBouncerContext): Promise<Controller> {
+  static async fromBrowser(context: IBouncerContext): Promise<Controller> {
     return new Controller(
       context,
+      BrowserControllerMessenger,
       new GuardPostings(),
-      await ActiveTabs.new()
+      await ActiveTabs.fromBrowser()
     );
   }
 
@@ -35,10 +37,9 @@ export class Controller {
       frameId
     } = event;
     const guards = this.guardPostings.frame(tabId, frameId);
-    if (guards.length === 0) {
-      return;
+    if (guards.length > 0) {
+      this.enforce(time, guards);
     }
-    this.enforce(time, guards);
     this.context.persist();
     this.messageFrame(time, tabId, frameId);
   }
@@ -205,33 +206,22 @@ export class Controller {
     const status = this.frameStatus(guards);
     switch (status) {
       case FrameStatus.UNTRACKED:
-        this.sendMessage(tabId, frameId, {
+        this.messenger.send(tabId, frameId, {
           status: FrameStatus.UNTRACKED
         });
         break;
       case FrameStatus.ALLOWED:
         const checkTimes = this.getCheckTimes(time, guards);
-        this.sendMessage(tabId, frameId, {
+        this.messenger.send(tabId, frameId, {
           status: FrameStatus.ALLOWED,
           ...checkTimes
         });
         break;
       case FrameStatus.BLOCKED:
-        this.sendMessage(tabId, frameId, {
+        this.messenger.send(tabId, frameId, {
           status: FrameStatus.BLOCKED,
         })
         break;
     }
   }
-
-  private sendMessage(tabId: number, frameId: number, message: BouncerMessage) {
-    browser.tabs.sendMessage(tabId, message, { frameId })
-      .then(() => {
-        console.log(`successfully messaged ${tabId}-${frameId}`);
-      })
-      .catch(reason => {
-        console.error(`could not send message to ${tabId}-${frameId}: ${reason}`)
-      });
-  }
 }
-

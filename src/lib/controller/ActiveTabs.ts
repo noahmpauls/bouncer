@@ -19,7 +19,7 @@ export class ActiveTabs {
   /**
    * Create an ActiveTabs instance with the browser's currently active tabs.
    */
-  static async new(): Promise<ActiveTabs> {
+  static async fromBrowser(): Promise<ActiveTabs> {
     const activeTabs = await browser.tabs.query({ active: true });
     return new ActiveTabs(activeTabs.map(t => t.id!))
   }
