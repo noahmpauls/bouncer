@@ -4,7 +4,7 @@ import { BasicPolicy, deserializePolicy, type IPolicy } from "@bouncer/policy";
 import browser from "webextension-polyfill";
 import { ScheduledLimit } from "@bouncer/enforcer";
 import { ExactHostnameMatcher } from "@bouncer/matcher";
-import { AlwaysBlock, ViewtimeCooldownLimit } from "@bouncer/limit";
+import { AlwaysBlock, ViewtimeCooldownLimit, WindowCooldownLimit } from "@bouncer/limit";
 import { AlwaysSchedule, MinuteSchedule, PeriodicSchedule } from "@bouncer/schedule";
 import { BasicGuard, type IGuard } from "@bouncer/guard";
 import { CachedBouncerContext, type IBouncerContext } from "@bouncer/context";
@@ -118,21 +118,30 @@ async function seedPolicies() {
 
   const newGuards = [
     new BasicPolicy(
+      "example.com viewtime block",
+      true,
+      new ExactHostnameMatcher("example.com"),
+      new ScheduledLimit(
+        new MinuteSchedule(30, 10),
+        new ViewtimeCooldownLimit(10000, 15000),
+      ),
+    ),
+    new BasicPolicy(
+      "en.wikipedia.org window block",
+      true,
+      new ExactHostnameMatcher("en.wikipedia.org"),
+      new ScheduledLimit(
+        new MinuteSchedule(30, 10),
+        new WindowCooldownLimit(10000, 15000),
+      ),
+    ),
+    new BasicPolicy(
       "Block HackerNews always",
       true,
       new ExactHostnameMatcher("news.ycombinator.com"),
       new ScheduledLimit(
         new AlwaysSchedule(),
         new AlwaysBlock(),
-      ),
-    ),
-    new BasicPolicy(
-      "Limit Amazon annoyingly",
-      true,
-      new ExactHostnameMatcher("www.amazon.com"),
-      new ScheduledLimit(
-        new MinuteSchedule(30, 10),
-        new ViewtimeCooldownLimit(10000, 15000),
       ),
     ),
     new BasicPolicy(

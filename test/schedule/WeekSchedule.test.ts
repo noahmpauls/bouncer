@@ -1,7 +1,7 @@
 import { WeekSchedule } from "@bouncer/schedule";
 import { describe, test, expect } from "@jest/globals";
 import { timeGenerator } from "../testUtils";
-import { BasicPage, PageEventType } from "@bouncer/page";
+import { BasicPage, PageEvent } from "@bouncer/page";
 
 describe("regression", () => {
   test("correct actions", () => {
@@ -14,13 +14,11 @@ describe("regression", () => {
 
     const startTime = new Date("2023-04-26T18:00:00.000Z");
     const t = timeGenerator(startTime);
-    const frame = { tabId: 0, frameId: 0 };
 
     const page = new BasicPage();
 
     // first show
-    page.recordEvent(t(0), { type: PageEventType.FRAME_OPEN, frame });
-    page.recordEvent(t(0), { type: PageEventType.FRAME_SHOW, frame });
+    page.recordEvent(t(0), PageEvent.SHOW);
 
     const actions = schedule.actions(t(0), t(50), page);
     expect(actions).toStrictEqual([]);
@@ -36,13 +34,11 @@ describe("regression", () => {
 
     const startTime = new Date("2023-04-26T18:00:00.000Z");
     const t = timeGenerator(startTime);
-    const frame = { tabId: 0, frameId: 0 };
 
     const page = new BasicPage();
 
     // first show
-    page.recordEvent(t(0), { type: PageEventType.FRAME_OPEN, frame });
-    page.recordEvent(t(0), { type: PageEventType.FRAME_SHOW, frame });
+    page.recordEvent(t(0), PageEvent.SHOW);
 
     const actions = schedule.actions(t(0), t(50), page);
     expect(actions).toStrictEqual([]);
@@ -59,13 +55,11 @@ describe("regression", () => {
 
     const startTime = new Date("2023-04-26T18:00:00.000Z");
     const t = timeGenerator(startTime);
-    const frame = { tabId: 0, frameId: 0 };
 
     const page = new BasicPage();
 
     // first show
-    page.recordEvent(t(0), { type: PageEventType.FRAME_OPEN, frame });
-    page.recordEvent(t(0), { type: PageEventType.FRAME_SHOW, frame });
+    page.recordEvent(t(0), PageEvent.SHOW);
 
     const actions = schedule.actions(t(0), t(50), page);
     expect(actions).toStrictEqual([]);

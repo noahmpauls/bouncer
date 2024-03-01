@@ -6,8 +6,7 @@ import type { PageEvent, PageActionType, PageAccess } from "./enums";
  */
 export interface IPage extends IPageMetrics {
   /**
-   * Record the occurence of an event on the page from a particular page
-   * viewer.
+   * Record the occurence of an event on the page.
    * 
    * @param time event time
    * @param event the event to record

@@ -1,5 +1,4 @@
 import type { IGuard } from "@bouncer/guard";
-import type { IPolicy } from "@bouncer/policy";
 
 /**
  * Provider of Bouncer data, for reading and writing.

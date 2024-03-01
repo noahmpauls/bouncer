@@ -14,12 +14,6 @@ export type PageMessage = {
 export enum PageMessageType {
   /** Check the status of the current page. */
   CHECK = "check",
-  /** Record a visit for the current page. */
-  VISIT = "visit",
-  /** Record a show for the current page. */
-  SHOW = "show",
-  /** Record a hide for the current page. */
-  HIDE = "hide",
   /** Trigger a refresh of the Bouncer data cache. */
   REFRESH = "refresh",
 }
@@ -27,7 +21,7 @@ export enum PageMessageType {
 /** Represents a message sent from Bouncer to a page. */
 export type BouncerMessage = {
   /** The access status of the page. */
-  status: PageStatus,
+  status: FrameStatus,
   /** The next time Bouncer recommends checking for a window-based update. */
   windowCheck?: Date | undefined,
   /** The next time Bouncer recommends checking for a viewtime-based update. */
@@ -35,13 +29,13 @@ export type BouncerMessage = {
 }
 
 /** 
- * Represents the status of the page as seen by Bouncer.
+ * Represents the status of a frame as seen by Bouncer.
  */
-export enum PageStatus {
-  /** Bouncer does not track the page. */
+export enum FrameStatus {
+  /** Bouncer does not track the frame. */
   UNTRACKED = "untracked",
-  /** Bouncer has blocked the page. */
+  /** Bouncer has blocked the frame. */
   ALLOWED = "allowed",
-  /** Bouner allows the page. */
+  /** Bouner allows the frame. */
   BLOCKED = "blocked",
 }

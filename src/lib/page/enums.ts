@@ -11,50 +11,11 @@ export enum PageAccess {
 /**
  * Represents events that occur on a page during browsing.
  */
-export enum PageEventType {
-  /** Frame is first opened. */
-  FRAME_OPEN = "frame_open",
-  /** Frame becomes visible. */
-  FRAME_SHOW = "frame_show",
-  /** Frame becomes hidden. */
-  FRAME_HIDE = "frame_hide",
-  /** Tab closes. */
-  TAB_CLOSE = "tab_close",
-}
-
-export type Tab = {
-  tabId: number,
-}
-
-export type Frame = Tab & {
-  frameId: number,
-}
-
-export type PageEvent =
-    FrameOpenEvent
-  | FrameShowEvent
-  | FrameHideEvent
-  | TabCloseEvent
-  ;
-
-export type FrameOpenEvent = {
-  type: PageEventType.FRAME_OPEN,
-  frame: Frame,
-}
-
-export type FrameShowEvent = {
-  type: PageEventType.FRAME_SHOW,
-  frame: Frame,
-}
-
-export type FrameHideEvent = {
-  type: PageEventType.FRAME_HIDE,
-  frame: Frame,
-}
-
-export type TabCloseEvent = {
-  type: PageEventType.TAB_CLOSE,
-  tab: Tab,
+export enum PageEvent {
+  /** Page becomes visible. */
+  SHOW = "show",
+  /** Page becomes hidden. */
+  HIDE = "hide",
 }
 
 /**
