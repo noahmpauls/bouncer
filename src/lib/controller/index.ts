@@ -1,1 +1,1 @@
-export { Controller as BouncerController } from "./Controller";
+export { Controller } from "./Controller";

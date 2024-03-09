@@ -109,68 +109,8 @@ function createPolicyEditor(guard: IGuard) {
   return form;
 }
 
-async function seedPolicies() {
-  const existingGuards = await bouncerData.guards();
-
-  if (existingGuards.length > 0) {
-    return;
-  }
-
-  const newGuards = [
-    new BasicPolicy(
-      "example.com viewtime block",
-      true,
-      new ExactHostnameMatcher("example.com"),
-      new ScheduledLimit(
-        new MinuteSchedule(30, 10),
-        new ViewtimeCooldownLimit(10000, 15000),
-      ),
-    ),
-    new BasicPolicy(
-      "en.wikipedia.org window block",
-      true,
-      new ExactHostnameMatcher("en.wikipedia.org"),
-      new ScheduledLimit(
-        new MinuteSchedule(30, 10),
-        new WindowCooldownLimit(10000, 15000),
-      ),
-    ),
-    new BasicPolicy(
-      "Block HackerNews always",
-      true,
-      new ExactHostnameMatcher("news.ycombinator.com"),
-      new ScheduledLimit(
-        new AlwaysSchedule(),
-        new AlwaysBlock(),
-      ),
-    ),
-    new BasicPolicy(
-      "Limit CNBC during work hours",
-      true,
-      new ExactHostnameMatcher("www.cnbc.com"),
-      new ScheduledLimit(
-        new PeriodicSchedule(
-          "day",
-          [
-            { start: 2.88e+7, end: 6.12e+7 }
-          ]
-        ),
-        new AlwaysBlock(),
-      ),
-    ),
-  ].map((policy, i) => new BasicGuard(`${i}`, policy, new BasicPage()));
-
-  for (const guard of newGuards) {
-    existingGuards.push(guard);
-  }
-
-  await bouncerData.persist();
-
-  sendRefreshMessage();
-}
-
 function sendRefreshMessage() {
   browser.runtime.sendMessage({ type: "refresh", time: new Date() });
 }
 
-seedPolicies().then(() => refreshPolicyDisplay());
+refreshPolicyDisplay();

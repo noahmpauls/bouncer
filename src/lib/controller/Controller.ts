@@ -1,4 +1,3 @@
-import type { IBouncerContext } from "@bouncer/context";
 import { BrowseEventType, type BouncerBrowseEvent, type BouncerRefreshEvent, type BouncerStatusEvent, type BrowseNavigateEvent, type BrowseTabActivateEvent, type BrowseTabRemoveEvent } from "@bouncer/events";
 import type { IGuard } from "@bouncer/guard";
 import { FrameStatus, type IControllerMessenger, BrowserControllerMessenger } from "@bouncer/message";
@@ -9,21 +8,22 @@ import { ActiveTabs } from "./ActiveTabs";
 
 
 export class Controller {
-  private context: IBouncerContext;
+  private readonly guards: IGuard[];
   private readonly messenger: IControllerMessenger;
   private guardPostings: GuardPostings;
   private activeTabs: ActiveTabs;
   
-  constructor(context: IBouncerContext, messenger: IControllerMessenger, guardPostings: GuardPostings, activeTabs: ActiveTabs) {
-    this.context = context;
+  // TODO: use simplified constructor syntax
+  constructor(guards: IGuard[], messenger: IControllerMessenger, guardPostings: GuardPostings, activeTabs: ActiveTabs) {
+    this.guards = guards;
     this.messenger = messenger;
     this.guardPostings = guardPostings;
     this.activeTabs = activeTabs;
   }
   
-  static async fromBrowser(context: IBouncerContext): Promise<Controller> {
+  static async fromBrowser(guards: IGuard[]): Promise<Controller> {
     return new Controller(
-      context,
+      guards,
       BrowserControllerMessenger,
       new GuardPostings(),
       await ActiveTabs.fromBrowser()
@@ -36,16 +36,16 @@ export class Controller {
       tabId,
       frameId
     } = event;
+    console.log(`controller got status request from ${tabId}-${frameId}`);
     const guards = this.guardPostings.frame(tabId, frameId);
+    console.log(`  found ${guards.length} guards for ${tabId}-${frameId}`);
     if (guards.length > 0) {
       this.enforce(time, guards);
     }
-    this.context.persist();
     this.messageFrame(time, tabId, frameId);
   }
 
   handleRefresh = (event: BouncerRefreshEvent) => {
-    this.context.refresh();
     // TODO: figure out what the heck needs to happen here...
     // when this happens, I think I need to rebuild the browseState
   }
@@ -63,14 +63,13 @@ export class Controller {
         this.handleTabRemove(time, browseEvent);
         break;
     }
-    this.context.persist();
   }
 
   private async handleNavigate(time: Date, event: BrowseNavigateEvent) {
     const { tabId, frameId, url } = event;
 
     const fromGuards = new Set(this.guardPostings.frame(tabId, frameId));
-    const toGuards = new Set(await this.context.applicableGuards(url));
+    const toGuards = new Set(this.guards.filter(g => g.policy.appliesTo(url)));
     
     const allGuards = Sets.union(fromGuards, toGuards);
     this.enforce(time, [...allGuards]);
@@ -118,8 +117,6 @@ export class Controller {
     }
 
     this.messageTab(time, tabId);
-
-    this.context.persist();
   }
 
   private handleTabRemove(time: Date, event: BrowseTabRemoveEvent) {
@@ -135,8 +132,6 @@ export class Controller {
         this.applyEvent(time, guard, PageEvent.HIDE);
       }
     }
-
-    this.context.persist();
   }
 
   private isGuardingActiveTab(guard: IGuard): boolean {
@@ -202,8 +197,10 @@ export class Controller {
   }
 
   private async messageFrame(time: Date, tabId: number, frameId: number) {
+    console.log(`  messaging ${tabId}-${frameId}`);
     const guards = this.guardPostings.frame(tabId, frameId);
     const status = this.frameStatus(guards);
+    console.log(`  sending status ${status} to ${tabId}-${frameId}`);
     switch (status) {
       case FrameStatus.UNTRACKED:
         this.messenger.send(tabId, frameId, {
