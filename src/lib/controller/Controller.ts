@@ -8,18 +8,13 @@ import { ActiveTabs } from "./ActiveTabs";
 
 
 export class Controller {
-  private readonly guards: IGuard[];
-  private readonly messenger: IControllerMessenger;
-  private guardPostings: GuardPostings;
-  private activeTabs: ActiveTabs;
   
-  // TODO: use simplified constructor syntax
-  constructor(guards: IGuard[], messenger: IControllerMessenger, guardPostings: GuardPostings, activeTabs: ActiveTabs) {
-    this.guards = guards;
-    this.messenger = messenger;
-    this.guardPostings = guardPostings;
-    this.activeTabs = activeTabs;
-  }
+  constructor(
+    private readonly guards: IGuard[],
+    private readonly messenger: IControllerMessenger,
+    private guardPostings: GuardPostings,
+    private activeTabs: ActiveTabs,
+  ) { }
   
   static async fromBrowser(guards: IGuard[]): Promise<Controller> {
     return new Controller(
