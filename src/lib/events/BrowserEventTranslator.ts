@@ -1,6 +1,6 @@
 import browser from "webextension-polyfill";
 import { ClientMessageType, type ClientMessage } from "@bouncer/message";
-import { type BouncerStatusEvent, type BouncerRefreshEvent, type BouncerBrowseEvent, BouncerEventType, BrowseEventType, type EventHook, type IEventEmitter, type EventListener } from "./types";
+import { type BouncerStatusEvent, type BouncerBrowseEvent, BouncerEventType, BrowseEventType, type EventHook, type IEventEmitter, type EventListener } from "./types";
 
 
 type PartialOnActivatedDetails = Pick<browser.Tabs.OnActivatedActiveInfoType, "tabId" | "previousTabId">
@@ -18,18 +18,15 @@ export class BrowserEventTranslator implements IEventEmitter {
   private readonly listeners: {
     status: EventListener<BouncerStatusEvent>[],
     browse: EventListener<BouncerBrowseEvent>[],
-    refresh: EventListener<BouncerRefreshEvent>[],
   } = {
     status: [],
     browse: [],
-    refresh: [],
   };
 
   constructor() { }
 
   readonly onStatus = this.createHook(this.listeners.status);
   readonly onBrowse = this.createHook(this.listeners.browse);
-  readonly onRefresh = this.createHook(this.listeners.refresh);
 
   handleCommitted = (details: PartialOnCommittedDetails) => {
     this.triggerListeners(this.listeners.browse, {
@@ -94,9 +91,6 @@ export class BrowserEventTranslator implements IEventEmitter {
     switch (message.type) {
       case ClientMessageType.CHECK: 
         this.triggerListeners(this.listeners.status, { type: BouncerEventType.STATUS, ...event });
-        break;
-      case ClientMessageType.REFRESH:
-        this.triggerListeners(this.listeners.refresh, { type: BouncerEventType.REFRESH, ...event });
         break;
       default:
         console.warn(`translation error: unsupported message type ${message.type}`)

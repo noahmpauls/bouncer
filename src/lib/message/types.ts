@@ -25,8 +25,6 @@ export type ClientMessage = {
 export enum ClientMessageType {
   /** Check the status of the current page. */
   CHECK = "check",
-  /** Trigger a refresh of the Bouncer data cache. */
-  REFRESH = "refresh",
 }
 
 export interface IControllerMessenger {

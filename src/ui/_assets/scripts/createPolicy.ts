@@ -1,4 +1,3 @@
-import browser from "webextension-polyfill";
 import { BrowserStorage } from "@bouncer/storage";
 import { StoredBouncerData } from "@bouncer/data";
 import { CachedBouncerContext, type IBouncerContext } from "@bouncer/context";
@@ -55,14 +54,9 @@ submit?.addEventListener("click", e => {
         bouncerData.persist();
       })
       .then(() => {
-        sendRefreshMessage();
         textarea.value = "";
       });
   } catch {
     console.error("could not deserialize input");
   }
 });
-
-function sendRefreshMessage() {
-  browser.runtime.sendMessage({ type: "refresh", time: new Date() });
-}

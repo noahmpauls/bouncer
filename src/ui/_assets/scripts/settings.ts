@@ -1,14 +1,9 @@
 import { BrowserStorage } from "@bouncer/storage";
-import { type IBouncerData, StoredBouncerData } from "@bouncer/data";
-import { BasicPolicy, deserializePolicy, type IPolicy } from "@bouncer/policy";
-import browser from "webextension-polyfill";
-import { ScheduledLimit } from "@bouncer/enforcer";
-import { ExactHostnameMatcher } from "@bouncer/matcher";
-import { AlwaysBlock, ViewtimeCooldownLimit, WindowCooldownLimit } from "@bouncer/limit";
-import { AlwaysSchedule, MinuteSchedule, PeriodicSchedule } from "@bouncer/schedule";
-import { BasicGuard, type IGuard } from "@bouncer/guard";
+import { StoredBouncerData } from "@bouncer/data";
+import { deserializePolicy } from "@bouncer/policy";
+import { type IGuard } from "@bouncer/guard";
 import { CachedBouncerContext, type IBouncerContext } from "@bouncer/context";
-import { BasicPage, PageActionType } from "@bouncer/page";
+import { PageActionType } from "@bouncer/page";
 
 const bouncerData: IBouncerContext = new CachedBouncerContext(new StoredBouncerData(new BrowserStorage()));
 
@@ -51,7 +46,6 @@ function createPolicyEditor(guard: IGuard) {
         guards.splice(i, 1);
         bouncerData.persist();
       }).then(() => {
-        sendRefreshMessage();
         refreshPolicyDisplay();
       });
   });
@@ -74,7 +68,6 @@ function createPolicyEditor(guard: IGuard) {
       const updatedPolicy = deserializePolicy(JSON.parse(textarea.value) as any);
       guard.policy = updatedPolicy;
       bouncerData.persist().then(() => {
-        sendRefreshMessage();
         refreshPolicyDisplay();
       });
     } catch {
@@ -89,7 +82,6 @@ function createPolicyEditor(guard: IGuard) {
     guard.page.recordAction(PageActionType.RESET_METRICS, time);
     guard.page.recordAction(PageActionType.UNBLOCK, time);
     bouncerData.persist().then(() => {
-      sendRefreshMessage();
       refreshPolicyDisplay();
     });
   });
@@ -107,10 +99,6 @@ function createPolicyEditor(guard: IGuard) {
   form.appendChild(clearPageButton);
 
   return form;
-}
-
-function sendRefreshMessage() {
-  browser.runtime.sendMessage({ type: "refresh", time: new Date() });
 }
 
 refreshPolicyDisplay();

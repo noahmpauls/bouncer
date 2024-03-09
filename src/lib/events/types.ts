@@ -3,7 +3,6 @@
  */
 export interface IEventEmitter {
   readonly onStatus: EventHook<BouncerStatusEvent>;
-  readonly onRefresh: EventHook<BouncerRefreshEvent>;
   readonly onBrowse: EventHook<BouncerBrowseEvent>;
 }
 
@@ -16,14 +15,12 @@ export type EventHook<E> = {
 
 export enum BouncerEventType {
   STATUS = "status",
-  REFRESH = "refresh",
   BROWSE = "browse",
 }
 
 export type BouncerEvent =
     BouncerStatusEvent
   | BouncerBrowseEvent
-  | BouncerRefreshEvent
   ;
 
 export type BouncerStatusEvent = {
@@ -37,11 +34,6 @@ export type BouncerBrowseEvent = {
   type: BouncerEventType.BROWSE,
   time: Date,
   browseEvent: BrowseEvent,
-}
-
-export type BouncerRefreshEvent = {
-  type: BouncerEventType.REFRESH
-  time: Date,
 }
 
 

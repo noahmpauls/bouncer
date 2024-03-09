@@ -107,6 +107,5 @@ browser.runtime.onMessage.addListener(eventEmitter.handleMessage);
 guardContext.guards().then(guards => Controller.fromBrowser(guards)).then(controller => {
   eventEmitter.onStatus.addListener(saveOnComplete(controller.handleStatus));
   eventEmitter.onBrowse.addListener(saveOnComplete(controller.handleBrowse));
-  eventEmitter.onRefresh.addListener(saveOnComplete(controller.handleRefresh));
 });
 

@@ -1,4 +1,4 @@
-import { BrowseEventType, type BouncerBrowseEvent, type BouncerRefreshEvent, type BouncerStatusEvent, type BrowseNavigateEvent, type BrowseTabActivateEvent, type BrowseTabRemoveEvent } from "@bouncer/events";
+import { BrowseEventType, type BouncerBrowseEvent, type BouncerStatusEvent, type BrowseNavigateEvent, type BrowseTabActivateEvent, type BrowseTabRemoveEvent } from "@bouncer/events";
 import type { IGuard } from "@bouncer/guard";
 import { FrameStatus, type IControllerMessenger, BrowserControllerMessenger } from "@bouncer/message";
 import { PageAccess, PageEvent } from "@bouncer/page";
@@ -43,11 +43,6 @@ export class Controller {
       this.enforce(time, guards);
     }
     this.messageFrame(time, tabId, frameId);
-  }
-
-  handleRefresh = (event: BouncerRefreshEvent) => {
-    // TODO: figure out what the heck needs to happen here...
-    // when this happens, I think I need to rebuild the browseState
   }
 
   handleBrowse = async (event: BouncerBrowseEvent) => {
