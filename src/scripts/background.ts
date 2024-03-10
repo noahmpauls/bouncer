@@ -1,7 +1,6 @@
 import browser from "webextension-polyfill";
 import { BrowserStorage } from "@bouncer/storage";
-import { StorageDataMapper } from "@bouncer/data";
-import { PersistedContext } from "@bouncer/context";
+import { StoredContext } from "@bouncer/data";
 import { BrowserEventTranslator } from "@bouncer/events";
 import { Controller } from "@bouncer/controller";
 import { type IGuard, type GuardData, serializeGuard, deserializeGuard, BasicGuard } from "@bouncer/guard";
@@ -68,13 +67,7 @@ type GuardContextData = {
   guards: GuardData[],
 }
 
-class GuardContext extends PersistedContext<GuardContextObject> {
-  async guards(): Promise<IGuard[]> {
-    return (await this._data()).guards;
-  }
-}
-
-const guardDataMapper = new StorageDataMapper(
+const guardContext = new StoredContext(
   new BrowserStorage(),
   {
     serialize: (obj: GuardContextObject) => ({ guards: obj.guards.map(serializeGuard) }),
@@ -85,11 +78,10 @@ const guardDataMapper = new StorageDataMapper(
   }
 );
 
-const guardContext = new GuardContext(guardDataMapper);
 const saveOnComplete = (func: (...args: any[]) => void) => {
   return async (...args: any[]) => {
     func(...args);
-    await guardContext.save();
+    await guardContext.commit();
     logTimestamp(new Date(), "data saved.");
   }
 }
@@ -104,7 +96,7 @@ browser.webNavigation.onHistoryStateUpdated.addListener(eventEmitter.handleHisto
 browser.runtime.onMessage.addListener(eventEmitter.handleMessage);
 
 
-guardContext.guards().then(guards => Controller.fromBrowser(guards)).then(controller => {
+guardContext.fetch().then(data => Controller.fromBrowser(data.guards)).then(controller => {
   eventEmitter.onStatus.addListener(saveOnComplete(controller.handleStatus));
   eventEmitter.onBrowse.addListener(saveOnComplete(controller.handleBrowse));
 });

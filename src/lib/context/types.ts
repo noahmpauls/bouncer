@@ -29,14 +29,3 @@ export interface IBouncerContext {
    */
   persist(): Promise<void>;
 }
-
-/**
- * Represents a data context that exposes data for reading and writing, and
- * allows data modifications to be saved elsewhere.
- */
-export interface IContext {
-  /**
-   * Save changes to the data.
-   */
-  save(): Promise<void>;
-}

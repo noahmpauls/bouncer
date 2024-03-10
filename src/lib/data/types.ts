@@ -20,25 +20,23 @@ export interface IBouncerData {
 }
 
 /**
- * Represents a data layer capable of translating between a runtime object and
- * persisted data describing that object.
+ * Represents a data context that exposes data for reading and writing, and
+ * allows data modifications to be saved.
  * 
  * @typeParam T runtime object type
  */
-export interface IDataMapper<T> {
+export interface IContext<T> {
   /**
-   * Map a runtime object to persisted data.
-   * 
-   * @param obj object to persist
+   * Save changes to the context data.
    */
-  toData(obj: T): Promise<void>;
+  commit(): Promise<void>;
 
   /**
-   * Map persisted data to a runtime object.
+   * Get a reference to the context data.
    * 
    * @returns runtime object
    */
-  toObject(): Promise<T>;
+  fetch(): Promise<T>;
 }
 
 /**
