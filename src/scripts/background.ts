@@ -68,13 +68,18 @@ type GuardContextData = {
 }
 
 const guardContext = new StoredContext(
-  new BrowserStorage(),
+  {
+    local: new BrowserStorage(),
+  },
   {
     serialize: (obj: GuardContextObject) => ({ guards: obj.guards.map(serializeGuard) }),
     deserialize: (data: GuardContextData) => ({ guards: data.guards.map(deserializeGuard) })
   },
   {
-    guards: { fallback: initialGuards.map(serializeGuard) }
+    guards: {
+      bucket: "local",
+      fallback: initialGuards.map(serializeGuard),
+    }
   }
 );
 

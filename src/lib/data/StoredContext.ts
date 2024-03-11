@@ -7,20 +7,21 @@ import { Synchronizer } from "@bouncer/utils";
  * 
  * @typeParam TObject runtime object type
  * @typeParam TData stored data type
+ * @typeParam TBuckets storage bucket lookup type
  */
-export class StoredContext<TObject, TData extends Object> implements IContext<TObject> {
+export class StoredContext<TObject, TData extends Object, TBuckets extends Record<string, IStorage>> implements IContext<TObject> {
   private cache: TObject | undefined = undefined;
   private readonly sync: Synchronizer = new Synchronizer();
   
   /**
-   * @param storage storage provider
+   * @param storage storage providers
    * @param transformer transformer between runtime and stored data
    * @param keyConfig options for storage by key
    */
   constructor(
-    private readonly storage: IStorage,
+    private readonly storage: TBuckets,
     private readonly transformer: ITransformer<TObject, TData>,
-    private readonly keyConfig: KeyConfig<TData>,
+    private readonly keyConfig: KeyConfig<TData, TBuckets>,
   ) { }
 
   commit = async (): Promise<void> => {
@@ -29,8 +30,10 @@ export class StoredContext<TObject, TData extends Object> implements IContext<TO
         return;
       }
       const data: TData = this.transformer.serialize(this.cache);
-      for (const [key, value] of Object.entries(data)) {
-        await this.storage.set(key, value);
+      for (const key of Object.keys(this.keyConfig)) {
+        const { bucket } = this.keyConfig[key as keyof TData];
+        const value = data[key as keyof TData];
+        await this.storage[bucket].set(key, value);
       }
     });
   }
@@ -56,8 +59,9 @@ export class StoredContext<TObject, TData extends Object> implements IContext<TO
       // only the first in line will see an undefined cache
       if (this.cache === undefined) {
         const data: any = {};
-        for (const [key, config] of Object.entries(this.keyConfig)) {
-          data[key] = await this.storage.get(key, config.fallback);
+        for (const key of Object.keys(this.keyConfig)) {
+          const { bucket, fallback } = this.keyConfig[key as keyof TData];
+          data[key] = await this.storage[bucket].get(key, fallback);
         }
         this.cache = this.transformer.deserialize(data);
       }

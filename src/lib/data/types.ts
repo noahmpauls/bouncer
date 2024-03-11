@@ -1,4 +1,5 @@
 import type { IGuard } from "@bouncer/guard";
+import type { IStorage } from "@bouncer/storage";
 
 /**
  * Provider of Bouncer data, for reading and writing.
@@ -58,13 +59,16 @@ export interface ITransformer<TObject, TData> {
 }
 
 /**
- * Configuration options for ho
+ * Configuration options for data storage by key.
  * 
- * @typeParam Type the type of
+ * @typeParam Type stored data format
+ * @typeParam TBuckets storage bucket lookup type
  */
-export type KeyConfig<Type> = {
+export type KeyConfig<Type, TBuckets extends Record<string, IStorage>> = {
   [Property in keyof Type]: {
+    /** Storage location for the key's data. */
+    bucket: keyof TBuckets,
     /** Fallback value to provide when key has no value. */
-    fallback: Type[Property]
+    fallback: Type[Property],
   }
 }
