@@ -7,13 +7,13 @@ import { Synchronizer } from "@bouncer/utils";
 export class SyncedCache<T> {
   /** Cache value; undefined when not initialized. */
   private cache: T | undefined = undefined;
+  private readonly sync: Synchronizer = new Synchronizer();
 
   /**
    * @param initializer the function used to intialize the cache value
    */
   constructor(
     private readonly initializer: () => Promise<T>,
-    private readonly sync: Synchronizer = new Synchronizer(),
   ) { }
 
   /**
