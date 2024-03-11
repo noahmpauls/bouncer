@@ -22,9 +22,7 @@ export class Controller {
       tabId,
       frameId
     } = event;
-    console.log(`controller got status request from ${tabId}-${frameId}`);
     const guards = this.guardPostings.frame(tabId, frameId);
-    console.log(`  found ${guards.length} guards for ${tabId}-${frameId}`);
     if (guards.length > 0) {
       this.enforce(time, guards);
     }
@@ -178,10 +176,8 @@ export class Controller {
   }
 
   private async messageFrame(time: Date, tabId: number, frameId: number) {
-    console.log(`  messaging ${tabId}-${frameId}`);
     const guards = this.guardPostings.frame(tabId, frameId);
     const status = this.frameStatus(guards);
-    console.log(`  sending status ${status} to ${tabId}-${frameId}`);
     switch (status) {
       case FrameStatus.UNTRACKED:
         this.messenger.send(tabId, frameId, {
