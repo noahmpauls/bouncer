@@ -1,13 +1,13 @@
-import browser from "webextension-polyfill";
+import type Browser from "webextension-polyfill";
 import { ClientMessageType, type ClientMessage } from "@bouncer/message";
 import { type BouncerStatusEvent, type BouncerBrowseEvent, BouncerEventType, BrowseEventType, type EventHook, type IEventEmitter, type EventListener } from "./types";
 
 
-type PartialOnActivatedDetails = Pick<browser.Tabs.OnActivatedActiveInfoType, "tabId" | "previousTabId">
-type PartialOnCommittedDetails = Pick<browser.WebNavigation.OnCommittedDetailsType, "url" | "tabId" | "frameId" | "timeStamp">
-type PartialOnHistoryStateUpdatedDetails = Pick<browser.WebNavigation.OnHistoryStateUpdatedDetailsType, "url" | "tabId" | "frameId" | "timeStamp">
-type PartialMessageSender = Pick<browser.Runtime.MessageSender, "frameId"> & {
-  tab?: Pick<browser.Tabs.Tab, "id">
+type PartialOnActivatedDetails = Pick<Browser.Tabs.OnActivatedActiveInfoType, "tabId" | "previousTabId">
+type PartialOnCommittedDetails = Pick<Browser.WebNavigation.OnCommittedDetailsType, "url" | "tabId" | "frameId" | "timeStamp">
+type PartialOnHistoryStateUpdatedDetails = Pick<Browser.WebNavigation.OnHistoryStateUpdatedDetailsType, "url" | "tabId" | "frameId" | "timeStamp">
+type PartialMessageSender = Pick<Browser.Runtime.MessageSender, "frameId"> & {
+  tab?: Pick<Browser.Tabs.Tab, "id">
 }
 
 
