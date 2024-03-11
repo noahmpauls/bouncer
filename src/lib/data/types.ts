@@ -68,7 +68,13 @@ export type KeyConfig<Type, TBuckets extends Record<string, IStorage>> = {
   [Property in keyof Type]: {
     /** Storage location for the key's data. */
     bucket: keyof TBuckets,
-    /** Fallback value to provide when key has no value. */
-    fallback: Type[Property],
+    /** Fallback when key has no value. */
+    fallback: {
+        /** Fallback value. */
+        value: Type[Property]
+      } | { 
+        /** Fallback value initializer. */
+        initialize: (() => Promise<Type[Property]>)
+      }
   }
 }

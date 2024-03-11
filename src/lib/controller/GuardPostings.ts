@@ -1,15 +1,36 @@
 import type { IGuard } from "@bouncer/guard";
 import { assert } from "@bouncer/utils";
 import type { ActiveTabs } from "./ActiveTabs";
+import { Maps } from "@bouncer/utils/Maps";
 
 /**
  * Represents the assignment of guards to browser tabs and frames.
  */
 export class GuardPostings {
-  private readonly tabsToGuards: Map<number, Map<number, Set<IGuard>>> = new Map();
-  private readonly guardsToTabs: Map<IGuard, Set<number>> = new Map();
+  /** Tab -> Frames, Frame -> Guards */
+  private readonly tabsToGuards: Map<number, Map<number, Set<IGuard>>>;
+  /** Guard -> Tabs */
+  private readonly guardsToTabs: Map<IGuard, Set<number>>;
 
-  constructor() {
+  /**
+   * @param postings postings of guards to specific tabs
+   */
+  constructor(postings: { tabId: number, frameId: number, guard: IGuard }[]) {
+    const tabsToGuards = new Map();
+    const guardsToTabs = new Map();
+
+    for (const { tabId, frameId, guard} of postings) {
+      const tab = Maps.getOrDefault(tabsToGuards, tabId, new Map());
+      const frame = Maps.getOrDefault(tab, frameId, new Set());
+      frame.add(guard);
+
+      const guardTabs = Maps.getOrDefault(guardsToTabs, guard, new Set());
+      guardTabs.add(tabId);
+    }
+
+    this.tabsToGuards = tabsToGuards;
+    this.guardsToTabs = guardsToTabs;
+
     this.checkRep();
   }
 
@@ -31,6 +52,24 @@ export class GuardPostings {
         assert(tabGuards.has(guard), `guard ${guard.id} points to tab ${tabId}; reverse must be true`);
       }
     }
+  }
+
+  /**
+   * Convert guard postings data to a GuardPostings instance.
+   * 
+   * @param obj data representing guard postings
+   * @param guards guard objects
+   */
+  static fromObject(obj: GuardPostingsData, guards: IGuard[]): GuardPostings {
+    const withGuards = obj.map(o => ({
+      ...o,
+      guard: guards.find(g => g.id === o.guardId),
+    }));
+    const notFound = withGuards.filter(o => o.guard === undefined);
+    if (notFound.length > 0) {
+      throw new Error(`guard object not found for ids ${notFound.map(o => o.guardId).join(',')}`);
+    }
+    return new GuardPostings(withGuards as any);
   }
 
   /**
@@ -101,23 +140,11 @@ export class GuardPostings {
    * @param guard 
    */
   assign(tabId: number, frameId: number, guard: IGuard): void {
-    let tab = this.tabsToGuards.get(tabId);
-    if (tab === undefined) {
-      tab = new Map();
-      this.tabsToGuards.set(tabId, tab);
-    }
-    let frame = tab.get(frameId);
-    if (frame === undefined) {
-      frame = new Set();
-      tab.set(frameId, frame);
-    }
+    const tab = Maps.getOrDefault(this.tabsToGuards, tabId, new Map());
+    const frame = Maps.getOrDefault(tab, frameId, new Set());
     frame.add(guard);
-    
-    let guardTabs = this.guardsToTabs.get(guard);
-    if (guardTabs === undefined) {
-      guardTabs = new Set();
-      this.guardsToTabs.set(guard, guardTabs);
-    }
+
+    const guardTabs = Maps.getOrDefault(this.guardsToTabs, guard, new Set());
     guardTabs.add(tabId);
 
     this.checkRep();
@@ -180,4 +207,23 @@ export class GuardPostings {
 
     this.tabsToGuards.delete(tabId);
   }
+
+  /**
+   * Convert to an object representation.
+   * 
+   * @returns guard postings data
+   */
+  toObject(): GuardPostingsData {
+    const data: GuardPostingsData = [];
+    for (const [tabId, frames] of this.tabsToGuards.entries()) {
+      for (const [frameId, guards] of frames) {
+        for (const guard of guards) {
+          data.push({ tabId, frameId, guardId: guard.id})
+        }
+      }
+    }
+    return data;
+  }
 }
+
+type GuardPostingsData = { tabId: number, frameId: number, guardId: string }[];

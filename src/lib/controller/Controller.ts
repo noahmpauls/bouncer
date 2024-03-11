@@ -11,20 +11,11 @@ export class Controller {
   
   constructor(
     private readonly guards: IGuard[],
-    private readonly messenger: IControllerMessenger,
     private guardPostings: GuardPostings,
     private activeTabs: ActiveTabs,
+    private readonly messenger: IControllerMessenger,
   ) { }
   
-  static async fromBrowser(guards: IGuard[]): Promise<Controller> {
-    return new Controller(
-      guards,
-      BrowserControllerMessenger,
-      new GuardPostings(),
-      await ActiveTabs.fromBrowser()
-    );
-  }
-
   handleStatus = (event: BouncerStatusEvent) => {
     const {
       time,
@@ -58,13 +49,13 @@ export class Controller {
   private async handleNavigate(time: Date, event: BrowseNavigateEvent) {
     const { tabId, frameId, url } = event;
 
-    const fromGuards = new Set(this.guardPostings.frame(tabId, frameId));
-    const toGuards = new Set(this.guards.filter(g => g.policy.appliesTo(url)));
+    const oldGuards = new Set(this.guardPostings.frame(tabId, frameId));
+    const newGuards = new Set(this.guards.filter(g => g.policy.appliesTo(url)));
     
-    const allGuards = Sets.union(fromGuards, toGuards);
+    const allGuards = Sets.union(oldGuards, newGuards);
     this.enforce(time, [...allGuards]);
 
-    const removed = Sets.difference(fromGuards, toGuards);
+    const removed = Sets.difference(oldGuards, newGuards);
     for (const guard of removed) {
       this.guardPostings.dismiss(tabId, frameId, guard);
       if (!this.isGuardingActiveTab(guard)) {
@@ -72,7 +63,7 @@ export class Controller {
       }
     }
 
-    const added = Sets.difference(toGuards, fromGuards);
+    const added = Sets.difference(newGuards, oldGuards);
     for (const guard of added) {
       if (!this.isGuardingActiveTab(guard) && this.activeTabs.has(tabId)) {
         this.applyEvent(time, guard, PageEvent.SHOW);

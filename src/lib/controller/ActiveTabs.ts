@@ -17,11 +17,12 @@ export class ActiveTabs {
   };
 
   /**
-   * Create an ActiveTabs instance with the browser's currently active tabs.
+   * Convert active tabs data to an ActiveTabs instance.
+   * 
+   * @param obj data representing active tabs
    */
-  static async fromBrowser(): Promise<ActiveTabs> {
-    const activeTabs = await browser.tabs.query({ active: true });
-    return new ActiveTabs(activeTabs.map(t => t.id!))
+  static fromObject(obj: number[]): ActiveTabs {
+    return new ActiveTabs(obj);
   }
 
   private checkRep() { }
@@ -57,4 +58,13 @@ export class ActiveTabs {
     }
     this.checkRep();
   }
+
+  /**
+   * Convert to an object representation.
+   * 
+   * @returns active tab data
+   */
+  toObject(): number[] {
+    return [...this.tabIds];
+  }  
 }

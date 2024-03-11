@@ -10,9 +10,15 @@ import { ExactHostnameMatcher } from "@bouncer/matcher";
 import { BasicPolicy } from "@bouncer/policy";
 import { AlwaysSchedule, MinuteSchedule, PeriodicSchedule } from "@bouncer/schedule";
 import { BasicPage } from "@bouncer/page";
+import { GuardPostings } from "@bouncer/controller/GuardPostings";
+import { ActiveTabs } from "@bouncer/controller/ActiveTabs";
+import { BrowserControllerMessenger } from "@bouncer/message";
+import { SyncedCache } from "@bouncer/cache";
 
-// TODO: rework this to be service worker-compatible. Currently there are bugs
-// caused by the controller getting reset when the service worker idles.
+// TODO: does this work if the browser is opened directly to a guarded page?
+// My guess is that the first signals don't get picked up.
+//
+// What about opening a group of pages from a set of bookmarks?
 
 const initialGuards = [
   new BasicPolicy(
@@ -34,12 +40,12 @@ const initialGuards = [
     ),
   ),
   new BasicPolicy(
-    "Block HackerNews after thirty seconds",
+    "Block HackerNews after 45 seconds",
     true,
     new ExactHostnameMatcher("news.ycombinator.com"),
     new ScheduledLimit(
       new AlwaysSchedule(),
-      new WindowCooldownLimit(30_000, 10_000)
+      new WindowCooldownLimit(45_000, 10_000)
     ),
   ),
   new BasicPolicy(
@@ -59,35 +65,72 @@ const initialGuards = [
 ].map((policy, i) => new BasicGuard(`${i}`, policy, new BasicPage()));
 
 
-type GuardContextObject = {
+type BouncerContextObject = {
+  activeTabs: ActiveTabs,
+  guardPostings: GuardPostings,
   guards: IGuard[],
 }
 
-type GuardContextData = {
+type BouncerContextData = {
+  activeTabs: ReturnType<ActiveTabs["toObject"]>,
+  guardPostings: ReturnType<GuardPostings["toObject"]>,
   guards: GuardData[],
 }
 
-const guardContext = new StoredContext(
+const serializeContext = (obj: BouncerContextObject): BouncerContextData => {
+  return  {
+    guards: obj.guards.map(serializeGuard),
+    activeTabs: obj.activeTabs.toObject(),
+    guardPostings: obj.guardPostings.toObject(),
+  };
+}
+
+const deserializeContext = (data: BouncerContextData): BouncerContextObject => {
+  const guards = data.guards.map(deserializeGuard);
+  const activeTabs = ActiveTabs.fromObject(data.activeTabs);
+  const guardPostings = GuardPostings.fromObject(data.guardPostings, guards);
+  return { guards, activeTabs, guardPostings };
+}
+
+
+const bouncerContext = new StoredContext(
   {
     local: new BrowserStorage(browser.storage.local),
     session: new BrowserStorage(browser.storage.session),
   },
   {
-    serialize: (obj: GuardContextObject) => ({ guards: obj.guards.map(serializeGuard) }),
-    deserialize: (data: GuardContextData) => ({ guards: data.guards.map(deserializeGuard) })
+    serialize: serializeContext,
+    deserialize: deserializeContext,
   },
   {
+    activeTabs: {
+      bucket: "session",
+      fallback: { initialize: async () => (await browser.tabs.query({ active: true })).map(t => t.id!) }, // TODO: this is where active tabs should be placed
+    },
+    guardPostings: {
+      bucket: "session",
+      fallback: { value: [] },
+    },
     guards: {
       bucket: "local",
-      fallback: initialGuards.map(serializeGuard),
+      fallback: { value: initialGuards.map(serializeGuard) },
     }
   }
 );
 
-const saveOnComplete = (func: (...args: any[]) => void) => {
+const controllerCache = new SyncedCache(async () => {
+  return bouncerContext.fetch()
+    .then(data => new Controller(data.guards, data.guardPostings, data.activeTabs, BrowserControllerMessenger))
+});
+
+const controller = () => {
+  return controllerCache.value();
+}
+
+const saveOnComplete = (func: (...args: any[]) => Promise<void>) => {
   return async (...args: any[]) => {
-    func(...args);
-    await guardContext.commit();
+    await func(...args)
+    await bouncerContext.commit();
     logTimestamp(new Date(), "data saved.");
   }
 }
@@ -102,8 +145,10 @@ browser.webNavigation.onHistoryStateUpdated.addListener(eventEmitter.handleHisto
 browser.runtime.onMessage.addListener(eventEmitter.handleMessage);
 
 
-guardContext.fetch().then(data => Controller.fromBrowser(data.guards)).then(controller => {
-  eventEmitter.onStatus.addListener(saveOnComplete(controller.handleStatus));
-  eventEmitter.onBrowse.addListener(saveOnComplete(controller.handleBrowse));
-});
+eventEmitter.onStatus.addListener(saveOnComplete(async (event) => {
+  controller().then(c => c.handleStatus(event));
+}));
+eventEmitter.onBrowse.addListener(saveOnComplete(async (event) => {
+  controller().then(c => c.handleBrowse(event));
+}));
 
