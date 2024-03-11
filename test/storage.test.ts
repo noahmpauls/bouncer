@@ -1,6 +1,7 @@
 // Note: nothing about this is useful or good, and trying to deal with all this
 // crap makes me hate web development with a burning passion.
 
+import browser from "webextension-polyfill";
 import { describe, expect, test, jest, afterEach } from "@jest/globals";
 import { BrowserStorage, type IStorage } from "@bouncer/storage";
 
@@ -19,7 +20,7 @@ describe("example test using mock of browser polyfill", () => {
   })
   
   test("get", async () => {
-    const storage: IStorage = new BrowserStorage();
+    const storage: IStorage = new BrowserStorage(browser.storage.local);
     expect(await storage.get("test", [])).toEqual([]);
   });
 });

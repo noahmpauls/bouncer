@@ -1,3 +1,4 @@
+import browser from "webextension-polyfill";
 import { BrowserStorage } from "@bouncer/storage";
 import { StoredBouncerData } from "@bouncer/data";
 import { deserializePolicy } from "@bouncer/policy";
@@ -5,7 +6,7 @@ import { type IGuard } from "@bouncer/guard";
 import { CachedBouncerContext, type IBouncerContext } from "@bouncer/context";
 import { PageActionType } from "@bouncer/page";
 
-const bouncerData: IBouncerContext = new CachedBouncerContext(new StoredBouncerData(new BrowserStorage()));
+const bouncerData: IBouncerContext = new CachedBouncerContext(new StoredBouncerData(new BrowserStorage(browser.storage.local)));
 
 const policiesEditor = document.getElementById("policies-editor")!;
 

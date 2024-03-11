@@ -1,3 +1,4 @@
+import browser from "webextension-polyfill";
 import { BrowserStorage } from "@bouncer/storage";
 import { StoredBouncerData } from "@bouncer/data";
 import { CachedBouncerContext, type IBouncerContext } from "@bouncer/context";
@@ -5,7 +6,7 @@ import { deserializePolicy } from "@bouncer/policy";
 import { BasicGuard } from "@bouncer/guard";
 import { BasicPage } from "@bouncer/page";
 
-const bouncerData: IBouncerContext = new CachedBouncerContext(new StoredBouncerData(new BrowserStorage()));
+const bouncerData: IBouncerContext = new CachedBouncerContext(new StoredBouncerData(new BrowserStorage(browser.storage.local)));
 
 const defaultPolicyValue = 
 `{

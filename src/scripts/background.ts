@@ -69,7 +69,8 @@ type GuardContextData = {
 
 const guardContext = new StoredContext(
   {
-    local: new BrowserStorage(),
+    local: new BrowserStorage(browser.storage.local),
+    session: new BrowserStorage(browser.storage.session),
   },
   {
     serialize: (obj: GuardContextObject) => ({ guards: obj.guards.map(serializeGuard) }),
