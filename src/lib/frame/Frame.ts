@@ -52,7 +52,7 @@ export class Frame {
 
   private requestStatus = (time: Date) => {
     this.messenger.send({
-      type: ClientMessageType.CHECK,
+      type: ClientMessageType.STATUS,
       time
     });
   }

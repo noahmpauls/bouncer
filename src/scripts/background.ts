@@ -1,7 +1,7 @@
 import browser from "webextension-polyfill";
 import { BrowserStorage } from "@bouncer/storage";
 import { StoredContext } from "@bouncer/data";
-import { BrowserEventTranslator } from "@bouncer/events";
+import { BrowserEvents } from "@bouncer/events";
 import { Controller } from "@bouncer/controller";
 import { type IGuard, type GuardData, serializeGuard, deserializeGuard, BasicGuard } from "@bouncer/guard";
 import { ScheduledLimit } from "@bouncer/enforcer";
@@ -62,7 +62,7 @@ const initialGuards = [
       new AlwaysBlock(),
     ),
   ),
-].map((policy, i) => new BasicGuard(`${i}`, policy, new BasicPage()));
+].map(policy => new BasicGuard(crypto.randomUUID(), policy, new BasicPage()));
 
 
 type BouncerContextObject = {
@@ -105,7 +105,7 @@ const bouncerContext = new StoredContext(
   {
     activeTabs: {
       bucket: "session",
-      fallback: { initialize: async () => (await browser.tabs.query({ active: true })).map(t => t.id!) }, // TODO: this is where active tabs should be placed
+      fallback: { initialize: async () => (await browser.tabs.query({ active: true })).map(t => t.id!) },
     },
     guardPostings: {
       bucket: "session",
@@ -137,7 +137,7 @@ const saveOnComplete = (func: (...args: any[]) => Promise<void>) => {
 
 const logTimestamp = (time: Date, message: string) => console.log(`${time.getTime()} ${ message }`)
 
-const eventEmitter = new BrowserEventTranslator();
+const eventEmitter = new BrowserEvents();
 browser.tabs.onActivated.addListener(eventEmitter.handleActivated);
 browser.tabs.onRemoved.addListener(eventEmitter.handleRemoved);
 browser.webNavigation.onCommitted.addListener(eventEmitter.handleCommitted);
@@ -145,8 +145,8 @@ browser.webNavigation.onHistoryStateUpdated.addListener(eventEmitter.handleHisto
 browser.runtime.onMessage.addListener(eventEmitter.handleMessage);
 
 
-eventEmitter.onStatus.addListener(saveOnComplete(async (event) => {
-  controller().then(c => c.handleStatus(event));
+eventEmitter.onMessage.addListener(saveOnComplete(async (event) => {
+  controller().then(c => c.handleMessage(event));
 }));
 eventEmitter.onBrowse.addListener(saveOnComplete(async (event) => {
   controller().then(c => c.handleBrowse(event));

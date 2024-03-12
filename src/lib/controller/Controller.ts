@@ -1,10 +1,11 @@
-import { BrowseEventType, type BouncerBrowseEvent, type BouncerStatusEvent, type BrowseNavigateEvent, type BrowseTabActivateEvent, type BrowseTabRemoveEvent } from "@bouncer/events";
-import type { IGuard } from "@bouncer/guard";
-import { FrameStatus, type IControllerMessenger, BrowserControllerMessenger } from "@bouncer/message";
-import { PageAccess, PageEvent } from "@bouncer/page";
+import { BrowseEventType, type BrowseEvent, type BrowseNavigateEvent, type BrowseTabActivateEvent, type BrowseTabRemoveEvent } from "@bouncer/events";
+import { BasicGuard, type IGuard } from "@bouncer/guard";
+import { FrameStatus, type IControllerMessenger, type FrameMessage, type StatusMessage, type FromFrame, ClientMessageType, type PolicyCreateMessage } from "@bouncer/message";
+import { BasicPage, PageAccess, PageEvent } from "@bouncer/page";
 import { Sets } from "@bouncer/utils";
 import { GuardPostings } from "./GuardPostings";
 import { ActiveTabs } from "./ActiveTabs";
+import { deserializePolicy } from "@bouncer/policy";
 
 
 export class Controller {
@@ -16,12 +17,22 @@ export class Controller {
     private readonly messenger: IControllerMessenger,
   ) { }
   
-  handleStatus = (event: BouncerStatusEvent) => {
-    const {
-      time,
-      tabId,
-      frameId
-    } = event;
+  handleMessage = (message: FrameMessage) => {
+    switch (message.type) {
+      case (ClientMessageType.STATUS):
+        this.handleStatus(message);
+        break;
+      case (ClientMessageType.POLICY_CREATE):
+        this.handlePolicyCreate(message);
+        break;
+      default:
+        console.error(`controller: unable to handle message type ${message.type}`);
+        break;
+    }
+  }
+
+  private handleStatus = async (message: FromFrame<StatusMessage>) => {
+    const { time, tabId, frameId } = message;
     const guards = this.guardPostings.frame(tabId, frameId);
     if (guards.length > 0) {
       this.enforce(time, guards);
@@ -29,17 +40,24 @@ export class Controller {
     this.messageFrame(time, tabId, frameId);
   }
 
-  handleBrowse = async (event: BouncerBrowseEvent) => {
-    const { time, browseEvent } = event;
-    switch (browseEvent.type) {
+  private handlePolicyCreate = async (message: FromFrame<PolicyCreateMessage>) => {
+    const { policy } = message;
+    const newGuard = new BasicGuard(crypto.randomUUID(), deserializePolicy(policy), new BasicPage());
+    this.guards.push(newGuard);
+    // TODO: add guard to existing frames? Then I would need to know URL of each frame...
+  }
+
+  handleBrowse = async (event: BrowseEvent) => {
+    const { time } = event;
+    switch (event.type) {
       case BrowseEventType.NAVIGATE:
-        await this.handleNavigate(time, browseEvent);
+        await this.handleNavigate(time, event);
         break;
       case BrowseEventType.TAB_ACTIVATE:
-        this.handleTabActivate(time, browseEvent);
+        this.handleTabActivate(time, event);
         break;
       case BrowseEventType.TAB_REMOVE:
-        this.handleTabRemove(time, browseEvent);
+        this.handleTabRemove(time, event);
         break;
     }
   }

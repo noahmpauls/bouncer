@@ -1,31 +1,69 @@
+import type { IPolicy, PolicyData } from "@bouncer/policy";
+
 export interface IClientMessenger {
   send(message: ClientMessage): void;
   addReceiver(listener: (message: ControllerMessage) => void): void;
   removeReceiver(listener: (message: ControllerMessage) => void): void;
 }
 
+export enum ClientMessageType {
+  STATUS = "status",
+  POLICIES_GET = "policies:get",
+  POLICY_CREATE = "policy:create",
+  POLICY_UPDATE = "policy:update",
+  POLICY_DELETE = "policy:delete",
+  PAGE_RESET = "page:reset",
+}
+
 /**
  * Represents a message sent from a page to Bouncer.
  */
-export type FrameMessage = {
-  /** Type of message to send. */
-  type: ClientMessageType.CHECK,
-  /** Time of message. */
-  time: Date,
+export type ClientMessage =
+    StatusMessage
+  | PoliciesGetMessage
+  | PolicyCreateMessage
+  | PolicyUpdateMessage
+  | PolicyDeleteMessage
+  | PageResetMessage
+  ;
+
+export type FromFrame<T> = T & {
+  tabId: number,
+  frameId: number
 }
 
-export type ClientMessage = {
-  type: ClientMessageType,
-  time: Date,
-}
+export type FrameMessage = FromFrame<ClientMessage>;
 
-/**
- * Represents the type of a page message.
- */
-export enum ClientMessageType {
-  /** Check the status of the current page. */
-  CHECK = "check",
-}
+export type StatusMessage = {
+  time: Date,
+  type: ClientMessageType.STATUS,
+};
+
+export type PoliciesGetMessage = {
+  type: ClientMessageType.POLICIES_GET,
+};
+
+export type PolicyCreateMessage = {
+  type: ClientMessageType.POLICY_CREATE,
+  policy: PolicyData,
+};
+
+export type PolicyUpdateMessage = {
+  type: ClientMessageType.POLICY_UPDATE,
+  id: string,
+  policy: PolicyData,
+};
+
+export type PolicyDeleteMessage = {
+  type: ClientMessageType.POLICY_UPDATE,
+  id: string,
+  policy: PolicyData,
+};
+
+export type PageResetMessage = {
+  type: ClientMessageType.PAGE_RESET,
+  id: string,
+};
 
 export interface IControllerMessenger {
   send(tabId: number, frameId: number, message: ControllerMessage): void;

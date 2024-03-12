@@ -1,6 +1,6 @@
 import type Browser from "webextension-polyfill";
-import { ClientMessageType, type ClientMessage } from "@bouncer/message";
-import { type BouncerStatusEvent, type BouncerBrowseEvent, BouncerEventType, BrowseEventType, type EventHook, type IEventEmitter, type EventListener } from "./types";
+import { type ClientMessage, type FrameMessage } from "@bouncer/message";
+import { BrowseEventType, type EventHook, type IEventEmitter, type EventListener, type BrowseEvent } from "./types";
 
 
 type PartialOnActivatedDetails = Pick<Browser.Tabs.OnActivatedActiveInfoType, "tabId" | "previousTabId">
@@ -14,87 +14,67 @@ type PartialMessageSender = Pick<Browser.Runtime.MessageSender, "frameId"> & {
 /**
  * Translates browser extension events into Bouncer-relevant events.
  */
-export class BrowserEventTranslator implements IEventEmitter {
+export class BrowserEvents implements IEventEmitter {
   private readonly listeners: {
-    status: EventListener<BouncerStatusEvent>[],
-    browse: EventListener<BouncerBrowseEvent>[],
+    message: EventListener<FrameMessage>[],
+    browse: EventListener<BrowseEvent>[],
   } = {
-    status: [],
+    message: [],
     browse: [],
   };
 
   constructor() { }
 
-  readonly onStatus = this.createHook(this.listeners.status);
+  readonly onMessage = this.createHook(this.listeners.message);
   readonly onBrowse = this.createHook(this.listeners.browse);
 
   handleCommitted = (details: PartialOnCommittedDetails) => {
     this.triggerListeners(this.listeners.browse, {
-      type: BouncerEventType.BROWSE,
       time: new Date(details.timeStamp),
-      browseEvent: {
-        type: BrowseEventType.NAVIGATE,
-        url: new URL(details.url),
-        tabId: details.tabId,
-        frameId: details.frameId,
-      }
+      type: BrowseEventType.NAVIGATE,
+      url: new URL(details.url),
+      tabId: details.tabId,
+      frameId: details.frameId,
     });
   }
 
   handleHistoryStateUpdated = (details: PartialOnHistoryStateUpdatedDetails) => {
     this.triggerListeners(this.listeners.browse, {
-      type: BouncerEventType.BROWSE,
       time: new Date(details.timeStamp),
-      browseEvent: {
-        type: BrowseEventType.NAVIGATE,
-        url: new URL(details.url),
-        tabId: details.tabId,
-        frameId: details.frameId,
-      }
+      type: BrowseEventType.NAVIGATE,
+      url: new URL(details.url),
+      tabId: details.tabId,
+      frameId: details.frameId,
     });
   }
 
   handleActivated = (details: PartialOnActivatedDetails) => {
     this.triggerListeners(this.listeners.browse, {
-      type: BouncerEventType.BROWSE,
       time: new Date(),
-      browseEvent: {
-        type: BrowseEventType.TAB_ACTIVATE,
-        tabId: details.tabId,
-        previousTabId: details.previousTabId,
-      }
+      type: BrowseEventType.TAB_ACTIVATE,
+      tabId: details.tabId,
+      previousTabId: details.previousTabId,
     });
   }
 
   handleRemoved = (tabId: number) => {
     this.triggerListeners(this.listeners.browse, {
-      type: BouncerEventType.BROWSE,
       time: new Date(),
-      browseEvent: {
-        type: BrowseEventType.TAB_REMOVE,
-        tabId: tabId,
-      }
+      type: BrowseEventType.TAB_REMOVE,
+      tabId: tabId,
     });
   }
 
   handleMessage = (message: ClientMessage, sender: PartialMessageSender) => {
     if (sender.tab?.id === undefined || sender.frameId === undefined) {
-      console.warn("event translator: received message with undefined fields");
+      console.warn(`message from tab ${sender.tab?.id}, frame ${sender.frameId}`);
       return;
     }
-    const event = {
-      time: message.time,
-      tabId: sender.tab?.id,
+    this.triggerListeners(this.listeners.message, {
+      ...message,
+      tabId: sender.tab.id,
       frameId: sender.frameId,
-    }
-
-    switch (message.type) {
-      case ClientMessageType.CHECK: 
-        this.triggerListeners(this.listeners.status, { type: BouncerEventType.STATUS, ...event });
-        break;
-      default:
-        console.warn(`translation error: unsupported message type ${message.type}`)
-    }
+    });
   }
 
   private createHook<E>(listeners: EventListener<E>[]): EventHook<E> {
