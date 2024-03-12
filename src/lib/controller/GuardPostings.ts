@@ -193,7 +193,7 @@ export class GuardPostings {
    * 
    * @param tabId 
    */
-  dismissAll(tabId: number): void {
+  dismissTab(tabId: number): void {
     const tabGuards = this.tab(tabId);
     for (const guard of tabGuards) {
       const guardTabs = this.guardsToTabs.get(guard);
@@ -206,6 +206,36 @@ export class GuardPostings {
     }
 
     this.tabsToGuards.delete(tabId);
+    this.checkRep();
+  }
+
+  /**
+   * Dismiss a guard from all its assignments.
+   * 
+   * @param guard
+   */
+  dismissGuard(guard: IGuard): void {
+    const tabs = this.guardsToTabs.get(guard);
+    if (tabs === undefined) {
+      return;
+    }
+
+    // TODO: if guardsToTabs stored frames as well, this would be a lot easier
+    // to do...
+    const dismissals: { tabId: number, frameId: number }[] = [];
+    for (const tabId of tabs) {
+      for (const [frameId, guards] of this.tabsToGuards.get(tabId) ?? []) {
+        if (guards.has(guard)) {
+          dismissals.push({ tabId, frameId})
+        }
+      }
+    }
+
+    for (const { tabId, frameId } of dismissals) {
+      this.dismiss(tabId, frameId, guard);
+    }
+
+    this.checkRep();
   }
 
   /**

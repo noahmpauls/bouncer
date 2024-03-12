@@ -1,6 +1,6 @@
 import { BrowseEventType, type BrowseEvent, type BrowseNavigateEvent, type BrowseTabActivateEvent, type BrowseTabRemoveEvent } from "@bouncer/events";
 import { BasicGuard, type IGuard } from "@bouncer/guard";
-import { FrameStatus, type IControllerMessenger, type FrameMessage, type ClientStatusMessage, type FromFrame, ClientMessageType, type ClientPolicyCreateMessage, type ClientPoliciesGetMessage, ControllerMessageType } from "@bouncer/message";
+import { FrameStatus, type IControllerMessenger, type FrameMessage, type ClientStatusMessage, type FromFrame, ClientMessageType, type ClientPolicyCreateMessage, type ClientPoliciesGetMessage, ControllerMessageType, type ClientPolicyDeleteMessage } from "@bouncer/message";
 import { BasicPage, PageAccess, PageEvent } from "@bouncer/page";
 import { Sets } from "@bouncer/utils";
 import { GuardPostings } from "./GuardPostings";
@@ -27,6 +27,9 @@ export class Controller {
         break;
       case (ClientMessageType.POLICY_CREATE):
         this.handlePolicyCreate(message);
+        break;
+      case (ClientMessageType.POLICY_DELETE):
+        this.handlePolicyDelete(message);
         break;
       default:
         console.error(`controller: unable to handle message type ${message.type}`);
@@ -57,6 +60,21 @@ export class Controller {
     const newGuard = new BasicGuard(crypto.randomUUID(), deserializePolicy(policy), new BasicPage());
     this.guards.push(newGuard);
     // TODO: add guard to existing frames? Then I would need to know URL of each frame...
+  }
+
+  private handlePolicyDelete = async (message: FromFrame<ClientPolicyDeleteMessage>) => {
+    const { tabId, frameId, id } = message;
+    const guardIndex = this.guards.findIndex(g => g.id === id);
+    if (guardIndex !== -1) {
+      const guard = this.guards[guardIndex];
+      this.guardPostings.dismissGuard(guard);
+      this.guards.splice(guardIndex, 1);
+    }
+    const policies = this.guards.map(g => ({ id: g.id, policy: serializePolicy(g.policy)}));
+    this.messenger.send(tabId, frameId, {
+      type: ControllerMessageType.POLICIES_GET,
+      policies,
+    });
   }
 
   handleBrowse = async (event: BrowseEvent) => {
@@ -134,7 +152,7 @@ export class Controller {
     this.enforce(time, guards);
 
     this.activeTabs.remove(tabId);
-    this.guardPostings.dismissAll(tabId);
+    this.guardPostings.dismissTab(tabId);
 
     for (const guard of guards) {
       if (!this.isGuardingActiveTab(guard)) {

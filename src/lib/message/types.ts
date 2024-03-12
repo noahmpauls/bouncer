@@ -55,9 +55,8 @@ export type ClientPolicyUpdateMessage = {
 };
 
 export type ClientPolicyDeleteMessage = {
-  type: ClientMessageType.POLICY_UPDATE,
+  type: ClientMessageType.POLICY_DELETE,
   id: string,
-  policy: PolicyData,
 };
 
 export type ClientPageResetMessage = {

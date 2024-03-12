@@ -47,7 +47,10 @@ function createPolicyEditor(id: string, policy: PolicyData) {
   deleteButton.innerText = "Delete";
   deleteButton.addEventListener("click", (e) => {
     e.preventDefault();
-    console.error("delete not handled");
+    messenger.send({
+      type: ClientMessageType.POLICY_DELETE,
+      id,
+    });
   });
 
   const resetButton = document.createElement("button");
