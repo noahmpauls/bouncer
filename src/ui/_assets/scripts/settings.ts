@@ -85,7 +85,10 @@ function createPolicyEditor(id: string, policy: PolicyData) {
   clearPageButton.innerText = "Clear Page";
   clearPageButton.addEventListener("click", e => {
     e.preventDefault();
-    console.error("reset page not handled");
+    messenger.send({
+      type: ClientMessageType.PAGE_RESET,
+      id,
+    });
   });
 
   const form = document.createElement("form");

@@ -1,7 +1,7 @@
 import { BrowseEventType, type BrowseEvent, type BrowseNavigateEvent, type BrowseTabActivateEvent, type BrowseTabRemoveEvent } from "@bouncer/events";
 import { BasicGuard, type IGuard } from "@bouncer/guard";
-import { FrameStatus, type IControllerMessenger, type FrameMessage, type ClientStatusMessage, type FromFrame, ClientMessageType, type ClientPolicyCreateMessage, type ClientPoliciesGetMessage, ControllerMessageType, type ClientPolicyDeleteMessage, type ClientPolicyUpdateMessage } from "@bouncer/message";
-import { BasicPage, PageAccess, PageEvent } from "@bouncer/page";
+import { FrameStatus, type IControllerMessenger, type FrameMessage, type ClientStatusMessage, type FromFrame, ClientMessageType, type ClientPolicyCreateMessage, type ClientPoliciesGetMessage, ControllerMessageType, type ClientPolicyDeleteMessage, type ClientPolicyUpdateMessage, type ClientPageResetMessage } from "@bouncer/message";
+import { BasicPage, PageAccess, PageActionType, PageEvent } from "@bouncer/page";
 import { Sets } from "@bouncer/utils";
 import { GuardPostings } from "./GuardPostings";
 import { ActiveTabs } from "./ActiveTabs";
@@ -34,8 +34,11 @@ export class Controller {
       case (ClientMessageType.POLICY_DELETE):
         this.handlePolicyDelete(message);
         break;
+      case (ClientMessageType.PAGE_RESET):
+        this.handlePageReset(message);
+        break;
       default:
-        console.error(`controller: unable to handle message type ${message.type}`);
+        console.error(`controller: unable to handle message type ${(message as any).type}`);
         break;
     }
   }
@@ -72,9 +75,8 @@ export class Controller {
 
   private handlePolicyUpdate = async (message: FromFrame<ClientPolicyUpdateMessage>) => {
     const { tabId, frameId, id, policy } = message;
-    const guardIndex = this.guards.findIndex(g => g.id === id);
-    if (guardIndex !== -1) {
-      const guard = this.guards[guardIndex];
+    const guard = this.guards.find(g => g.id === id);
+    if (guard !== undefined) {
       guard.policy = deserializePolicy(policy);
       this.messageGuard(new Date(), guard);
     }
@@ -98,6 +100,16 @@ export class Controller {
       type: ControllerMessageType.POLICIES_GET,
       policies,
     });
+  }
+
+  private handlePageReset = async (message: FromFrame<ClientPageResetMessage>) => {
+    const { id } = message;
+    const time = new Date();
+    const guard = this.guards.find(g => g.id === id);
+    if (guard !== undefined) {
+      guard.page.recordAction(PageActionType.RESET_METRICS, time);
+      guard.page.recordAction(PageActionType.UNBLOCK, time);
+    }
   }
 
   handleBrowse = async (event: BrowseEvent) => {
