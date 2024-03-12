@@ -61,7 +61,10 @@ export class StoredContext<TObject, TData extends Object, TBuckets extends Recor
         const data: any = {};
         for (const key of Object.keys(this.keyConfig)) {
           const { bucket, fallback } = this.keyConfig[key as keyof TData];
-          data[key] = await this.storage[bucket].get(key, fallback);
+          const fallbackValue = "value" in fallback
+            ? fallback.value
+            : await fallback.initialize();
+          data[key] = await this.storage[bucket].get(key, fallbackValue);
         }
         this.cache = this.transformer.deserialize(data);
       }
