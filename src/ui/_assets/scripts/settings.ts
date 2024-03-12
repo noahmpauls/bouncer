@@ -1,34 +1,39 @@
-import browser from "webextension-polyfill";
-import { BrowserStorage } from "@bouncer/storage";
-import { StoredBouncerData } from "@bouncer/data";
-import { deserializePolicy } from "@bouncer/policy";
-import { type IGuard } from "@bouncer/guard";
-import { CachedBouncerContext, type IBouncerContext } from "@bouncer/context";
-import { PageActionType } from "@bouncer/page";
+import { type PolicyData } from "@bouncer/policy";
+import { BrowserClientMessenger, ClientMessageType, ControllerMessageType } from "@bouncer/message";
 
-const bouncerData: IBouncerContext = new CachedBouncerContext(new StoredBouncerData(new BrowserStorage(browser.storage.local)));
+const messenger = BrowserClientMessenger;
 
 const policiesEditor = document.getElementById("policies-editor")!;
 
-function refreshPolicyDisplay() {
-  bouncerData.guards()
-    .then(guards => {
-      policiesEditor.replaceChildren();
-      if (guards.length === 0) {
-        policiesEditor.innerHTML = "<p><i>No policies to display.</i></p>";
-      }
-      for (const guard of guards) {
-        policiesEditor?.appendChild(createPolicyEditor(guard));
-      }
-    });
+messenger.addReceiver(message => {
+  switch(message.type) {
+    case ControllerMessageType.POLICIES_GET:
+      refreshPolicyDisplay(message.policies);
+      break;
+    default:
+      break;
+  }
+})
+
+function refreshPolicyDisplay(policies: { id: string, policy: PolicyData }[]) {
+  policiesEditor.replaceChildren();
+  if (policies.length === 0) {
+    policiesEditor.innerHTML = "<p><i>No policies to display.</i></p>";
+  }
+  for (const { id, policy } of policies) {
+    policiesEditor?.appendChild(createPolicyEditor(id, policy));
+  }
 }
 
-function createPolicyEditor(guard: IGuard) {
+function createPolicyEditor(id: string, policy: PolicyData) {
   const title = document.createElement("h3");
-  title.innerText = guard.policy.name;
+  title.innerText = policy.data.name;
+  const subtitle = document.createElement("p");
+  subtitle.innerText = id;
+  subtitle.style.fontSize = '0.8rem';
 
   const textarea = document.createElement("textarea");
-  const policyString = JSON.stringify(guard.policy.toObject(), null, 2);
+  const policyString = JSON.stringify(policy, null, 2);
   textarea.value = policyString;
   const lines = policyString.split("\n").length;
   textarea.rows = lines;
@@ -40,21 +45,16 @@ function createPolicyEditor(guard: IGuard) {
 
   const deleteButton = document.createElement("button");
   deleteButton.innerText = "Delete";
-  deleteButton.addEventListener("click", () => {
-    bouncerData.guards()
-      .then(guards => {
-        const i = guards.indexOf(guard);
-        guards.splice(i, 1);
-        bouncerData.persist();
-      }).then(() => {
-        refreshPolicyDisplay();
-      });
+  deleteButton.addEventListener("click", (e) => {
+    e.preventDefault();
+    console.error("delete not handled");
   });
 
   const resetButton = document.createElement("button");
   resetButton.innerText = "Reset";
-  resetButton.addEventListener("click", () => {
-    const policyString = JSON.stringify(guard.policy.toObject(), null, 2);
+  resetButton.addEventListener("click", (e) => {
+    e.preventDefault();
+    const policyString = JSON.stringify(policy, null, 2);
     textarea.value = policyString;
     const lines = policyString.split("\n").length;
     textarea.rows = Math.max(10, lines);
@@ -65,34 +65,23 @@ function createPolicyEditor(guard: IGuard) {
   submitButton.innerText = "Update";
   submitButton.addEventListener("click", e => {
     e.preventDefault();
-    try {
-      const updatedPolicy = deserializePolicy(JSON.parse(textarea.value) as any);
-      guard.policy = updatedPolicy;
-      bouncerData.persist().then(() => {
-        refreshPolicyDisplay();
-      });
-    } catch {
-      console.error("could not deserialize input");
-    }
+    console.error("update not handled");
   });
 
   const clearPageButton = document.createElement("button");
   clearPageButton.innerText = "Clear Page";
   clearPageButton.addEventListener("click", e => {
-    const time = new Date();
-    guard.page.recordAction(PageActionType.RESET_METRICS, time);
-    guard.page.recordAction(PageActionType.UNBLOCK, time);
-    bouncerData.persist().then(() => {
-      refreshPolicyDisplay();
-    });
+    e.preventDefault();
+    console.error("reset page not handled");
   });
 
   const form = document.createElement("form");
-  form.id = `policy-editor-${guard.id}`;
-  form.name = `policyEditor${guard.id}`;
+  form.id = `policy-editor-${id}`;
+  form.name = `policyEditor${id}`;
   form.classList.add("policy-editor");
 
   form.appendChild(title);
+  form.appendChild(subtitle);
   form.appendChild(textarea);
   form.appendChild(deleteButton);
   form.appendChild(resetButton);
@@ -102,4 +91,4 @@ function createPolicyEditor(guard: IGuard) {
   return form;
 }
 
-refreshPolicyDisplay();
+messenger.send({ type: ClientMessageType.POLICIES_GET });

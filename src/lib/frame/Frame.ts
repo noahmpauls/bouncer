@@ -1,4 +1,4 @@
-import { ClientMessageType, type ControllerMessage, FrameStatus, type IClientMessenger, BrowserClientMessenger } from "@bouncer/message";
+import { ClientMessageType, type ControllerMessage, FrameStatus, type IClientMessenger, BrowserClientMessenger, ControllerMessageType } from "@bouncer/message";
 import { BrowserBlocker } from "./BrowerBlocker";
 import type { IBlocker } from "./types";
 
@@ -26,6 +26,9 @@ export class Frame {
   }
 
   handleMessage = (message: ControllerMessage) => {
+    if (message.type !== ControllerMessageType.STATUS) {
+      return;
+    }
     const time = new Date();
     console.log(`${time.getTime()} frame: received ${message?.status}`);
     switch (message.status) {

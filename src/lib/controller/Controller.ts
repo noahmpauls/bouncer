@@ -1,11 +1,11 @@
 import { BrowseEventType, type BrowseEvent, type BrowseNavigateEvent, type BrowseTabActivateEvent, type BrowseTabRemoveEvent } from "@bouncer/events";
 import { BasicGuard, type IGuard } from "@bouncer/guard";
-import { FrameStatus, type IControllerMessenger, type FrameMessage, type StatusMessage, type FromFrame, ClientMessageType, type PolicyCreateMessage } from "@bouncer/message";
+import { FrameStatus, type IControllerMessenger, type FrameMessage, type ClientStatusMessage, type FromFrame, ClientMessageType, type ClientPolicyCreateMessage, type ClientPoliciesGetMessage, ControllerMessageType } from "@bouncer/message";
 import { BasicPage, PageAccess, PageEvent } from "@bouncer/page";
 import { Sets } from "@bouncer/utils";
 import { GuardPostings } from "./GuardPostings";
 import { ActiveTabs } from "./ActiveTabs";
-import { deserializePolicy } from "@bouncer/policy";
+import { deserializePolicy, serializePolicy } from "@bouncer/policy";
 
 
 export class Controller {
@@ -22,6 +22,9 @@ export class Controller {
       case (ClientMessageType.STATUS):
         this.handleStatus(message);
         break;
+      case (ClientMessageType.POLICIES_GET):
+        this.handlePoliciesGet(message);
+        break;
       case (ClientMessageType.POLICY_CREATE):
         this.handlePolicyCreate(message);
         break;
@@ -31,7 +34,7 @@ export class Controller {
     }
   }
 
-  private handleStatus = async (message: FromFrame<StatusMessage>) => {
+  private handleStatus = async (message: FromFrame<ClientStatusMessage>) => {
     const { time, tabId, frameId } = message;
     const guards = this.guardPostings.frame(tabId, frameId);
     if (guards.length > 0) {
@@ -40,7 +43,16 @@ export class Controller {
     this.messageFrame(time, tabId, frameId);
   }
 
-  private handlePolicyCreate = async (message: FromFrame<PolicyCreateMessage>) => {
+  private handlePoliciesGet = async(message: FromFrame<ClientPoliciesGetMessage>) => {
+    const { tabId, frameId } = message;
+    const policies = this.guards.map(g => ({ id: g.id, policy: serializePolicy(g.policy)}));
+    this.messenger.send(tabId, frameId, {
+      type: ControllerMessageType.POLICIES_GET,
+      policies,
+    });
+  }
+
+  private handlePolicyCreate = async (message: FromFrame<ClientPolicyCreateMessage>) => {
     const { policy } = message;
     const newGuard = new BasicGuard(crypto.randomUUID(), deserializePolicy(policy), new BasicPage());
     this.guards.push(newGuard);
@@ -199,18 +211,21 @@ export class Controller {
     switch (status) {
       case FrameStatus.UNTRACKED:
         this.messenger.send(tabId, frameId, {
+          type: ControllerMessageType.STATUS,
           status: FrameStatus.UNTRACKED
         });
         break;
       case FrameStatus.ALLOWED:
         const checkTimes = this.getCheckTimes(time, guards);
         this.messenger.send(tabId, frameId, {
+          type: ControllerMessageType.STATUS,
           status: FrameStatus.ALLOWED,
           ...checkTimes
         });
         break;
       case FrameStatus.BLOCKED:
         this.messenger.send(tabId, frameId, {
+          type: ControllerMessageType.STATUS,
           status: FrameStatus.BLOCKED,
         })
         break;
