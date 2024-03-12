@@ -133,6 +133,28 @@ export class GuardPostings {
   }
 
   /**
+   * Get the assignments for the given guard.
+   *
+   * @param guard
+   */
+  assignments(guard: IGuard): { tabId: number, frameId: number }[] {
+    const tabs = this.guardsToTabs.get(guard) ?? new Set();
+
+    // TODO: if guardsToTabs stored frames as well, this would be a lot easier
+    // to do...
+    const assignments: { tabId: number, frameId: number }[] = [];
+    for (const tabId of tabs) {
+      for (const [frameId, guards] of this.tabsToGuards.get(tabId) ?? []) {
+        if (guards.has(guard)) {
+          assignments.push({ tabId, frameId})
+        }
+      }
+    }
+
+    return assignments;
+  }
+
+  /**
    * Assign a guard to a frame.
    * 
    * @param tabId 
@@ -215,23 +237,9 @@ export class GuardPostings {
    * @param guard
    */
   dismissGuard(guard: IGuard): void {
-    const tabs = this.guardsToTabs.get(guard);
-    if (tabs === undefined) {
-      return;
-    }
+    const assignments = this.assignments(guard);
 
-    // TODO: if guardsToTabs stored frames as well, this would be a lot easier
-    // to do...
-    const dismissals: { tabId: number, frameId: number }[] = [];
-    for (const tabId of tabs) {
-      for (const [frameId, guards] of this.tabsToGuards.get(tabId) ?? []) {
-        if (guards.has(guard)) {
-          dismissals.push({ tabId, frameId})
-        }
-      }
-    }
-
-    for (const { tabId, frameId } of dismissals) {
+    for (const { tabId, frameId } of assignments) {
       this.dismiss(tabId, frameId, guard);
     }
 

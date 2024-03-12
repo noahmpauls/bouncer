@@ -1,6 +1,6 @@
 import { BrowseEventType, type BrowseEvent, type BrowseNavigateEvent, type BrowseTabActivateEvent, type BrowseTabRemoveEvent } from "@bouncer/events";
 import { BasicGuard, type IGuard } from "@bouncer/guard";
-import { FrameStatus, type IControllerMessenger, type FrameMessage, type ClientStatusMessage, type FromFrame, ClientMessageType, type ClientPolicyCreateMessage, type ClientPoliciesGetMessage, ControllerMessageType, type ClientPolicyDeleteMessage } from "@bouncer/message";
+import { FrameStatus, type IControllerMessenger, type FrameMessage, type ClientStatusMessage, type FromFrame, ClientMessageType, type ClientPolicyCreateMessage, type ClientPoliciesGetMessage, ControllerMessageType, type ClientPolicyDeleteMessage, type ClientPolicyUpdateMessage } from "@bouncer/message";
 import { BasicPage, PageAccess, PageEvent } from "@bouncer/page";
 import { Sets } from "@bouncer/utils";
 import { GuardPostings } from "./GuardPostings";
@@ -27,6 +27,9 @@ export class Controller {
         break;
       case (ClientMessageType.POLICY_CREATE):
         this.handlePolicyCreate(message);
+        break;
+      case (ClientMessageType.POLICY_UPDATE):
+        this.handlePolicyUpdate(message);
         break;
       case (ClientMessageType.POLICY_DELETE):
         this.handlePolicyDelete(message);
@@ -56,10 +59,30 @@ export class Controller {
   }
 
   private handlePolicyCreate = async (message: FromFrame<ClientPolicyCreateMessage>) => {
-    const { policy } = message;
+    const { tabId, frameId, policy } = message;
     const newGuard = new BasicGuard(crypto.randomUUID(), deserializePolicy(policy), new BasicPage());
     this.guards.push(newGuard);
     // TODO: add guard to existing frames? Then I would need to know URL of each frame...
+    const policies = this.guards.map(g => ({ id: g.id, policy: serializePolicy(g.policy)}));
+    this.messenger.send(tabId, frameId, {
+      type: ControllerMessageType.POLICIES_GET,
+      policies,
+    });
+  }
+
+  private handlePolicyUpdate = async (message: FromFrame<ClientPolicyUpdateMessage>) => {
+    const { tabId, frameId, id, policy } = message;
+    const guardIndex = this.guards.findIndex(g => g.id === id);
+    if (guardIndex !== -1) {
+      const guard = this.guards[guardIndex];
+      guard.policy = deserializePolicy(policy);
+      this.messageGuard(new Date(), guard);
+    }
+    const policies = this.guards.map(g => ({ id: g.id, policy: serializePolicy(g.policy)}));
+    this.messenger.send(tabId, frameId, {
+      type: ControllerMessageType.POLICIES_GET,
+      policies,
+    });
   }
 
   private handlePolicyDelete = async (message: FromFrame<ClientPolicyDeleteMessage>) => {
@@ -183,6 +206,7 @@ export class Controller {
       return FrameStatus.UNTRACKED;
     }
     const blocked = guards
+      .filter(g => g.policy.active)
       .map(g => g.page.access() === PageAccess.BLOCKED)
       .reduce((a, b) => a || b, false);
 
@@ -198,6 +222,7 @@ export class Controller {
 
   private getViewtimeCheck(time: Date, guards: IGuard[]) {
     let checks = guards
+      .filter(g => g.policy.active)
       .map(g => g.policy.nextViewEvent(time, g.page))
       .filter(d => d !== null)
       .map(d => d!.getTime());
@@ -208,6 +233,7 @@ export class Controller {
 
   private getTimelineCheck(time: Date, guards: IGuard[]) {
     let checks = guards
+      .filter(g => g.policy.active)
       .map(g => g.policy.nextTimelineEvent(time, g.page))
       .filter(d => d !== null)
       .map(d => d!.getTime());
@@ -219,6 +245,13 @@ export class Controller {
   private async messageTab(time: Date, tabId: number) {
     const frames = this.guardPostings.guardedFrames(tabId);
     for (const frameId of frames) {
+      this.messageFrame(time, tabId, frameId);
+    }
+  }
+
+  private async messageGuard(time: Date, guard: IGuard) {
+    const assignments = this.guardPostings.assignments(guard);
+    for (const { tabId, frameId } of assignments) {
       this.messageFrame(time, tabId, frameId);
     }
   }

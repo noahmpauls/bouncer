@@ -1,4 +1,4 @@
-import { type PolicyData } from "@bouncer/policy";
+import { deserializePolicy, serializePolicy, type PolicyData } from "@bouncer/policy";
 import { BrowserClientMessenger, ClientMessageType, ControllerMessageType } from "@bouncer/message";
 
 const messenger = BrowserClientMessenger;
@@ -68,7 +68,17 @@ function createPolicyEditor(id: string, policy: PolicyData) {
   submitButton.innerText = "Update";
   submitButton.addEventListener("click", e => {
     e.preventDefault();
-    console.error("update not handled");
+    try {
+      const updatedPolicy = serializePolicy(deserializePolicy(JSON.parse(textarea.value)));
+      messenger.send({
+        type: ClientMessageType.POLICY_UPDATE,
+        id,
+        policy: updatedPolicy,
+      });
+
+    } catch {
+      console.error(`error: could not parse policy`);
+    }
   });
 
   const clearPageButton = document.createElement("button");
