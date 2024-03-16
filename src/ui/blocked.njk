@@ -1,0 +1,13 @@
+{% extends "layouts/base.njk" %}
+
+{% block head %}
+{{ super() }}
+<title>Blocked!</title>
+<link rel="stylesheet" href="/assets/styles/blocked.css">
+<script src="/assets/scripts/blocked.js" defer></script>
+{% endblock %}
+
+{% block body %}
+<h1>Blocked!</h1>
+<p>You've reached your time limit for this site.</p>
+{% endblock %}

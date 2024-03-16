@@ -1,0 +1,27 @@
+:root {
+  --theme-primary: hsl(80deg, 60%, 45%);
+  --theme-background: hsl(80deg, 50%, 97%);
+}
+
+body {
+  background-color: var(--theme-background);
+}
+
+header {
+  padding-block: 0.5em;
+  padding-inline: 1rem;
+  color: var(--theme-background);
+  background-color: var(--theme-primary);
+}
+
+main {
+  padding: 3rem;
+}
+
+pre {
+  background-color: white;
+}
+
+form.policy-editor textarea {
+  display: block;
+}

@@ -1,5 +1,10 @@
 {% extends "layouts/base.njk" %}
 
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="/assets/styles/main.css">
+{% endblock %}
+
 {% block body %}
 {% include "partials/header.njk" %}
 <main>
