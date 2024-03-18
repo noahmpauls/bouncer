@@ -224,7 +224,7 @@ export class PeriodicSchedule implements ISchedule {
     return t !== null;
   }
   
-  nextStart(time: Date): Date | null {
+  nextStart(time: Date): Date | undefined {
     const starts = this.intervals
       .map(i => this.nextIntervalStart(time, i))
       .sort();

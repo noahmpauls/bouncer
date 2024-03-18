@@ -99,7 +99,7 @@ export class MinuteSchedule implements ISchedule {
       : null;
   }
   
-  nextStart(time: Date): Date | null {
+  nextStart(time: Date): Date | undefined {
     let next = new Date(time.getTime());
     next.setSeconds(this.startSecond);
     next.setMilliseconds(0);

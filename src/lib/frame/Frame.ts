@@ -31,19 +31,20 @@ export class Frame {
     }
     const time = new Date();
     console.log(`${time.getTime()} frame: received ${message?.status}`);
-    console.log(message);
     switch (message.status) {
       case FrameStatus.BLOCKED:
         this.blocker.block();
         break;
       case FrameStatus.ALLOWED:
         if (message.viewtimeCheck !== undefined) {
-          console.log(`viewtime check in ${(message.viewtimeCheck.getTime() - Date.now()) / 1000} seconds`)
-          this.resetViewtimeChecker(message.viewtimeCheck);
+          const viewtimeCheck = new Date(message.viewtimeCheck);
+          console.log(`viewtime check in ${(viewtimeCheck.getTime() - Date.now()) / 1000} seconds`)
+          this.resetViewtimeChecker(viewtimeCheck);
         }
         if (message.windowCheck !== undefined) {
-          console.log(`window check in ${(message.windowCheck.getTime() - Date.now()) / 1000} seconds`)
-          this.resetWindowChecker(message.windowCheck);
+          const windowCheck = new Date(message.windowCheck);
+          console.log(`window check in ${(windowCheck.getTime() - Date.now()) / 1000} seconds`)
+          this.resetWindowChecker(windowCheck);
         }
         break;
       case FrameStatus.UNTRACKED:
@@ -57,7 +58,7 @@ export class Frame {
   private requestStatus = (time: Date) => {
     this.messenger.send({
       type: ClientMessageType.STATUS,
-      time
+      time: time.toISOString(),
     });
   }
   

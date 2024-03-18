@@ -45,7 +45,7 @@ export class ScheduledLimit implements IEnforcer {
     // apply schedule actions
     // TODO: shouldn't use last page update time to define this range...
     const msSinceUpdate = page.msSinceUpdate(time);
-    if (msSinceUpdate !== null) {
+    if (msSinceUpdate !== undefined) {
       const lastUpdateTime = new Date(time.getTime() - msSinceUpdate);
       const scheduleActions = this.schedule.actions(lastUpdateTime, time, page).sort((a1, a2) => a1.time.getTime() - a2.time.getTime());
       for (const action of scheduleActions) {
@@ -62,35 +62,35 @@ export class ScheduledLimit implements IEnforcer {
     }
   }
   
-  nextViewEvent(time: Date, page: IPage): Date | null {
+  nextViewEvent(time: Date, page: IPage): Date | undefined {
     const scheduleActive = this.schedule.contains(time);
     if (scheduleActive && page.isShowing()) {
       const remainingViewtime = this.limit.remainingViewtime(time, page);
       return remainingViewtime === Infinity
-        ? null
+        ? undefined
         : new Date(time.getTime() + remainingViewtime);
     } else {
-      return null
+      return undefined
     }
   }
   
-  nextTimelineEvent(time: Date, page: IPage): Date | null {
+  nextTimelineEvent(time: Date, page: IPage): Date | undefined {
     const scheduleActive = this.schedule.contains(time);
     const nextStart = this.schedule.nextStart(time);
     if (scheduleActive) {
       const remainingWindow = this.limit.remainingWindow(time, page);
       const nextWindowEvent = remainingWindow === Infinity
-        ? null
+        ? undefined
         : new Date(time.getTime() + remainingWindow);
       // this makes me cringe...
-      if (nextStart !== null && nextWindowEvent !== null) {
+      if (nextStart !== undefined && nextWindowEvent !== undefined) {
         return new Date(Math.min(nextStart.getTime(), nextWindowEvent.getTime()));
-      } else if (nextStart !== null) {
+      } else if (nextStart !== undefined) {
         return nextStart
-      } else if (nextWindowEvent !== null) {
+      } else if (nextWindowEvent !== undefined) {
         return nextWindowEvent
       }
-      return null;
+      return undefined;
     } else {
       return nextStart;
     }

@@ -44,7 +44,8 @@ export class Controller {
   }
 
   private handleStatus = async (message: FromFrame<ClientStatusMessage>) => {
-    const { time, tabId, frameId } = message;
+    const { tabId, frameId } = message;
+    const time = new Date(message.time);
     const guards = this.guardPostings.frame(tabId, frameId);
     if (guards.length > 0) {
       this.enforce(time, guards);
@@ -236,7 +237,7 @@ export class Controller {
     let checks = guards
       .filter(g => g.policy.active)
       .map(g => g.policy.nextViewEvent(time, g.page))
-      .filter(d => d !== null)
+      .filter(d => d !== undefined)
       .map(d => d!.getTime());
     return checks.length > 0
       ? new Date(Math.min(...checks))
@@ -247,7 +248,7 @@ export class Controller {
     let checks = guards
       .filter(g => g.policy.active)
       .map(g => g.policy.nextTimelineEvent(time, g.page))
-      .filter(d => d !== null)
+      .filter(d => d !== undefined)
       .map(d => d!.getTime());
     return checks.length > 0
       ? new Date(Math.min(...checks))
@@ -283,7 +284,8 @@ export class Controller {
         this.messenger.send(tabId, frameId, {
           type: ControllerMessageType.STATUS,
           status: FrameStatus.ALLOWED,
-          ...checkTimes
+          windowCheck: checkTimes.windowCheck?.toISOString(),
+          viewtimeCheck: checkTimes.viewtimeCheck?.toISOString(),
         });
         break;
       case FrameStatus.BLOCKED:

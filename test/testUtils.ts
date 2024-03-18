@@ -33,20 +33,20 @@ export function pageWithMutations(startTime: Date, mutations: PageMutation[]): I
 export function pageMetrics(metrics: {
   access?: PageAccess,
   isShowing?: boolean,
-  msSinceInitialVisit?: number | null,
+  msSinceInitialVisit?: number | undefined,
   msViewtime?: number,
-  msSinceBlock?: number | null,
-  msSinceHide?: number | null,
-  msSinceUpdate?: number | null,
+  msSinceBlock?: number | undefined,
+  msSinceHide?: number | undefined,
+  msSinceUpdate?: number | undefined,
 }): IPageMetrics {
   return {
     access: () => metrics.access ?? PageAccess.ALLOWED,
     isShowing: () => metrics.isShowing ?? false,
-    msSinceInitialVisit: (t) => metrics.msSinceInitialVisit ?? null,
+    msSinceInitialVisit: (t) => metrics.msSinceInitialVisit,
     msViewtime: (t) => metrics.msViewtime ?? 0,
-    msSinceBlock: (t) => metrics.msSinceBlock ?? null,
-    msSinceHide: (t) => metrics.msSinceHide ?? null,
-    msSinceUpdate: (t) => metrics.msSinceUpdate ?? null,
+    msSinceBlock: (t) => metrics.msSinceBlock,
+    msSinceHide: (t) => metrics.msSinceHide,
+    msSinceUpdate: (t) => metrics.msSinceUpdate,
   }
 }
 

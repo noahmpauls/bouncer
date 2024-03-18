@@ -26,7 +26,7 @@ describe("ViewtimeCooldownLimit action", () => {
    *          [ ] > cooldown
    *    msSinceHide:
    *      value:
-   *        [ ] null
+   *        [ ] undefined
    *        [ ] number
    *      compared to limit:
    *        [ ] < viewtime
@@ -45,9 +45,9 @@ describe("ViewtimeCooldownLimit action", () => {
       access: PageAccess.ALLOWED,
       isShowing: false,
       msViewtime: 0,
-      msSinceInitialVisit: null,
-      msSinceBlock: null,
-      msSinceHide: null,
+      msSinceInitialVisit: undefined,
+      msSinceBlock: undefined,
+      msSinceHide: undefined,
     });
 
     const actions = limit.actions(new Date(), page);
@@ -66,8 +66,8 @@ describe("ViewtimeCooldownLimit action", () => {
       isShowing: true,
       msViewtime: 500,
       msSinceInitialVisit: 1500,
-      msSinceBlock: null,
-      msSinceHide: null,
+      msSinceBlock: undefined,
+      msSinceHide: undefined,
     });
 
     const actions = limit.actions(new Date(), page);
@@ -89,7 +89,7 @@ describe("ViewtimeCooldownLimit action", () => {
       isShowing: false,
       msViewtime: 1000,
       msSinceInitialVisit: 30_000,
-      msSinceBlock: null,
+      msSinceBlock: undefined,
       msSinceHide,
     });
 
@@ -114,9 +114,9 @@ describe("ViewtimeCooldownLimit action", () => {
       access: PageAccess.ALLOWED,
       isShowing: true,
       msViewtime: viewtime + msTimeOver,
-      msSinceInitialVisit: null,
-      msSinceBlock: null,
-      msSinceHide: null,
+      msSinceInitialVisit: undefined,
+      msSinceBlock: undefined,
+      msSinceHide: undefined,
     });
 
     const msCheck = viewtime + msTimeOver;
@@ -142,8 +142,8 @@ describe("ViewtimeCooldownLimit action", () => {
       access: PageAccess.ALLOWED,
       isShowing: false,
       msViewtime: msViewtime,
-      msSinceInitialVisit: null,
-      msSinceBlock: null,
+      msSinceInitialVisit: undefined,
+      msSinceBlock: undefined,
       msSinceHide: cooldown,
     });
 
@@ -170,8 +170,8 @@ describe("ViewtimeCooldownLimit action", () => {
       access: PageAccess.ALLOWED,
       isShowing: false,
       msViewtime: viewtime + msTimeOver,
-      msSinceInitialVisit: null,
-      msSinceBlock: null,
+      msSinceInitialVisit: undefined,
+      msSinceBlock: undefined,
       msSinceHide: cooldown + msOverCooldown,
     });
 
@@ -198,9 +198,9 @@ describe("ViewtimeCooldownLimit action", () => {
       access: PageAccess.ALLOWED,
       isShowing: true,
       msViewtime: msViewtime,
-      msSinceInitialVisit: null,
-      msSinceBlock: null,
-      msSinceHide: null,
+      msSinceInitialVisit: undefined,
+      msSinceBlock: undefined,
+      msSinceHide: undefined,
     });
 
     const msCheck = msViewtime;
@@ -225,8 +225,8 @@ describe("ViewtimeCooldownLimit action", () => {
       msSinceBlock: cooldown - 1,
       isShowing: false,
       msViewtime: 0,
-      msSinceInitialVisit: null,
-      msSinceHide: null,
+      msSinceInitialVisit: undefined,
+      msSinceHide: undefined,
     });
     
     const msCheck = viewtime + cooldown - 1;
@@ -248,8 +248,8 @@ describe("ViewtimeCooldownLimit action", () => {
       msSinceBlock: cooldown,
       isShowing: false,
       msViewtime: 0,
-      msSinceInitialVisit: null,
-      msSinceHide: null,
+      msSinceInitialVisit: undefined,
+      msSinceHide: undefined,
     });
     
     const msCheck = viewtime + cooldown;
@@ -274,8 +274,8 @@ describe("ViewtimeCooldownLimit action", () => {
       msSinceBlock: cooldown + 1,
       isShowing: false,
       msViewtime: 0,
-      msSinceInitialVisit: null,
-      msSinceHide: null,
+      msSinceInitialVisit: undefined,
+      msSinceHide: undefined,
     });
     
     const msCheck = viewtime + cooldown;
@@ -298,7 +298,7 @@ describe("remainingViewtime", () => {
     const pageViewtime = 50;
     const page = pageMetrics({
       access: PageAccess.ALLOWED,
-      msSinceBlock: null,
+      msSinceBlock: undefined,
       isShowing: false,
       msViewtime: pageViewtime,
       msSinceInitialVisit: 100,

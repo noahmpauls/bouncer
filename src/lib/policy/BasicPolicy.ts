@@ -51,11 +51,11 @@ export class BasicPolicy implements IPolicy {
     this.enforcer.applyTo(time, page);
   }
 
-  nextTimelineEvent(time: Date, page: IPage): Date | null {
+  nextTimelineEvent(time: Date, page: IPage): Date | undefined {
     return this.enforcer.nextTimelineEvent(time, page)
   }
 
-  nextViewEvent(time: Date, page: IPage): Date | null {
+  nextViewEvent(time: Date, page: IPage): Date | undefined {
     return this.enforcer.nextViewEvent(time, page);
   }
 

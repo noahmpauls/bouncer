@@ -46,7 +46,7 @@ export class ViewtimeCooldownLimit implements ILimit {
 
   actions(time: Date, page: IPageMetrics): PageAction[] {
     const msSinceBlock = page.msSinceBlock(time);
-    if (msSinceBlock !== null && msSinceBlock >= this.msCooldown) {
+    if (msSinceBlock !== undefined && msSinceBlock >= this.msCooldown) {
       return [{ type: PageActionType.UNBLOCK, time }];
     }
     const viewtime = page.msViewtime(time);
@@ -55,7 +55,7 @@ export class ViewtimeCooldownLimit implements ILimit {
         return [{ type: PageActionType.BLOCK, time }];
       } else {
         // treat time of last hide as the time when a block should be applied
-        // at this point, the last hide time should never be null...
+        // at this point, the last hide time should never be undefined...
         const hideTime = new Date(time.getTime() - (page.msSinceHide(time) ?? 0))
         if (time.getTime() - hideTime.getTime() < this.msCooldown) {
           return [{ type: PageActionType.BLOCK, time: hideTime }];
@@ -73,7 +73,7 @@ export class ViewtimeCooldownLimit implements ILimit {
 
   
   remainingViewtime(time: Date, page: IPageMetrics): number {
-    if (page.msSinceBlock(time) === null) {
+    if (page.msSinceBlock(time) === undefined) {
       const remaining = Math.max(0, this.msViewtime - page.msViewtime(time));
       return remaining;
     } else {

@@ -35,7 +35,7 @@ export type FromFrame<T> = T & {
 export type FrameMessage = FromFrame<ClientMessage>;
 
 export type ClientStatusMessage = {
-  time: Date,
+  time: string,
   type: ClientMessageType.STATUS,
 };
 
@@ -84,9 +84,9 @@ export type ControllerStatusMessage = {
   /** The access status of the page. */
   status: FrameStatus,
   /** The next time Bouncer recommends checking for a window-based update. */
-  windowCheck?: Date | undefined,
+  windowCheck?: string | undefined,
   /** The next time Bouncer recommends checking for a viewtime-based update. */
-  viewtimeCheck?: Date | undefined,
+  viewtimeCheck?: string | undefined,
 }
 
 export type ControllerPoliciesGetMessage = {

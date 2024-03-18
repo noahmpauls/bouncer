@@ -39,7 +39,7 @@ export interface IPolicy {
    * @param page the current page
    * @returns the date of the next enforcement event triggered by viewtime use
    */
-  nextViewEvent(time: Date, page: IPage): Date | null;
+  nextViewEvent(time: Date, page: IPage): Date | undefined;
 
   /**
    * Get the datetime of the next policy event triggered by the passage of time.
@@ -50,7 +50,7 @@ export interface IPolicy {
    * @param page the current page
    * @returns the date of the next scheduled enforcement event
    */
-  nextTimelineEvent(time: Date, page: IPage): Date | null;
+  nextTimelineEvent(time: Date, page: IPage): Date | undefined;
 
   /**
    * Convert the policy to an object representation. The representation must

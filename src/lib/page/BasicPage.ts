@@ -14,12 +14,12 @@ export class BasicPage implements IPage {
    * Replace with a single status field with the time of that field's
    * most recent update.
    */
-  private timeInitialVisit: Date | null;
+  private timeInitialVisit: Date | undefined;
   private msViewtimeAccrued: number;
-  private timeBlock: Date | null;
-  private timeLastShow: Date | null;
-  private timeLastHide: Date | null;
-  private timeLastUpdate: Date | null;
+  private timeBlock: Date | undefined;
+  private timeLastShow: Date | undefined;
+  private timeLastHide: Date | undefined;
+  private timeLastUpdate: Date | undefined;
 
   /**
    * @param timeInitialVisit time of the initial visit to the page after a
@@ -28,47 +28,47 @@ export class BasicPage implements IPage {
    * @param timeBlock time of last block
    */
   constructor(
-    timeInitialVisit?: Date | null,
+    timeInitialVisit?: Date | undefined,
     msViewtimeAccrued?: number,
-    timeBlock?: Date | null,
-    timeLastShow?: Date | null,
-    timeLastHide?: Date | null,
-    timeLastUpdate?: Date | null,
+    timeBlock?: Date | undefined,
+    timeLastShow?: Date | undefined,
+    timeLastHide?: Date | undefined,
+    timeLastUpdate?: Date | undefined,
   ) {
-    this.timeInitialVisit = timeInitialVisit ?? null;
+    this.timeInitialVisit = timeInitialVisit;
     this.msViewtimeAccrued = msViewtimeAccrued ?? 0;
-    this.timeBlock = timeBlock ?? null;
-    this.timeLastShow = timeLastShow ?? null;
-    this.timeLastHide = timeLastHide ?? null;
-    this.timeLastUpdate = timeLastUpdate ?? null;
+    this.timeBlock = timeBlock;
+    this.timeLastShow = timeLastShow;
+    this.timeLastHide = timeLastHide;
+    this.timeLastUpdate = timeLastUpdate;
     this.checkRep();
   }
 
   private checkRep() {
-    if (this.timeBlock !== null) {
-      assert(this.timeInitialVisit === null, `timeInitialVisit should be null when blocked (was ${this.timeInitialVisit})`);
-      assert(this.timeLastShow === null, `timeLastShow should be null when blocked`);
+    if (this.timeBlock !== undefined) {
+      assert(this.timeInitialVisit === undefined, `timeInitialVisit should be undefined when blocked (was ${this.timeInitialVisit})`);
+      assert(this.timeLastShow === undefined, `timeLastShow should be undefined when blocked`);
       assert(this.msViewtimeAccrued === 0, `msViewtimeAccrued should be 0 when blocked`);
     }
     
-    if (this.timeInitialVisit !== null) {
-      assert(this.timeBlock === null, `timeBlock should be null if visit occurs`);
+    if (this.timeInitialVisit !== undefined) {
+      assert(this.timeBlock === undefined, `timeBlock should be undefined if visit occurs`);
     }
     
-    if (this.timeLastShow !== null) {
-      assert(this.timeLastHide === null, `timeLastHide must be null when showing`);
+    if (this.timeLastShow !== undefined) {
+      assert(this.timeLastHide === undefined, `timeLastHide must be undefined when showing`);
     }
 
-    if (this.timeLastUpdate !== null) {
+    if (this.timeLastUpdate !== undefined) {
       assertTimeSequence(this.timeInitialVisit ?? this.timeLastUpdate, this.timeLastUpdate);
       assertTimeSequence(this.timeBlock ?? this.timeLastUpdate, this.timeLastUpdate);
       assertTimeSequence(this.timeLastShow ?? this.timeLastUpdate, this.timeLastUpdate);
       assertTimeSequence(this.timeLastHide ?? this.timeLastUpdate, this.timeLastUpdate);
     } else {
-      assert(this.timeInitialVisit === null, `timeInitialVisit should be null if no last update`);
-      assert(this.timeBlock === null, `timeBlock should be null if no last update`);
-      assert(this.timeLastShow === null, `timeLastShow should be null if no last update`);
-      assert(this.timeLastHide === null, `timeLastHide should be null if no last update`);
+      assert(this.timeInitialVisit === undefined, `timeInitialVisit should be undefined if no last update`);
+      assert(this.timeBlock === undefined, `timeBlock should be undefined if no last update`);
+      assert(this.timeLastShow === undefined, `timeLastShow should be undefined if no last update`);
+      assert(this.timeLastHide === undefined, `timeLastHide should be undefined if no last update`);
     }
   }
   
@@ -81,17 +81,17 @@ export class BasicPage implements IPage {
   static fromObject(obj: BasicPageData): BasicPage {
     assert(obj.type === "BasicPage", `cannot make BasicPage from data with type ${obj.type}`);
     return new BasicPage(
-      obj.data.timeInitialVisit,
+      obj.data.timeInitialVisit ? new Date(obj.data.timeInitialVisit) : undefined,
       obj.data.msViewtimeAccrued,
-      obj.data.timeBlock,
-      obj.data.timeLastShow,
-      obj.data.timeLastHide,
-      obj.data.timeLastUpdate,
+      obj.data.timeBlock ? new Date(obj.data.timeBlock) : undefined,
+      obj.data.timeLastShow ? new Date(obj.data.timeLastShow) : undefined,
+      obj.data.timeLastHide ? new Date(obj.data.timeLastHide) : undefined,
+      obj.data.timeLastUpdate ? new Date(obj.data.timeLastUpdate) : undefined,
     );
   }
   
   private setTimeLastUpdate(time: Date): void {
-    if (this.timeLastUpdate === null) {
+    if (this.timeLastUpdate === undefined) {
       this.timeLastUpdate = time;
     } else {
       this.timeLastUpdate = new Date(Math.max(this.timeLastUpdate.getTime(), time.getTime()));
@@ -99,7 +99,7 @@ export class BasicPage implements IPage {
   }
 
   access(): PageAccess {
-    if (this.timeBlock === null) {
+    if (this.timeBlock === undefined) {
       return PageAccess.ALLOWED;
     } else {
       return PageAccess.BLOCKED;
@@ -130,13 +130,13 @@ export class BasicPage implements IPage {
 
   private handleShow(time: Date): boolean {
     let isUpdate = false;
-    this.timeLastHide = null;
-    if (this.timeInitialVisit === null) {
+    this.timeLastHide = undefined;
+    if (this.timeInitialVisit === undefined) {
       this.timeInitialVisit = time;
       isUpdate = true;
     }
     // timeLastShow only set if previously cleared
-    if (this.timeLastShow === null) {
+    if (this.timeLastShow === undefined) {
       this.timeLastShow = time;
       isUpdate = true;
     }
@@ -144,12 +144,12 @@ export class BasicPage implements IPage {
   }
   
   private handleHide(time: Date): boolean {
-    if (this.timeLastShow === null) {
+    if (this.timeLastShow === undefined) {
       return false;
     }
     const viewtime = Math.max(0, time.getTime() - this.timeLastShow.getTime());
     this.msViewtimeAccrued += viewtime;
-    this.timeLastShow = null;
+    this.timeLastShow = undefined;
     this.timeLastHide = time;
     return true;
   }
@@ -187,7 +187,7 @@ export class BasicPage implements IPage {
       const viewtimeStart = new Date(Math.max(resetTime.getTime(), this.timeLastShow!.getTime()));
       this.timeLastShow = viewtimeStart;
     } else {
-      this.timeLastShow = null;
+      this.timeLastShow = undefined;
     }
     this.setTimeLastUpdate(resetTime);
   }
@@ -198,7 +198,7 @@ export class BasicPage implements IPage {
       const initialVisit = new Date(Math.max(resetTime.getTime(), this.timeLastShow!.getTime()));
       this.timeInitialVisit = initialVisit;
     } else {
-      this.timeInitialVisit = null;
+      this.timeInitialVisit = undefined;
     }
     this.setTimeLastUpdate(resetTime);
   }
@@ -206,48 +206,48 @@ export class BasicPage implements IPage {
   private block(time: Date): void {
     if (this.access() === PageAccess.BLOCKED) { return; }
     this.timeBlock = time;
-    this.timeInitialVisit = null;
+    this.timeInitialVisit = undefined;
     this.msViewtimeAccrued = 0;
-    this.timeLastShow = null;
-    this.timeLastHide = null;
+    this.timeLastShow = undefined;
+    this.timeLastHide = undefined;
     this.setTimeLastUpdate(time);
   }
   
   private unblock(time: Date): void {
     if (this.access() === PageAccess.ALLOWED) { return; }
-    this.timeBlock = null;
+    this.timeBlock = undefined;
     this.setTimeLastUpdate(time);
   }
   
   isShowing(): boolean {
-    return this.timeLastShow !== null;
+    return this.timeLastShow !== undefined;
   }
   
-  msSinceInitialVisit(time: Date): number | null {
-    if (this.timeInitialVisit === null) return null;
+  msSinceInitialVisit(time: Date): number | undefined {
+    if (this.timeInitialVisit === undefined) return undefined;
     return Math.max(0, time.getTime() - this.timeInitialVisit.getTime());
   }
   
   msViewtime(time: Date): number {
-    if (this.timeLastShow === null) {
+    if (this.timeLastShow === undefined) {
       return this.msViewtimeAccrued;
     } else {
       return Math.max(0, this.msViewtimeAccrued + (time.getTime() - this.timeLastShow.getTime()));
     }
   }
   
-  msSinceBlock(time: Date): number | null {
-    if (this.timeBlock === null) return null;
+  msSinceBlock(time: Date): number | undefined {
+    if (this.timeBlock === undefined) return undefined;
     return Math.max(0, time.getTime() - this.timeBlock.getTime());
   }
   
-  msSinceHide(time: Date): number | null {
-    if (this.timeLastHide === null) return null;
+  msSinceHide(time: Date): number | undefined {
+    if (this.timeLastHide === undefined) return undefined;
     return Math.max(0, time.getTime() - this.timeLastHide.getTime());
   }
   
-  msSinceUpdate(time: Date): number | null {
-    if (this.timeLastUpdate === null) return null;
+  msSinceUpdate(time: Date): number | undefined {
+    if (this.timeLastUpdate === undefined) return undefined;
     return Math.max(0, time.getTime() - this.timeLastUpdate.getTime());
   }
 
@@ -255,12 +255,12 @@ export class BasicPage implements IPage {
     return {
       type: "BasicPage",
       data: {
-        timeInitialVisit: this.timeInitialVisit,
+        timeInitialVisit: this.timeInitialVisit?.toISOString(),
         msViewtimeAccrued: this.msViewtimeAccrued,
-        timeBlock: this.timeBlock,
-        timeLastShow: this.timeLastShow,
-        timeLastHide: this.timeLastHide,
-        timeLastUpdate: this.timeLastUpdate,
+        timeBlock: this.timeBlock?.toISOString(),
+        timeLastShow: this.timeLastShow?.toISOString(),
+        timeLastHide: this.timeLastHide?.toISOString(),
+        timeLastUpdate: this.timeLastUpdate?.toISOString(),
       }
     };
   }
@@ -269,11 +269,11 @@ export class BasicPage implements IPage {
 export type BasicPageData = {
   type: "BasicPage",
   data: {
-    timeInitialVisit: Date | null,
+    timeInitialVisit: string | undefined,
     msViewtimeAccrued: number,
-    timeBlock: Date | null,
-    timeLastShow: Date | null,
-    timeLastHide: Date | null,
-    timeLastUpdate: Date | null,
+    timeBlock: string | undefined,
+    timeLastShow: string | undefined,
+    timeLastHide: string | undefined,
+    timeLastUpdate: string | undefined,
   }
 }

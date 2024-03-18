@@ -13,11 +13,11 @@ describe("WindowCooldownLimit action", () => {
 
     const page = pageMetrics({
       access: PageAccess.ALLOWED,
-      msSinceInitialVisit: null,
-      msSinceBlock: null,
+      msSinceInitialVisit: undefined,
+      msSinceBlock: undefined,
       isShowing: false,
       msViewtime: 0,
-      msSinceHide: null,
+      msSinceHide: undefined,
     });
     
     const actions = limit.actions(time(), page);
@@ -40,10 +40,10 @@ describe("WindowCooldownLimit action", () => {
     const page = pageMetrics({
       access: PageAccess.ALLOWED,
       msSinceInitialVisit: msSinceVisit,
-      msSinceBlock: null,
+      msSinceBlock: undefined,
       isShowing: false,
       msViewtime: 0,
-      msSinceHide: null,
+      msSinceHide: undefined,
     });
     
     const actions = limit.actions(time(), page);
@@ -66,10 +66,10 @@ describe("WindowCooldownLimit action", () => {
     const page = pageMetrics({
       access: PageAccess.ALLOWED,
       msSinceInitialVisit: msSinceVisit,
-      msSinceBlock: null,
+      msSinceBlock: undefined,
       isShowing: false,
       msViewtime: 0,
-      msSinceHide: null,
+      msSinceHide: undefined,
     });
     
     const msCheck = 0;
@@ -97,10 +97,10 @@ describe("WindowCooldownLimit action", () => {
     const page = pageMetrics({
       access: PageAccess.ALLOWED,
       msSinceInitialVisit: msSinceVisit,
-      msSinceBlock: null,
+      msSinceBlock: undefined,
       isShowing: false,
       msViewtime: 0,
-      msSinceHide: null,
+      msSinceHide: undefined,
     });
     
     const msCheck = 0;
@@ -128,10 +128,10 @@ describe("WindowCooldownLimit action", () => {
     const page = pageMetrics({
       access: PageAccess.ALLOWED,
       msSinceInitialVisit: msSinceVisit,
-      msSinceBlock: null,
+      msSinceBlock: undefined,
       isShowing: false,
       msViewtime: 0,
-      msSinceHide: null,
+      msSinceHide: undefined,
     });
     
     const msCheck = 0;
@@ -159,10 +159,10 @@ describe("WindowCooldownLimit action", () => {
     const page = pageMetrics({
       access: PageAccess.ALLOWED,
       msSinceInitialVisit: msSinceVisit,
-      msSinceBlock: null,
+      msSinceBlock: undefined,
       isShowing: true,
       msViewtime: 300,
-      msSinceHide: null,
+      msSinceHide: undefined,
     });
     
     const msCheck = 0;
@@ -190,7 +190,7 @@ describe("WindowCooldownLimit action", () => {
     const page = pageMetrics({
       access: PageAccess.ALLOWED,
       msSinceInitialVisit: msSinceVisit,
-      msSinceBlock: null,
+      msSinceBlock: undefined,
       isShowing: false,
       msViewtime: 300,
       msSinceHide: 100,
@@ -219,11 +219,11 @@ describe("WindowCooldownLimit action", () => {
     const msSinceBlock = cooldown - 100;
     const page = pageMetrics({
       access: PageAccess.BLOCKED,
-      msSinceInitialVisit: null,
+      msSinceInitialVisit: undefined,
       msSinceBlock: msSinceBlock,
       isShowing: false,
       msViewtime: 0,
-      msSinceHide: null,
+      msSinceHide: undefined,
     });
     
     const msCheck = 0;
@@ -246,11 +246,11 @@ describe("WindowCooldownLimit action", () => {
     const msSinceBlock = cooldown;
     const page = pageMetrics({
       access: PageAccess.BLOCKED,
-      msSinceInitialVisit: null,
+      msSinceInitialVisit: undefined,
       msSinceBlock: msSinceBlock,
       isShowing: false,
       msViewtime: 0,
-      msSinceHide: null,
+      msSinceHide: undefined,
     });
     
     const msCheck = 0;
@@ -277,11 +277,11 @@ describe("WindowCooldownLimit action", () => {
     const msSinceBlock = cooldown + 1;
     const page = pageMetrics({
       access: PageAccess.BLOCKED,
-      msSinceInitialVisit: null,
+      msSinceInitialVisit: undefined,
       msSinceBlock: msSinceBlock,
       isShowing: false,
       msViewtime: 0,
-      msSinceHide: null,
+      msSinceHide: undefined,
     });
     
     const msCheck = 0;

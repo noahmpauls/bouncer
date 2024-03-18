@@ -36,11 +36,11 @@ describe("BasicPage", () => {
     const expected: ExpectedObservedPage = {
       access: PageAccess.ALLOWED,
       isShowing: false,
-      msSinceInitialVisit: null,
+      msSinceInitialVisit: undefined,
       msViewtime: 0,
-      msSinceBlock: null,
-      msSinceHide: null,
-      msSinceUpdate: null,
+      msSinceBlock: undefined,
+      msSinceHide: undefined,
+      msSinceUpdate: undefined,
     }
     expect(observed).toMatchObject(expected);
   })
@@ -58,8 +58,8 @@ describe("BasicPage", () => {
       isShowing: true,
       msSinceInitialVisit: msFromVisit,
       msViewtime: 0,
-      msSinceBlock: null,
-      msSinceHide: null,
+      msSinceBlock: undefined,
+      msSinceHide: undefined,
       msSinceUpdate: msFromVisit,
     }
     expect(observed).toMatchObject(expected);
@@ -76,11 +76,11 @@ describe("BasicPage", () => {
     const expected: ExpectedObservedPage = {
       access: PageAccess.ALLOWED,
       isShowing: false,
-      msSinceInitialVisit: null,
+      msSinceInitialVisit: undefined,
       msViewtime: 0,
-      msSinceBlock: null,
-      msSinceHide: null,
-      msSinceUpdate: null,
+      msSinceBlock: undefined,
+      msSinceHide: undefined,
+      msSinceUpdate: undefined,
     }
     expect(observed).toMatchObject(expected);
   })
@@ -100,7 +100,7 @@ describe("BasicPage", () => {
       isShowing: false,
       msSinceInitialVisit: msFromShow,
       msViewtime: msViewtime,
-      msSinceBlock: null,
+      msSinceBlock: undefined,
       msSinceHide: msFromShow - msViewtime,
       msSinceUpdate: msFromShow - msViewtime,
     }
@@ -277,7 +277,7 @@ describe("BasicPage", () => {
     const expected: ExpectedObservedPage = {
       isShowing: true,
       msViewtime: msObserve - msReset,
-      msSinceHide: null,
+      msSinceHide: undefined,
       msSinceUpdate: msObserve - msReset,
     }
     expect(observed).toMatchObject(expected);
@@ -296,7 +296,7 @@ describe("BasicPage", () => {
     const expected: ExpectedObservedPage = {
       isShowing: true,
       msViewtime: msObserve,
-      msSinceHide: null,
+      msSinceHide: undefined,
       msSinceUpdate: msObserve,
     }
     expect(observed).toMatchObject(expected);
@@ -414,7 +414,7 @@ describe("BasicPage", () => {
     const expected: ExpectedObservedPage = {
       isShowing: false,
       msViewtime: msHide - msShow,
-      msSinceInitialVisit: null,
+      msSinceInitialVisit: undefined,
       msSinceUpdate: msObserve - msReset,
     };
     expect(observed).toMatchObject(expected);
@@ -433,8 +433,8 @@ describe("BasicPage", () => {
       msSinceBlock: msObserve,
       msSinceUpdate: msObserve,
       isShowing: false,
-      msSinceInitialVisit: null,
-      msSinceHide: null,
+      msSinceInitialVisit: undefined,
+      msSinceHide: undefined,
       msViewtime: 0,
     }
     expect(observed).toMatchObject(expected);
@@ -454,8 +454,8 @@ describe("BasicPage", () => {
       msSinceBlock: msObserve,
       msSinceUpdate: msObserve,
       isShowing: false,
-      msSinceInitialVisit: null,
-      msSinceHide: null,
+      msSinceInitialVisit: undefined,
+      msSinceHide: undefined,
       msViewtime: 0,
     }
     expect(observed).toMatchObject(expected);
@@ -478,8 +478,8 @@ describe("BasicPage", () => {
       msSinceBlock: msObserve - msBlock,
       msSinceUpdate: msObserve - msBlock,
       isShowing: false,
-      msSinceInitialVisit: null,
-      msSinceHide: null,
+      msSinceInitialVisit: undefined,
+      msSinceHide: undefined,
       msViewtime: 0,
     }
     expect(observed).toMatchObject(expected);
@@ -502,8 +502,8 @@ describe("BasicPage", () => {
       msSinceBlock: 0,
       msSinceUpdate: 0,
       isShowing: false,
-      msSinceInitialVisit: null,
-      msSinceHide: null,
+      msSinceInitialVisit: undefined,
+      msSinceHide: undefined,
       msViewtime: 0,
     }
     expect(observed).toMatchObject(expected);
@@ -564,8 +564,8 @@ describe("BasicPage", () => {
       access: PageAccess.BLOCKED,
       msSinceBlock: msObserve,
       isShowing: false,
-      msSinceInitialVisit: null,
-      msSinceHide: null,
+      msSinceInitialVisit: undefined,
+      msSinceHide: undefined,
       msViewtime: 0,
       msSinceUpdate: msObserve,
     }
@@ -586,8 +586,8 @@ describe("BasicPage", () => {
       access: PageAccess.BLOCKED,
       msSinceBlock: msObserve,
       isShowing: false,
-      msSinceInitialVisit: null,
-      msSinceHide: null,
+      msSinceInitialVisit: undefined,
+      msSinceHide: undefined,
       msViewtime: 0,
       msSinceUpdate: msObserve,
     }
@@ -606,8 +606,8 @@ describe("BasicPage", () => {
       access: PageAccess.BLOCKED,
       msSinceBlock: 0,
       isShowing: false,
-      msSinceInitialVisit: null,
-      msSinceHide: null,
+      msSinceInitialVisit: undefined,
+      msSinceHide: undefined,
       msViewtime: 0,
       msSinceUpdate: 0,
     }
@@ -626,10 +626,10 @@ describe("BasicPage", () => {
 
     const expected: ExpectedObservedPage = {
       access: PageAccess.ALLOWED,
-      msSinceBlock: null,
+      msSinceBlock: undefined,
       isShowing: false,
-      msSinceInitialVisit: null,
-      msSinceHide: null,
+      msSinceInitialVisit: undefined,
+      msSinceHide: undefined,
       msViewtime: 0,
       msSinceUpdate: msObserve - msUnblock,
     }
@@ -650,7 +650,7 @@ describe("BasicPage", () => {
 
     const expected: ExpectedObservedPage = {
       access: PageAccess.ALLOWED,
-      msSinceBlock: null,
+      msSinceBlock: undefined,
       isShowing: false,
       msSinceInitialVisit: msObserve,
       msSinceHide: msObserve - viewtime,

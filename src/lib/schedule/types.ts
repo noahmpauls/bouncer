@@ -38,7 +38,7 @@ export interface ISchedule {
    * @param time the current time
    * @returns the next nearest schedule start after `time`, if one exists
    */
-  nextStart(time: Date): Date | null;
+  nextStart(time: Date): Date | undefined;
 
   /**
    * Convert schedule to an object representation. The representation must

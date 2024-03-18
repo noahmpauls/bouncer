@@ -46,7 +46,7 @@ export class WindowCooldownLimit implements ILimit {
   
   actions(time: Date, page: IPageMetrics): PageAction[] {
     const msSinceBlock = page.msSinceBlock(time);
-    if (msSinceBlock !== null && msSinceBlock >= this.msCooldown) {
+    if (msSinceBlock !== undefined && msSinceBlock >= this.msCooldown) {
       return [{ type: PageActionType.UNBLOCK, time }];
     }
     const msSinceInitialVisit = page.msSinceInitialVisit(time) ?? 0;
@@ -71,7 +71,7 @@ export class WindowCooldownLimit implements ILimit {
 
   
   remainingWindow(time: Date, page: IPageMetrics): number {
-    if (page.msSinceBlock(time) === null) {
+    if (page.msSinceBlock(time) === undefined) {
       const windowElapsed = page.msSinceInitialVisit(time) ?? 0;
       const remainingWindow = this.msWindow - windowElapsed;
       if (remainingWindow > 0) {

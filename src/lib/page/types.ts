@@ -48,12 +48,12 @@ export interface IPageMetrics {
 
   /**
    * Milliseconds since the first page visit since an unblock (or ever).
-   * TODO null if...
+   * TODO undefined if...
    * 
    * @param time the current time
    * @returns milliseconds since initial visit
    */
-  msSinceInitialVisit(time: Date): number | null;
+  msSinceInitialVisit(time: Date): number | undefined;
 
   /**
    * Milliseconds of viewtime accrued on the page so far.
@@ -69,16 +69,16 @@ export interface IPageMetrics {
    * @param time the current time
    * @returns milliseconds since last block
    */
-  msSinceBlock(time: Date): number | null;
+  msSinceBlock(time: Date): number | undefined;
   
   /**
-   * Milliseconds since last time the page was hidden. Returns null if the page
-   * has never been hidden since being blocked.
+   * Milliseconds since last time the page was hidden. Returns undefined if the
+   * page has never been hidden since being blocked.
    * 
    * @param time the current time
    * @returns milliseconds since most recent hide
    */
-  msSinceHide(time: Date): number | null;
+  msSinceHide(time: Date): number | undefined;
   
   /**
    * Milliseconds since last time the page was updated in any way.
@@ -86,7 +86,7 @@ export interface IPageMetrics {
    * @param time the current time
    * @returns milliseconds since most recent update
    */
-  msSinceUpdate(time: Date): number | null;
+  msSinceUpdate(time: Date): number | undefined;
 }
 
 /**
