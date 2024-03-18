@@ -1,9 +1,25 @@
-import type { FrameMessage } from "@bouncer/message";
+import type Browser from "webextension-polyfill";
+import type { ClientMessage, FrameMessage } from "@bouncer/message";
+
+export type ActivateDetails = Pick<Browser.Tabs.OnActivatedActiveInfoType, "tabId" | "previousTabId">
+export type CommitDetails = Pick<Browser.WebNavigation.OnCommittedDetailsType, "url" | "tabId" | "frameId" | "timeStamp">
+export type HistoryDetails = Pick<Browser.WebNavigation.OnHistoryStateUpdatedDetailsType, "url" | "tabId" | "frameId" | "timeStamp">
+export type MessageSender = Pick<Browser.Runtime.MessageSender, "frameId"> & {
+  tab?: Pick<Browser.Tabs.Tab, "id">
+}
+
+export interface IBrowserEventHandler {
+  handleCommitted(details: CommitDetails): void;
+  handleHistoryStateUpdated(details: HistoryDetails): void;
+  handleActivated(details: ActivateDetails): void;
+  handleRemoved(tabId: number): void;
+  handleMessage(message: ClientMessage, sender: MessageSender): void;
+}
 
 /**
  * Emitter of events relevant to Bouncer.
  */
-export interface IEventEmitter {
+export interface IControllerEventEmitter {
   readonly onMessage: EventHook<FrameMessage>;
   readonly onBrowse: EventHook<BrowseEvent>;
 }

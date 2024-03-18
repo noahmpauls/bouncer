@@ -30,6 +30,8 @@ type BouncerContextFallbacks = {
   [Property in keyof BouncerContextKeyConfig]: BouncerContextKeyConfig[Property]["fallback"]
 }
 
+export type BouncerContext = StoredContext<BouncerContextObject, BouncerContextData, BouncerContextBuckets>
+
 const BouncerContextTransformer = {
   serialize: (obj: BouncerContextObject): BouncerContextData => {
     return  {

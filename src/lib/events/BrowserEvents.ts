@@ -1,20 +1,10 @@
-import type Browser from "webextension-polyfill";
 import { type ClientMessage, type FrameMessage } from "@bouncer/message";
-import { BrowseEventType, type EventHook, type IEventEmitter, type EventListener, type BrowseEvent } from "./types";
-
-
-type PartialOnActivatedDetails = Pick<Browser.Tabs.OnActivatedActiveInfoType, "tabId" | "previousTabId">
-type PartialOnCommittedDetails = Pick<Browser.WebNavigation.OnCommittedDetailsType, "url" | "tabId" | "frameId" | "timeStamp">
-type PartialOnHistoryStateUpdatedDetails = Pick<Browser.WebNavigation.OnHistoryStateUpdatedDetailsType, "url" | "tabId" | "frameId" | "timeStamp">
-type PartialMessageSender = Pick<Browser.Runtime.MessageSender, "frameId"> & {
-  tab?: Pick<Browser.Tabs.Tab, "id">
-}
-
+import { BrowseEventType, type EventHook, type IControllerEventEmitter, type EventListener, type BrowseEvent, type IBrowserEventHandler, type CommitDetails, type HistoryDetails, type ActivateDetails, type MessageSender } from "./types";
 
 /**
  * Translates browser extension events into Bouncer-relevant events.
  */
-export class BrowserEvents implements IEventEmitter {
+export class BrowserEvents implements IControllerEventEmitter, IBrowserEventHandler {
   private readonly listeners: {
     message: EventListener<FrameMessage>[],
     browse: EventListener<BrowseEvent>[],
@@ -28,7 +18,7 @@ export class BrowserEvents implements IEventEmitter {
   readonly onMessage = this.createHook(this.listeners.message);
   readonly onBrowse = this.createHook(this.listeners.browse);
 
-  handleCommitted = (details: PartialOnCommittedDetails) => {
+  handleCommitted = (details: CommitDetails) => {
     this.triggerListeners(this.listeners.browse, {
       time: new Date(details.timeStamp),
       type: BrowseEventType.NAVIGATE,
@@ -38,7 +28,7 @@ export class BrowserEvents implements IEventEmitter {
     });
   }
 
-  handleHistoryStateUpdated = (details: PartialOnHistoryStateUpdatedDetails) => {
+  handleHistoryStateUpdated = (details: HistoryDetails) => {
     this.triggerListeners(this.listeners.browse, {
       time: new Date(details.timeStamp),
       type: BrowseEventType.NAVIGATE,
@@ -48,7 +38,7 @@ export class BrowserEvents implements IEventEmitter {
     });
   }
 
-  handleActivated = (details: PartialOnActivatedDetails) => {
+  handleActivated = (details: ActivateDetails) => {
     this.triggerListeners(this.listeners.browse, {
       time: new Date(),
       type: BrowseEventType.TAB_ACTIVATE,
@@ -65,7 +55,7 @@ export class BrowserEvents implements IEventEmitter {
     });
   }
 
-  handleMessage = (message: ClientMessage, sender: PartialMessageSender) => {
+  handleMessage = (message: ClientMessage, sender: MessageSender) => {
     if (sender.tab?.id === undefined || sender.frameId === undefined) {
       console.warn(`message from tab ${sender.tab?.id}, frame ${sender.frameId}`);
       return;
