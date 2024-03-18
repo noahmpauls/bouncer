@@ -1,4 +1,4 @@
-import browser from "webextension-polyfill";
+import { browser } from "@bouncer/browser";
 import type { ClientMessage, ControllerMessage, IClientMessenger, IControllerMessenger } from "./types";
 
 export const BrowserClientMessenger: IClientMessenger = {

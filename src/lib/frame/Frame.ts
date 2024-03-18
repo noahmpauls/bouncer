@@ -31,6 +31,7 @@ export class Frame {
     }
     const time = new Date();
     console.log(`${time.getTime()} frame: received ${message?.status}`);
+    console.log(message);
     switch (message.status) {
       case FrameStatus.BLOCKED:
         this.blocker.block();

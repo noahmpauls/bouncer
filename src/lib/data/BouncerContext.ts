@@ -1,4 +1,4 @@
-import browser from "webextension-polyfill";
+import { browser } from "@bouncer/browser";
 import { ActiveTabs } from "@bouncer/controller/ActiveTabs";
 import { GuardPostings } from "@bouncer/controller/GuardPostings";
 import { type IGuard, type GuardData, serializeGuard, deserializeGuard } from "@bouncer/guard";

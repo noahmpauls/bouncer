@@ -1,5 +1,3 @@
-import browser from "webextension-polyfill";
-
 /**
  * Represents the set of browser tabs that are currently active; that is, the
  * topmost tab of each window.

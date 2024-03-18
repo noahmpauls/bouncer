@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Bouncer",
-  "version": "0.13.2",
+  "version": "0.13.3",
   "description": "Ridiculously configurable website limiter.",
   
   "permissions": [
@@ -20,6 +20,7 @@
   },
   
   "background": {
+    "service_worker": "dist/scripts/background.js",
     "scripts": ["dist/scripts/background.js"]
   },
 

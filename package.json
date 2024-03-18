@@ -1,11 +1,11 @@
 {
   "name": "bouncer",
-  "version": "0.13.2",
+  "version": "0.13.3",
   "type": "module",
   "description": "Ridiculously configurable website limiter.",
   "main": "manifest.json",
   "scripts": {
-    "build": "rollup --config",
+    "build": "rollup --config && eleventy",
     "build:watch": "rollup --config --watch",
     "ui:watch": "eleventy --watch --quiet",
     "webext:watch": "web-ext run",

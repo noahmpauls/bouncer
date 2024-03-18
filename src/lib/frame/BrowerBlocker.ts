@@ -1,4 +1,4 @@
-import browser from "webextension-polyfill";
+import { browser } from "@bouncer/browser";
 import type { IBlocker } from "./types";
 
 export const BrowserBlocker: IBlocker = {

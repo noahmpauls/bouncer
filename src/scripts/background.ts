@@ -1,4 +1,4 @@
-import browser from "webextension-polyfill";
+import { browser } from "@bouncer/browser";
 import { BrowserEvents } from "@bouncer/events";
 import { Controller } from "@bouncer/controller";
 import { BrowserControllerMessenger } from "@bouncer/message";
