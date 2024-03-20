@@ -1,5 +1,7 @@
-import { ExactHostnameMatcher, type UrlMatcherData } from "./ExactHostnameMatcher";
-import type { IUrlMatcher } from "./types";
+import { ExactHostnameMatcher } from "./ExactHostnameMatcher";
+import { FrameTypeMatcher } from "./FrameTypeMatcher";
+import { AndMatcher, NotMatcher, OrMatcher } from "./LogicalMatcher";
+import type { IMatcher, MatcherData } from "./types";
 
 
 /**
@@ -8,10 +10,18 @@ import type { IUrlMatcher } from "./types";
  * @param obj object data representing matcher
  * @returns deserialized matcher
  */
-export function deserializeMatcher(obj: UrlMatcherData): IUrlMatcher {
+export function deserializeMatcher(obj: MatcherData): IMatcher {
   switch (obj.type) {
     case "ExactHostname":
       return ExactHostnameMatcher.fromObject(obj);
+    case "FrameType":
+      return FrameTypeMatcher.fromObject(obj);
+    case "Or":
+      return OrMatcher.fromObject(obj);
+    case "And":
+      return AndMatcher.fromObject(obj);
+    case "Not":
+      return NotMatcher.fromObject(obj);
     default:
       throw new Error(`invalid matcher type ${(obj as any).type} cannot be deserialized`);
   }
@@ -24,7 +34,7 @@ export function deserializeMatcher(obj: UrlMatcherData): IUrlMatcher {
  * @param matcher the matcher to serialize
  * @returns serialized matcher object
  */
-export function serializeMatcher(matcher: IUrlMatcher): UrlMatcherData {
+export function serializeMatcher(matcher: IMatcher): MatcherData {
   return matcher.toObject();
 }
 
@@ -32,3 +42,5 @@ export function serializeMatcher(matcher: IUrlMatcher): UrlMatcherData {
 
 export * from "./types";
 export { ExactHostnameMatcher } from "./ExactHostnameMatcher";
+export { FrameTypeMatcher as LevelMatcher } from "./FrameTypeMatcher";
+export { OrMatcher, AndMatcher, NotMatcher } from "./LogicalMatcher";

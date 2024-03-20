@@ -1,17 +1,10 @@
 import { assert } from "@bouncer/utils";
-import { type IUrlMatcher } from "./types";
-
-/**
- * Union of all types that represent matchers in their serialized form.
- */
-export type UrlMatcherData = 
-  ExactHostnameMatcherData;
-
+import { type FrameType, type IMatcher } from "./types";
 
 /**
  * Determines whether a URL exactly matches a given hostname.
  */
-export class ExactHostnameMatcher implements IUrlMatcher {
+export class ExactHostnameMatcher implements IMatcher {
   
   private readonly hostname: string;
 
@@ -35,7 +28,7 @@ export class ExactHostnameMatcher implements IUrlMatcher {
   }
 
   
-  matches(url: URL): boolean {
+  matches(url: URL, type: FrameType): boolean {
     return url.hostname === this.hostname;
   }
   

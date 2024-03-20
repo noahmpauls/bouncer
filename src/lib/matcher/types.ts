@@ -1,16 +1,21 @@
 import type { ExactHostnameMatcherData } from "./ExactHostnameMatcher";
+import type { LevelMatcherData } from "./FrameTypeMatcher";
+import type { AndMatcherData, NotMatcherData, OrMatcherData } from "./LogicalMatcher";
+
+export type FrameType = "ROOT" | "CHILD";
 
 /**
- * Represents a URL matching pattern.
+ * Represents a rule for matching a frame.
  */
-export type IUrlMatcher = {
+export type IMatcher = {
   /**
-   * Determine whether the pattern applies to a given URL.
+   * Determine whether the pattern applies to a given frame.
    * 
-   * @param url the URL to test
-   * @returns whether the URL matches the pattern
+   * @param url the URL of the frame
+   * @param type the type of the frame
+   * @returns whether the frame matches the rule
    */
-  matches(url: URL): boolean;
+  matches(url: URL, type: FrameType): boolean;
   
   /**
    * Convert matcher to an object representation. The representation must
@@ -18,11 +23,16 @@ export type IUrlMatcher = {
    * 
    * @returns object representing matcher
    */
-  toObject(): UrlMatcherData;
+  toObject(): MatcherData;
 }
 
 /**
  * Union of all types that represent matchers in their serialized form.
  */
-export type UrlMatcherData = 
-  ExactHostnameMatcherData;
+export type MatcherData = 
+  ExactHostnameMatcherData
+| LevelMatcherData
+| OrMatcherData
+| AndMatcherData
+| NotMatcherData
+;

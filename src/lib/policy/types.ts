@@ -1,3 +1,4 @@
+import type { FrameType } from "@bouncer/matcher";
 import type { BasicPolicyData } from "./BasicPolicy";
 import type { IPage } from "@bouncer/page";
 
@@ -16,11 +17,12 @@ export interface IPolicy {
   active: boolean,
 
   /**
-   * Whether the policy applies to the given URL.
+   * Whether the policy applies to the given frame
    * 
-   * @param url URL to test
+   * @param url URL of frame
+   * @param type type of frame
    */
-  appliesTo(url: URL): boolean;
+  appliesTo(url: URL, type: FrameType): boolean;
 
   /**
    * Apply the policy to a page, potentially mutating the page.

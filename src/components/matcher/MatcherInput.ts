@@ -1,8 +1,8 @@
-import type { UrlMatcherData } from "@bouncer/matcher";
+import type { MatcherData } from "@bouncer/matcher";
 import { ExactHostnameMatcherInput } from "./ExactHostnameMatcherInput";
 
 export interface IMatcherInput extends HTMLElement {
-  value: UrlMatcherData;
+  value: MatcherData;
 }
 
 const template = document.createElement("template");
@@ -25,7 +25,7 @@ export class MatcherInput extends HTMLElement implements IMatcherInput {
     this.shadow.appendChild(template.content.cloneNode(true));
   }
   
-  get value(): UrlMatcherData {
+  get value(): MatcherData {
     const matcherInput = this.shadow.getElementById("matcher") as IMatcherInput;
     return matcherInput.value;
   }

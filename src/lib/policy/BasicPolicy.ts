@@ -1,5 +1,5 @@
 import { type IEnforcer, deserializeEnforcer, serializeEnforcer, type EnforcerData } from "@bouncer/enforcer";
-import { type IUrlMatcher, deserializeMatcher, serializeMatcher, type UrlMatcherData } from "@bouncer/matcher";
+import { type IMatcher, deserializeMatcher, serializeMatcher, type MatcherData, type FrameType } from "@bouncer/matcher";
 import { assert } from "@bouncer/utils";
 import { type IPolicy } from "./types";
 import type { IPage } from "@bouncer/page";
@@ -12,13 +12,13 @@ export class BasicPolicy implements IPolicy {
 
   name: string;
   active: boolean;
-  private matcher: IUrlMatcher;
+  private matcher: IMatcher;
   private enforcer: IEnforcer;
 
   constructor(
     name: string,
     active: boolean,
-    matcher: IUrlMatcher,
+    matcher: IMatcher,
     enforcer: IEnforcer,
   ) {
     this.name = name;
@@ -43,8 +43,8 @@ export class BasicPolicy implements IPolicy {
     );
   }
 
-  appliesTo(url: URL): boolean {
-    return this.matcher.matches(url);
+  appliesTo(url: URL, type: FrameType): boolean {
+    return this.matcher.matches(url, type);
   }
 
   enforce(time: Date, page: IPage): void {
@@ -77,7 +77,7 @@ export type BasicPolicyData = {
   data: {
     name: string,
     active: boolean,
-    matcher: UrlMatcherData,
+    matcher: MatcherData,
     enforcer: EnforcerData,
   }
 }

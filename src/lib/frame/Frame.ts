@@ -30,7 +30,7 @@ export class Frame {
       return;
     }
     const time = new Date();
-    console.log(`${time.getTime()} frame: received ${message?.status}`);
+    console.log(`${time.getTime()} frame: received ${message?.status} for ${window.location.hostname}`);
     switch (message.status) {
       case FrameStatus.BLOCKED:
         this.blocker.block();

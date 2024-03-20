@@ -6,6 +6,7 @@ import { Sets } from "@bouncer/utils";
 import { GuardPostings } from "./GuardPostings";
 import { ActiveTabs } from "./ActiveTabs";
 import { deserializePolicy, serializePolicy } from "@bouncer/policy";
+import type { FrameType } from "@bouncer/matcher";
 
 
 export class Controller {
@@ -130,9 +131,10 @@ export class Controller {
 
   private async handleNavigate(time: Date, event: BrowseNavigateEvent) {
     const { tabId, frameId, url } = event;
+    const frameType: FrameType = frameId === 0 ? "ROOT" : "CHILD";
 
     const oldGuards = new Set(this.guardPostings.frame(tabId, frameId));
-    const newGuards = new Set(this.guards.filter(g => g.policy.appliesTo(url)));
+    const newGuards = new Set(this.guards.filter(g => g.policy.appliesTo(url, frameType)));
     
     const allGuards = Sets.union(oldGuards, newGuards);
     this.enforce(time, [...allGuards]);
