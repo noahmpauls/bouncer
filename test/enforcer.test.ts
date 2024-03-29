@@ -4,6 +4,7 @@ import { ViewtimeCooldownLimit, WindowCooldownLimit } from "@bouncer/limit";
 import { BasicPage, PageAccess, PageEvent } from "@bouncer/page";
 import { AlwaysSchedule, PeriodicSchedule } from "@bouncer/schedule";
 import { timeGenerator } from "./testUtils";
+import { PartialTime, PeriodicInterval } from "@bouncer/time";
 
 
 describe("ScheduledLimit -> WindowCooldownLimit", () => {
@@ -120,7 +121,7 @@ describe("regression tests", () => {
   });
 
   test("enforcer with PeriodicSchedule and WindowCooldownLimit gives proper timeline events", () => {
-    const schedule = new PeriodicSchedule("day", [ { start: 0, end: 0 } ]);
+    const schedule = new PeriodicSchedule("day", [ new PeriodicInterval("day", new PartialTime(), new PartialTime()) ]);
 
     const duration = 10_000, cooldown = 10_000;
     const limit = new WindowCooldownLimit(duration, cooldown);

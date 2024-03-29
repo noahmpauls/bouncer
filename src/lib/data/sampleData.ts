@@ -5,6 +5,8 @@ import { AndMatcher, ExactHostnameMatcher, LevelMatcher, NotMatcher, OrMatcher }
 import { BasicPage } from "@bouncer/page";
 import { BasicPolicy } from "@bouncer/policy";
 import { MinuteSchedule, AlwaysSchedule, PeriodicSchedule } from "@bouncer/schedule";
+import { Period, PeriodicInterval } from "@bouncer/time";
+import { PartialTime } from "@bouncer/time";
 
 export const sampleGuards = [
   new BasicPolicy(
@@ -42,15 +44,17 @@ export const sampleGuards = [
     ),
   ),
   new BasicPolicy(
-    "Limit CNBC during work hours",
+    "Limit CNBC during work hours on weekdays",
     true,
     new ExactHostnameMatcher("www.cnbc.com"),
     new ScheduledLimit(
       new PeriodicSchedule(
-        "day",
-        [
-          { start: 2.88e+7, end: 6.12e+7 }
-        ]
+        "week",
+        [1, 2, 3, 4, 5].map(day => new PeriodicInterval(
+          "week",
+          new PartialTime({ day: day, hour: 8, }),
+          new PartialTime({ day: day, hour: 16, }),
+        ))
       ),
       new AlwaysBlock(),
     ),

@@ -1,10 +1,8 @@
 import type { PeriodicScheduleData } from "@bouncer/schedule/PeriodicSchedule";
 import type { IScheduleInput } from "./ScheduleInput";
 import { PeriodIntervalInput } from "./PeriodIntervalInput";
+import { PartialTime, PeriodicInterval, type PeriodType } from "@bouncer/time";
 
-
-// TODO: this is dumb.
-type DumbPeriod = "minute" | "hour" | "day" | "week";
 
 const template = document.createElement("template");
 template.id = "periodic-schedule-input-template";
@@ -60,8 +58,12 @@ export class PeriodicScheduleInput extends HTMLElement implements IScheduleInput
     return {
       type: "PeriodicSchedule",
       data: {
-        period: periodSelect.value as DumbPeriod,
-        intervals: intervals,
+        type: periodSelect.value as PeriodType,
+        intervals: intervals
+          .map(({ start, end }) => ({
+            start: PartialTime.fromOffset(start).toObject(),
+            end: PartialTime.fromOffset(end).toObject(),
+          })),
       }
     }
   }
