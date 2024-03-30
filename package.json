@@ -10,10 +10,11 @@
     "dev:scripts": "rollup --config --watch",
     "dev:ui": "eleventy --watch --quiet",
     "dev:webext": "web-ext run",
-    "build": "run-s -l build:*",
+    "build": "run-s -l build:scripts build:ui",
     "build:scripts": "rollup --config",
     "build:ui": "eleventy",
-    "build:webext": "web-ext build"
+    "build:webext": "web-ext build",
+    "package": "run-s -l build:scripts build:ui build:webext"
   },
   "author": "Noah Pauls <noah@noahpauls.com>",
   "license": "ISC",
