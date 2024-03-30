@@ -1,6 +1,6 @@
 import { SyncedCache } from "@bouncer/cache";
 import { Controller } from "@bouncer/controller";
-import { BouncerContext } from "@bouncer/data/BouncerContext";
+import { BouncerContext } from "@bouncer/data";
 import { BrowserEvents, type IBrowserEventHandler, type IControllerEventEmitter } from "@bouncer/events";
 import { BrowserControllerMessenger, type IControllerMessenger } from "@bouncer/message";
 

@@ -1,7 +1,7 @@
 import type { IGuard } from "@bouncer/guard";
 import { assert } from "@bouncer/utils";
 import type { ActiveTabs } from "./ActiveTabs";
-import { Maps } from "@bouncer/utils/Maps";
+import { Maps } from "@bouncer/utils";
 
 /**
  * Represents the assignment of guards to browser tabs and frames.
