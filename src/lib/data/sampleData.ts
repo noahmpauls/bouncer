@@ -5,8 +5,7 @@ import { AndMatcher, ExactHostnameMatcher, LevelMatcher, NotMatcher, OrMatcher }
 import { BasicPage } from "@bouncer/page";
 import { BasicPolicy } from "@bouncer/policy";
 import { MinuteSchedule, AlwaysSchedule, PeriodicSchedule } from "@bouncer/schedule";
-import { Period, PeriodicInterval } from "@bouncer/time";
-import { PartialTime } from "@bouncer/time";
+import { PeriodicInterval, PeriodicTime } from "@bouncer/time";
 
 export const sampleGuards = [
   new BasicPolicy(
@@ -49,11 +48,9 @@ export const sampleGuards = [
     new ExactHostnameMatcher("www.cnbc.com"),
     new ScheduledLimit(
       new PeriodicSchedule(
-        "week",
-        [1, 2, 3, 4, 5].map(day => new PeriodicInterval(
-          "week",
-          new PartialTime({ day: day, hour: 8, }),
-          new PartialTime({ day: day, hour: 16, }),
+        ["Mon", "Tue", "Wed", "Thu", "Fri"].map(day => new PeriodicInterval(
+          PeriodicTime.fromString(`${day} 08:00:00`),
+          PeriodicTime.fromString(`${day} 16:00:00`),
         ))
       ),
       new AlwaysBlock(),

@@ -1,31 +1,26 @@
-import { PartialTime, type PartialTimeData } from "./PartialTime";
+import { assert } from "@bouncer/utils";
 import { Period } from "./Period";
+import { PeriodicTime } from "./PeriodicTime";
 import type { IPeriod, PeriodType } from "./types";
 
 /**
  * Represents a repeating interval of time.
  */
 export class PeriodicInterval {
-  /** Start of the interval (inclusive) */
-  public readonly start: PartialTime;
-  /** End of the interval (exclusive) */
-  public readonly end: PartialTime;
-  private readonly period: IPeriod;
-
   /**
-   * 
-   * @param type Period of the interval.
-   * @param start interval start time, inclusive
-   * @param end interval end time, exclusive
+   * @param start Start of the interval (inclusive).
+   * @param end End of the interval (exclusive).
    */
   constructor(
-    public readonly type: PeriodType,
-    start: PartialTime,
-    end: PartialTime,
+    public readonly start: PeriodicTime,
+    public readonly end: PeriodicTime,
   ) {
-    this.start = start.normalized(this.type);
-    this.end = end.normalized(this.type);
-    this.period = Period.from(this.type)
+    this.checkRep();
+  }
+
+  private checkRep = () => {
+    assert(this.start.period === this.end.period,
+      `period of bounds must match; got [${this.start.period}, ${this.end.period})`)
   }
 
   /**
@@ -36,29 +31,32 @@ export class PeriodicInterval {
    */
   static fromObject = (obj: PeriodicIntervalData): PeriodicInterval =>
     new PeriodicInterval(
-      obj.type,
-      new PartialTime(obj.start),
-      new PartialTime(obj.end),
+      PeriodicTime.fromString(obj.start),
+      PeriodicTime.fromString(obj.end),
     )
+  
+  /**
+   * The period over which this interval repeats
+   */
+  get period(): PeriodType {
+    return this.start.period;
+  }
 
   /**
-   * Determine whether two intervals of the same type overlap.
+   * Determine whether two intervals of the same period overlap.
    * 
-   * @param other interval to test; must be of the same type
+   * @param other interval to test; must be of the same period
    * @returns whether the intervals overlap
    */
   overlaps = (other: PeriodicInterval): boolean => {
-    if (this.type !== other.type) {
-      throw new Error(`cannot compare intervals of different periods (got ${this.type} and ${other.type})`);
-    }
-
+    const p = Period(this.period);
     const unwrappedMs = {
       start: this.start.offset(),
       end: this.end.offset(),
     };
 
     if (unwrappedMs.start >= unwrappedMs.end) {
-      unwrappedMs.end += this.period.length;
+      unwrappedMs.end += p.ms
     }
 
     const otherMs = {
@@ -67,8 +65,8 @@ export class PeriodicInterval {
     };
 
     const otherShiftedMs = {
-      start: otherMs.start + this.period.length,
-      end: otherMs.end + this.period.length,
+      start: otherMs.start + p.ms,
+      end: otherMs.end + p.ms,
     };
 
     for (const interval of [otherMs, otherShiftedMs]) {
@@ -89,80 +87,21 @@ export class PeriodicInterval {
    * @returns whether the interval contains the given time
    */
   contains = (time: Date): boolean => {
-    const periodOffset = time.getTime() - this.period.start(time).getTime();
-    const [start, end] = [this.start.offset(), this.end.offset()];
-
-    if (start < end) {
-      return periodOffset >= start && periodOffset < end;
-    } else {
-      return periodOffset >= start || periodOffset < end;
-    }
-  }
-
-  /**
-   * Find the concrete start time of the next period after the given time.
-   * 
-   * @param time
-   * @returns the start of the next period after the given time
-   */
-  nextStart = (time: Date): Date => {
-    const periodStart = this.period.start(time);
-    const intervalStart = new Date(periodStart.getTime() + this.start.offset());
-    if (time > intervalStart) {
-      return new Date(intervalStart.getTime() + this.period.length);
-    } else {
-      return intervalStart;
-    }
-  }
-
-  /**
-   * Find the most recent concrete period start time prior to the given time.
-   * The start time can correspond to a period that the given time is contained
-   * by.
-   * 
-   * @param time
-   * @returns the most recent concrete period start time before the given time
-   */
-  lastStart = (time: Date): Date =>
-    this.latest(time, this.start);
-
-  /**
-   * Find the most recent concrete period end time prior to the given time.
-   * 
-   * @param time
-   * @returns the most recent concrete period end time before the given time
-   */
-  lastEnd = (time: Date): Date =>
-    this.latest(time, this.end);
-
-  /**
-   * @param time maximum allowed concrete time (inclusive)
-   * @param moment moment to convert to concrete instance
-   * @returns the most recent concrete instance of the given moment
-   */
-  latest = (time: Date, moment: PartialTime): Date => {
-    let periodStart = this.period.start(time);
-    let nearest = new Date(periodStart.getTime() + moment.offset());
-    if (nearest > time) {
-      // TODO: potential daylight savings bug in this conversion?
-      return new Date(nearest.getTime() - this.period.length);
-    } else {
-      return nearest;
-    }
+    const intervalStart = this.start.prev(time);
+    let intervalEnd = this.end.next(time, false);
+    return intervalEnd.getTime() - intervalStart.getTime() <= Period(this.period).ms;
   }
 
   /**
    * @returns serialized data representation
    */
   toObject = (): PeriodicIntervalData => ({
-    type: this.type,
     start: this.start.toObject(),
     end: this.end.toObject(),
   });
 }
 
 export type PeriodicIntervalData = {
-  type: PeriodType,
-  start: PartialTimeData,
-  end: PartialTimeData,
+  start: string,
+  end: string,
 }

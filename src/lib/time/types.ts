@@ -16,8 +16,8 @@ export interface IPeriod {
   /** Type of period. */
   type: PeriodType;
 
-  /** Length of the period. */
-  length: number;
+  /** Length of the period in milliseconds. */
+  ms: number;
 
   /**
    * Find the exact start time of the period containing the given time.

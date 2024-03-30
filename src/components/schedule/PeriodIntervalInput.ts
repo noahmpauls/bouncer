@@ -1,6 +1,3 @@
-// TODO: this is dumb.
-type DumbPeriod = "minute" | "hour" | "day" | "week";
-
 const template = document.createElement("template");
 template.id = "period-interval-input-template";
 template.innerHTML = `<div>
@@ -28,12 +25,12 @@ export class PeriodIntervalInput extends HTMLElement {
     });
   }
 
-  get value(): { start: number, end: number } {
+  get value(): { start: string, end: string } {
     const startInput = this.shadow.getElementById("start") as HTMLInputElement;
     const endInput = this.shadow.getElementById("end") as HTMLInputElement;
     return {
-      start: Number(startInput.value),
-      end: Number(endInput.value),
+      start: startInput.value,
+      end: endInput.value,
     }
   }
 }

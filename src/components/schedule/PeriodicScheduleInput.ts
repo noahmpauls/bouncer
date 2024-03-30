@@ -1,8 +1,7 @@
 import type { PeriodicScheduleData } from "@bouncer/schedule/PeriodicSchedule";
 import type { IScheduleInput } from "./ScheduleInput";
 import { PeriodIntervalInput } from "./PeriodIntervalInput";
-import { PartialTime, PeriodicInterval, type PeriodType } from "@bouncer/time";
-
+import { PeriodicTime } from "@bouncer/time";
 
 const template = document.createElement("template");
 template.id = "periodic-schedule-input-template";
@@ -48,7 +47,6 @@ export class PeriodicScheduleInput extends HTMLElement implements IScheduleInput
   }
 
   get value(): PeriodicScheduleData {
-    const periodSelect = this.shadow.getElementById("period-select") as HTMLSelectElement;
     const intervalInputs = this.shadow.getElementById("intervals");
     const intervals = [];
     for (const intervalInput of intervalInputs?.children ?? []) {
@@ -58,11 +56,10 @@ export class PeriodicScheduleInput extends HTMLElement implements IScheduleInput
     return {
       type: "PeriodicSchedule",
       data: {
-        type: periodSelect.value as PeriodType,
         intervals: intervals
           .map(({ start, end }) => ({
-            start: PartialTime.fromOffset(start).toObject(),
-            end: PartialTime.fromOffset(end).toObject(),
+            start: PeriodicTime.fromString(start).toObject(),
+            end: PeriodicTime.fromString(end).toObject(),
           })),
       }
     }

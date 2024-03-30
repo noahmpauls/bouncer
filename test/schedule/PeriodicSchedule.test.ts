@@ -2,7 +2,7 @@ import { DateTime } from "luxon";
 import { BasicPage, type PageAction, PageActionType } from "@bouncer/page";
 import { describe, test, expect } from "@jest/globals";
 import { PeriodicSchedule } from "@bouncer/schedule";
-import { PartialTime, PeriodicInterval } from "@bouncer/time";
+import { PeriodicInterval, PeriodicTime } from "@bouncer/time";
 
 
 const REFTIME = DateTime.fromISO("2000-01-01T00:00:00.500");
@@ -10,15 +10,15 @@ const REFTIME = DateTime.fromISO("2000-01-01T00:00:00.500");
 describe("PeriodicSchedule (minute)", () => {
   test("rejects invalid (empty intervals)", () => {
     expect(() => {
-      const schedule = new PeriodicSchedule( "minute", []);
+      const schedule = new PeriodicSchedule([]);
     }).toThrow();
   })
 
 
   test("rejects invalid (mismatched periods)", () => {
     expect(() => {
-      const schedule = new PeriodicSchedule("minute", [
-        new PeriodicInterval("day", new PartialTime(), new PartialTime())
+      const schedule = new PeriodicSchedule([
+        new PeriodicInterval(PeriodicTime.fromString("00"), PeriodicTime.fromString("08:00")),
       ]);
     }).toThrow();
   })
@@ -26,9 +26,9 @@ describe("PeriodicSchedule (minute)", () => {
 
   test("rejects invalid (overlapping intervals)", () => {
     expect(() => {
-      const schedule = new PeriodicSchedule("minute", [
-        new PeriodicInterval("minute", new PartialTime({ second: 59 }), new PartialTime({ second: 10 })),
-        new PeriodicInterval("minute", new PartialTime({ second: 5 }), new PartialTime({ second: 12 })),
+      const schedule = new PeriodicSchedule([
+        new PeriodicInterval(PeriodicTime.fromString(`59`), PeriodicTime.fromString(`10`)),
+        new PeriodicInterval(PeriodicTime.fromString(`5`), PeriodicTime.fromString(`12`)),
       ])
     }).toThrow();
   })
@@ -40,8 +40,8 @@ describe("PeriodicSchedule (minute)", () => {
     { s: 45, ms: 0, contains: true },
     { s: 44, ms: 999, contains: true },
   ])("wrap-around all-inclusive contains $s s, $ms ms: $contains", ({ s, ms, contains }) => {
-    const schedule = new PeriodicSchedule("minute", [
-      new PeriodicInterval("minute", new PartialTime({ second: 45}), new PartialTime({ second: 45 })),
+    const schedule = new PeriodicSchedule([
+      new PeriodicInterval(PeriodicTime.fromString(`45`), PeriodicTime.fromString(`45`)),
     ]);
 
     const date = new Date(2000, 3, 12, 5, 15, s, ms);
@@ -56,8 +56,8 @@ describe("PeriodicSchedule (minute)", () => {
     { s: 35, ms: 0, contains: false },
     { s: 0, ms: 500, contains: false },
   ])("wrap-around gapped contains $s s, $ms ms: $contains", ({ s, ms, contains }) => {
-    const schedule = new PeriodicSchedule("minute", [
-      new PeriodicInterval("minute", new PartialTime({ second: 34}), new PartialTime({ second: 35 })),
+    const schedule = new PeriodicSchedule([
+      new PeriodicInterval(PeriodicTime.fromString(`34`), PeriodicTime.fromString(`35`)),
     ]);
 
     const date = new Date(2000, 3, 12, 5, 15, s, ms);
@@ -69,8 +69,8 @@ describe("PeriodicSchedule (minute)", () => {
   test("start in range", () => {
     const startSec = 30;
     const endSec = 59;
-    const schedule = new PeriodicSchedule("minute", [
-      new PeriodicInterval("minute", new PartialTime({ second: startSec}), new PartialTime({ second: endSec })),
+    const schedule = new PeriodicSchedule([
+      new PeriodicInterval(PeriodicTime.fromString(`${startSec}`), PeriodicTime.fromString(`${endSec}`)),
     ]);
 
     const page = new BasicPage();
@@ -90,8 +90,8 @@ describe("PeriodicSchedule (minute)", () => {
   test("end in range", () => {
     const startSec = 59;
     const endSec = 30;
-    const schedule = new PeriodicSchedule("minute", [
-      new PeriodicInterval("minute", new PartialTime({ second: startSec}), new PartialTime({ second: endSec })),
+    const schedule = new PeriodicSchedule([
+      new PeriodicInterval(PeriodicTime.fromString(`${startSec}`), PeriodicTime.fromString(`${endSec}`)),
     ]);
 
     const page = new BasicPage();
@@ -110,8 +110,8 @@ describe("PeriodicSchedule (minute)", () => {
   test("end then start in range, no gap", () => {
     const startSec = 10;
     const endSec = startSec;
-    const schedule = new PeriodicSchedule("minute", [
-      new PeriodicInterval("minute", new PartialTime({ second: startSec}), new PartialTime({ second: endSec })),
+    const schedule = new PeriodicSchedule([
+      new PeriodicInterval(PeriodicTime.fromString(`${startSec}`), PeriodicTime.fromString(`${endSec}`)),
     ]);
 
     const page = new BasicPage();
@@ -131,8 +131,8 @@ describe("PeriodicSchedule (minute)", () => {
   test("end then start in range, gapped", () => {
     const startSec = 40;
     const endSec = 20;
-    const schedule = new PeriodicSchedule("minute", [
-      new PeriodicInterval("minute", new PartialTime({ second: startSec}), new PartialTime({ second: endSec })),
+    const schedule = new PeriodicSchedule([
+      new PeriodicInterval(PeriodicTime.fromString(`${startSec}`), PeriodicTime.fromString(`${endSec}`)),
     ]);
 
     const page = new BasicPage();
@@ -152,8 +152,8 @@ describe("PeriodicSchedule (minute)", () => {
   test("start then end in range, gapped", () => {
     const startSec = 40;
     const endSec = 20;
-    const schedule = new PeriodicSchedule("minute", [
-      new PeriodicInterval("minute", new PartialTime({ second: startSec}), new PartialTime({ second: endSec })),
+    const schedule = new PeriodicSchedule([
+      new PeriodicInterval(PeriodicTime.fromString(`${startSec}`), PeriodicTime.fromString(`${endSec}`)),
     ]);
 
     const page = new BasicPage();
@@ -173,8 +173,8 @@ describe("PeriodicSchedule (minute)", () => {
   test("start in range while blocked", () => {
     const startSec = 30;
     const endSec = 59;
-    const schedule = new PeriodicSchedule("minute", [
-      new PeriodicInterval("minute", new PartialTime({ second: startSec}), new PartialTime({ second: endSec })),
+    const schedule = new PeriodicSchedule([
+      new PeriodicInterval(PeriodicTime.fromString(`${startSec}`), PeriodicTime.fromString(`${endSec}`)),
     ]);
 
     const page = new BasicPage();
@@ -192,8 +192,8 @@ describe("PeriodicSchedule (minute)", () => {
   test("end in range while blocked", () => {
     const startSec = 30;
     const endSec = 59;
-    const schedule = new PeriodicSchedule("minute", [
-      new PeriodicInterval("minute", new PartialTime({ second: startSec}), new PartialTime({ second: endSec })),
+    const schedule = new PeriodicSchedule([
+      new PeriodicInterval(PeriodicTime.fromString(`${startSec}`), PeriodicTime.fromString(`${endSec}`)),
     ]);
 
     const page = new BasicPage();
@@ -214,8 +214,8 @@ describe("PeriodicSchedule (minute)", () => {
   test("end then start in range while blocked, no gap", () => {
     const startSec = 10;
     const endSec = startSec;
-    const schedule = new PeriodicSchedule("minute", [
-      new PeriodicInterval("minute", new PartialTime({ second: startSec}), new PartialTime({ second: endSec })),
+    const schedule = new PeriodicSchedule([
+      new PeriodicInterval(PeriodicTime.fromString(`${startSec}`), PeriodicTime.fromString(`${endSec}`)),
     ]);
 
     const page = new BasicPage();
@@ -238,8 +238,8 @@ describe("PeriodicSchedule (minute)", () => {
   test("end then start in range while blocked, gapped", () => {
     const startSec = 40;
     const endSec = 20;
-    const schedule = new PeriodicSchedule("minute", [
-      new PeriodicInterval("minute", new PartialTime({ second: startSec}), new PartialTime({ second: endSec })),
+    const schedule = new PeriodicSchedule([
+      new PeriodicInterval(PeriodicTime.fromString(`${startSec}`), PeriodicTime.fromString(`${endSec}`)),
     ]);
 
     const page = new BasicPage();
@@ -262,8 +262,8 @@ describe("PeriodicSchedule (minute)", () => {
   test("start then end in range while blocked", () => {
     const startSec = 40;
     const endSec = 20;
-    const schedule = new PeriodicSchedule("minute", [
-      new PeriodicInterval("minute", new PartialTime({ second: startSec}), new PartialTime({ second: endSec })),
+    const schedule = new PeriodicSchedule([
+      new PeriodicInterval(PeriodicTime.fromString(`${startSec}`), PeriodicTime.fromString(`${endSec}`)),
     ]);
 
     const page = new BasicPage();
@@ -284,8 +284,8 @@ describe("PeriodicSchedule (minute)", () => {
   test("multiple starts and ends", () => {
     const startSec = 15;
     const endSec = 45;
-    const schedule = new PeriodicSchedule("minute", [
-      new PeriodicInterval("minute", new PartialTime({ second: startSec}), new PartialTime({ second: endSec })),
+    const schedule = new PeriodicSchedule([
+      new PeriodicInterval(PeriodicTime.fromString(`${startSec}`), PeriodicTime.fromString(`${endSec}`)),
     ]);
 
     const page = new BasicPage();
@@ -304,8 +304,8 @@ describe("PeriodicSchedule (minute)", () => {
   test("multiple starts and ends while blocked", () => {
     const startSec = 15;
     const endSec = 45;
-    const schedule = new PeriodicSchedule("minute", [
-      new PeriodicInterval("minute", new PartialTime({ second: startSec}), new PartialTime({ second: endSec })),
+    const schedule = new PeriodicSchedule([
+      new PeriodicInterval(PeriodicTime.fromString(`${startSec}`), PeriodicTime.fromString(`${endSec}`)),
     ]);
 
     const page = new BasicPage();
@@ -327,8 +327,8 @@ describe("PeriodicSchedule (minute)", () => {
 
 describe("MinuteSchedule from/toObject", () => {
   test("from/toObject does not mutate", () => {
-    const expected = new PeriodicSchedule("minute", [
-      new PeriodicInterval("minute", new PartialTime({ second: 0}), new PartialTime({ second: 59 })),
+    const expected = new PeriodicSchedule([
+      new PeriodicInterval(PeriodicTime.fromString(`0`), PeriodicTime.fromString(`59`)),
     ]).toObject();
     const actual = PeriodicSchedule.fromObject(expected).toObject();
     expect(actual).toStrictEqual(actual);

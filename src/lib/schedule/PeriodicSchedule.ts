@@ -1,8 +1,7 @@
 import { assert } from "@bouncer/utils";
 import { type ISchedule } from "./types";
 import { type IPageMetrics, PageAccess, type PageAction, PageActionType } from "@bouncer/page";
-import { PeriodicInterval, type PeriodicIntervalData } from "@bouncer/time";
-import type { PeriodType } from "@bouncer/time";
+import { PeriodicInterval, type PeriodType, type PeriodicIntervalData } from "@bouncer/time";
 
 
 /**
@@ -10,7 +9,6 @@ import type { PeriodType } from "@bouncer/time";
  */
 export class PeriodicSchedule implements ISchedule {
   constructor(
-    private readonly type: PeriodType,
     private readonly intervals: PeriodicInterval[],
   ) {
     this.checkRep();
@@ -25,16 +23,20 @@ export class PeriodicSchedule implements ISchedule {
   static fromObject(obj: PeriodicScheduleData): PeriodicSchedule {
     assert(obj.type === "PeriodicSchedule", `cannot make PeriodicSchedule from data with type ${obj.type}`);
     return new PeriodicSchedule(
-      obj.data.type,
-      obj.data.intervals.map(i => PeriodicInterval.fromObject({ ...i, type: obj.data.type })),
+      obj.data.intervals.map(i => PeriodicInterval.fromObject(i)),
     );
   }
 
   private checkRep() {
     assert(this.intervals.length > 0, `intervals must be non-empty`);
+    let period: PeriodType | undefined = undefined;
     for (const interval of this.intervals) {
-      assert(interval.type === this.type,
-        `interval period (${interval.type}) must match schedule period (${this.type})`);
+      if (period === undefined) {
+        period = interval.period;
+      } else {
+        assert(interval.period === period,
+          `all intervals must have the same period`);
+      }
       for (const [i, a] of this.intervals.entries()) {
         for (const b of this.intervals.slice(i + 1)) {
           assert(!a.overlaps(b),
@@ -49,11 +51,11 @@ export class PeriodicSchedule implements ISchedule {
 
   actions(from: Date, to: Date, page: IPageMetrics): PageAction[] {
     const starts = this.intervals
-      .map(i => i.lastStart(to))
+      .map(i => i.start.prev(to))
       .filter(d => d > from)
       .sort();
     const ends = this.intervals
-      .map(i => i.lastEnd(to))
+      .map(i => i.end.prev(to))
       .filter(d => d > from)
       .sort();
     
@@ -89,7 +91,7 @@ export class PeriodicSchedule implements ISchedule {
 
   nextStart(time: Date): Date | undefined {
     const starts = this.intervals
-      .map(i => i.nextStart(time))
+      .map(i => i.start.next(time))
       .sort();
     return starts[0];
   }
@@ -98,11 +100,7 @@ export class PeriodicSchedule implements ISchedule {
     return {
       type: "PeriodicSchedule",
       data: {
-        type: this.type,
-        intervals: this.intervals.map(i => {
-          const { type: _, ...data } = i.toObject();
-          return data;
-        }),
+        intervals: this.intervals.map(i => i.toObject()),
       }
     }
   }
@@ -111,7 +109,6 @@ export class PeriodicSchedule implements ISchedule {
 export type PeriodicScheduleData = {
   type: "PeriodicSchedule",
   data: {
-    type: PeriodType,
-    intervals: Omit<PeriodicIntervalData, "type">[],
+    intervals: PeriodicIntervalData[],
   }
 }
