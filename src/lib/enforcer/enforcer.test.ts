@@ -3,7 +3,7 @@ import { ScheduledLimit } from "@bouncer/enforcer";
 import { ViewtimeCooldownLimit, WindowCooldownLimit } from "@bouncer/limit";
 import { BasicPage, PageAccess, PageEvent } from "@bouncer/page";
 import { AlwaysSchedule, PeriodicSchedule } from "@bouncer/schedule";
-import { timeGenerator } from "./testUtils";
+import { timeGenerator } from "@bouncer/test";
 import { PeriodicInterval, PeriodicTime } from "@bouncer/time";
 
 

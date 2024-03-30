@@ -7,7 +7,6 @@ export default {
     '.ts': [ 'ts-jest', { useESM: true, tsconfig: './tsconfig.jest.json' }]
   },
   testEnvironment: 'jsdom',
-  setupFilesAfterEnv: ["<rootDir>/test/jest/setup.ts"],
 
   // https://kulshekhar.github.io/ts-jest/docs/getting-started/paths-mapping/#jest-config-with-helper
   roots: ["<rootDir>"],

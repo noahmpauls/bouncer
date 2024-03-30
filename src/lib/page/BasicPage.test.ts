@@ -1,6 +1,6 @@
 import { describe, test, expect } from "@jest/globals";
 import { BasicPage, type IPage, PageAccess, PageActionType, PageEvent } from "@bouncer/page";
-import { timeGenerator } from "../testUtils";
+import { timeGenerator } from "@bouncer/test";
 
 
 type ObservedPage = {

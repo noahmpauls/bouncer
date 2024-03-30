@@ -1,6 +1,6 @@
 import { WeekSchedule } from "@bouncer/schedule";
 import { describe, test, expect } from "@jest/globals";
-import { timeGenerator } from "../testUtils";
+import { timeGenerator } from "@bouncer/test";
 import { BasicPage, PageEvent } from "@bouncer/page";
 
 describe("regression", () => {

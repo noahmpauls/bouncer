@@ -1,7 +1,7 @@
 import { describe, test, expect } from "@jest/globals";
 import { AlwaysBlock } from "@bouncer/limit";
 import { BasicPage, type PageAction, PageActionType, PageEvent } from "@bouncer/page";
-import { pageWithMutations } from "../testUtils";
+import { pageWithMutations } from "@bouncer/test";
 
 
 describe("AlwaysBlock action", () => {

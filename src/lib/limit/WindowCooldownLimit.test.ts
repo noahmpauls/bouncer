@@ -1,7 +1,7 @@
 import { WindowCooldownLimit } from "@bouncer/limit";
 import { PageAccess, type PageAction, PageActionType } from "@bouncer/page";
 import { describe, test, expect } from "@jest/globals";
-import { pageMetrics, timeGenerator } from "../testUtils";
+import { pageMetrics, timeGenerator } from "@bouncer/test";
 
 
 describe("WindowCooldownLimit action", () => {
