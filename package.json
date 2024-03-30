@@ -5,13 +5,15 @@
   "description": "Ridiculously configurable website limiter.",
   "main": "manifest.json",
   "scripts": {
-    "build": "rollup --config && eleventy",
-    "build:watch": "rollup --config --watch",
-    "ui:watch": "eleventy --watch --quiet",
-    "webext:watch": "web-ext run",
-    "webext:build": "web-ext build",
-    "dev": "run-p -rl build:watch ui:watch webext:watch",
-    "test": "jest"
+    "test": "jest",
+    "dev": "run-p -rl dev:*",
+    "dev:scripts": "rollup --config --watch",
+    "dev:ui": "eleventy --watch --quiet",
+    "dev:webext": "web-ext run",
+    "build": "run-s -l build:*",
+    "build:scripts": "rollup --config",
+    "build:ui": "eleventy",
+    "build:webext": "web-ext build"
   },
   "author": "Noah Pauls <noah@noahpauls.com>",
   "license": "ISC",
