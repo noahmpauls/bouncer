@@ -1,7 +1,7 @@
 import { assert } from "@bouncer/utils";
 import { Period } from "./Period";
 import { PeriodicTime } from "./PeriodicTime";
-import type { IPeriod, PeriodType } from "./types";
+import type { PeriodType } from "./types";
 
 /**
  * Represents a repeating interval of time.

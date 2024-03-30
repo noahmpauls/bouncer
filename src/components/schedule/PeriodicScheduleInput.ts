@@ -1,7 +1,7 @@
 import type { PeriodicScheduleData } from "@bouncer/schedule/PeriodicSchedule";
 import type { IScheduleInput } from "./ScheduleInput";
 import { PeriodIntervalInput } from "./PeriodIntervalInput";
-import { PeriodicTime } from "@bouncer/time";
+import { PeriodicTime } from "@bouncer/period";
 
 const template = document.createElement("template");
 template.id = "periodic-schedule-input-template";

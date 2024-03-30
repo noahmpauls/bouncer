@@ -1,7 +1,7 @@
 import { assert } from "@bouncer/utils";
 import { type ISchedule } from "./types";
 import { type IPageMetrics, PageAccess, type PageAction, PageActionType } from "@bouncer/page";
-import { PeriodicInterval, type PeriodType, type PeriodicIntervalData } from "@bouncer/time";
+import { PeriodicInterval, type PeriodType, type PeriodicIntervalData } from "@bouncer/period";
 
 
 /**

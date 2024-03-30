@@ -1,4 +1,4 @@
-import { MS } from "./constants";
+import { MS } from "@bouncer/time";
 import type { IPeriod, PeriodType } from "./types";
 
 export function Period(type: PeriodType) {

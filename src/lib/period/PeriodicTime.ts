@@ -1,5 +1,5 @@
 import { assert } from "@bouncer/utils";
-import { MS } from "./constants";
+import { MS } from "@bouncer/time";
 import type { PeriodType } from "./types";
 import { Period } from "./Period";
 

@@ -5,7 +5,7 @@ import { AndMatcher, ExactHostnameMatcher, LevelMatcher, NotMatcher, OrMatcher }
 import { BasicPage } from "@bouncer/page";
 import { BasicPolicy } from "@bouncer/policy";
 import { MinuteSchedule, AlwaysSchedule, PeriodicSchedule } from "@bouncer/schedule";
-import { PeriodicInterval, PeriodicTime } from "@bouncer/time";
+import { PeriodicInterval, PeriodicTime } from "@bouncer/period";
 
 export const sampleGuards = [
   new BasicPolicy(

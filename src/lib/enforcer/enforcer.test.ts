@@ -4,7 +4,7 @@ import { ViewtimeCooldownLimit, WindowCooldownLimit } from "@bouncer/limit";
 import { BasicPage, PageAccess, PageEvent } from "@bouncer/page";
 import { AlwaysSchedule, PeriodicSchedule } from "@bouncer/schedule";
 import { timeGenerator } from "@bouncer/test";
-import { PeriodicInterval, PeriodicTime } from "@bouncer/time";
+import { PeriodicInterval, PeriodicTime } from "@bouncer/period";
 
 
 describe("ScheduledLimit -> WindowCooldownLimit", () => {

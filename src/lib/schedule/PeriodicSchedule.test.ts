@@ -2,7 +2,7 @@ import { DateTime } from "luxon";
 import { BasicPage, type PageAction, PageActionType } from "@bouncer/page";
 import { describe, test, expect } from "@jest/globals";
 import { PeriodicSchedule } from "@bouncer/schedule";
-import { PeriodicInterval, PeriodicTime } from "@bouncer/time";
+import { PeriodicInterval, PeriodicTime } from "@bouncer/period";
 
 
 const REFTIME = DateTime.fromISO("2000-01-01T00:00:00.500");
