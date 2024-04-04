@@ -42,5 +42,5 @@ export function serializeMatcher(matcher: IMatcher): MatcherData {
 
 export * from "./types";
 export { ExactHostnameMatcher } from "./ExactHostnameMatcher";
-export { FrameTypeMatcher as LevelMatcher } from "./FrameTypeMatcher";
+export { FrameTypeMatcher } from "./FrameTypeMatcher";
 export { OrMatcher, AndMatcher, NotMatcher } from "./LogicalMatcher";

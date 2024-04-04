@@ -1,5 +1,5 @@
 import type { ExactHostnameMatcherData } from "./ExactHostnameMatcher";
-import type { LevelMatcherData } from "./FrameTypeMatcher";
+import type { FrameTypeMatcherData } from "./FrameTypeMatcher";
 import type { AndMatcherData, NotMatcherData, OrMatcherData } from "./LogicalMatcher";
 
 export type FrameType = "ROOT" | "CHILD";
@@ -31,7 +31,7 @@ export type IMatcher = {
  */
 export type MatcherData = 
   ExactHostnameMatcherData
-| LevelMatcherData
+| FrameTypeMatcherData
 | OrMatcherData
 | AndMatcherData
 | NotMatcherData

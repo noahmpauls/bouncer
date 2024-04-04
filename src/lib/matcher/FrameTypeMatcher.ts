@@ -19,7 +19,7 @@ export class FrameTypeMatcher implements IMatcher {
    * @param obj object data representing matcher
    * @returns matcher
    */
-  static fromObject(obj: LevelMatcherData): FrameTypeMatcher {
+  static fromObject(obj: FrameTypeMatcherData): FrameTypeMatcher {
     assert(obj.type === "FrameType", `cannot make FrameType from data with type ${obj.type}`);
     return new FrameTypeMatcher(obj.data.type);
   }
@@ -28,7 +28,7 @@ export class FrameTypeMatcher implements IMatcher {
     return this.type === type;
   }
   
-  toObject(): LevelMatcherData {
+  toObject(): FrameTypeMatcherData {
     return {
       type: "FrameType",
       data: {
@@ -38,7 +38,7 @@ export class FrameTypeMatcher implements IMatcher {
   }
 }
 
-export type LevelMatcherData = {
+export type FrameTypeMatcherData = {
   type: "FrameType",
   data: {
     type: FrameType,

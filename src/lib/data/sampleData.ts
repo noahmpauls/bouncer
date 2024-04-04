@@ -1,7 +1,7 @@
 import { ScheduledLimit } from "@bouncer/enforcer";
 import { BasicGuard } from "@bouncer/guard";
 import { ViewtimeCooldownLimit, WindowCooldownLimit, AlwaysBlock } from "@bouncer/limit";
-import { AndMatcher, ExactHostnameMatcher, LevelMatcher, NotMatcher, OrMatcher } from "@bouncer/matcher";
+import { AndMatcher, ExactHostnameMatcher, FrameTypeMatcher, NotMatcher, OrMatcher } from "@bouncer/matcher";
 import { BasicPage } from "@bouncer/page";
 import { BasicPolicy } from "@bouncer/policy";
 import { MinuteSchedule, AlwaysSchedule, PeriodicSchedule } from "@bouncer/schedule";
@@ -12,7 +12,7 @@ export const sampleGuards = [
     "Complex matcher viewtime block",
     true,
     new AndMatcher([
-      new LevelMatcher("ROOT"),
+      new FrameTypeMatcher("ROOT"),
       new NotMatcher(new OrMatcher([
         new ExactHostnameMatcher("example.com"),
         new ExactHostnameMatcher("www.microsoft.com"),
