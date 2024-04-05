@@ -50,8 +50,8 @@ const BouncerContextTransformer = {
 }
 
 const browserBuckets: BouncerContextBuckets = {
-  local: new BrowserStorage(browser.storage.local),
-  session: new BrowserStorage(browser.storage.session)
+  local: BrowserStorage.local(),
+  session: BrowserStorage.session(),
 }
 
 const browserFallbacks: BouncerContextFallbacks = {

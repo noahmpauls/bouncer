@@ -1,5 +1,6 @@
 import type Browser from "webextension-polyfill";
 import { type IStorage } from "./types";
+import { browser } from "@bouncer/browser";
 
 /**
  * Persistent data manipulation through browser local extension storage.
@@ -8,6 +9,20 @@ export class BrowserStorage implements IStorage {
   constructor(
     private readonly bucket: Browser.Storage.StorageArea,
   ) { }
+
+  /**
+   * @returns browser session storage
+   */
+  static session = (): BrowserStorage => {
+    return new BrowserStorage(browser.storage.session);
+  }
+
+  /**
+   * @returns browser local storage
+   */
+  static local = (): BrowserStorage => {
+    return new BrowserStorage(browser.storage.local);
+  }
 
   async get<T>(key: string, fallback: T): Promise<T> {
     const getArg = ({ [key]: fallback });
