@@ -30,8 +30,6 @@ type BouncerContextFallbacks = {
   [Property in keyof BouncerContextKeyConfig]: BouncerContextKeyConfig[Property]["fallback"]
 }
 
-export type BouncerContext = StoredContext<BouncerContextObject, BouncerContextData, BouncerContextBuckets>
-
 const BouncerContextTransformer = {
   serialize: (obj: BouncerContextObject): BouncerContextData => {
     return  {
@@ -60,27 +58,27 @@ const browserFallbacks: BouncerContextFallbacks = {
   guards: { value: sampleGuards.map(serializeGuard) },
 }
 
-const createBouncerContext = (buckets: BouncerContextBuckets, fallbacks: BouncerContextFallbacks) => new StoredContext(
-  buckets,
-  BouncerContextTransformer,
-  {
-    activeTabs: {
-      bucket: "session",
-      fallback: fallbacks.activeTabs,
-    },
-    guardPostings: {
-      bucket: "session",
-      fallback: fallbacks.guardPostings,
-    },
-    guards: {
-      bucket: "local",
-      fallback: fallbacks.guards,
-    }
+const browserKeyConfig = (fallbacks: BouncerContextFallbacks): BouncerContextKeyConfig => ({
+  activeTabs: {
+    bucket: "session",
+    fallback: fallbacks.activeTabs,
+  },
+  guardPostings: {
+    bucket: "session",
+    fallback: fallbacks.guardPostings,
+  },
+  guards: {
+    bucket: "local",
+    fallback: fallbacks.guards,
   }
-);
+});
+
+export type BouncerContext = StoredContext<BouncerContextObject, BouncerContextData, BouncerContextBuckets>
 
 export const BouncerContext = {
-  new: createBouncerContext,
-  browser: () => createBouncerContext(browserBuckets, browserFallbacks),
-}
+  new: (buckets: BouncerContextBuckets, fallbacks: BouncerContextFallbacks): BouncerContext => {
+    return new StoredContext(buckets, BouncerContextTransformer, browserKeyConfig(fallbacks));
+  },
 
+  browser: (): BouncerContext => BouncerContext.new(browserBuckets, browserFallbacks)
+}

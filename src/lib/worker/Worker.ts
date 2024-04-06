@@ -5,45 +5,31 @@ import { BrowserEvents, type IBrowserEventHandler, type IControllerEventEmitter 
 import { BrowserControllerMessenger, type IControllerMessenger } from "@bouncer/message";
 
 export class Worker<TEvents extends IControllerEventEmitter> {
-  private readonly controllerCache: SyncedCache<Controller>;
+  private readonly controller: Controller;
 
   constructor(
-    private readonly context: BouncerContext,
     readonly events: TEvents,
-    messenger: IControllerMessenger
+    context: BouncerContext,
+    messenger: IControllerMessenger,
   ) {
-    this.controllerCache = new SyncedCache(async () => {
-      return this.context.fetch()
-        .then(data => new Controller(data.guards, data.guardPostings, data.activeTabs, messenger))
-    });
+    this.controller = new Controller(context, messenger);
   }
 
   static fromBrowser(): Worker<IControllerEventEmitter & IBrowserEventHandler> {
     return new Worker(
-      BouncerContext.browser(),
       new BrowserEvents(),
+      BouncerContext.browser(),
       BrowserControllerMessenger,
     );
   }
 
   start = () => {
-    this.events.onMessage.addListener(this.saveOnComplete(async (event) => {
-      this.controllerCache.value()
-        .then(c => c.handleMessage(event));
-    }));
-    this.events.onBrowse.addListener(this.saveOnComplete(async (event) => {
-      this.controllerCache.value()
-        .then(c => c.handleBrowse(event));
-    }));
+    this.events.onMessage.addListener(this.controller.handleMessage);
+    this.events.onBrowse.addListener(this.controller.handleBrowse);
   }
 
-  private saveOnComplete = (func: (...args: any[]) => Promise<void>) => {
-    return async (...args: any[]) => {
-      await func(...args)
-      await this.context.commit();
-      this.logTimestamp(new Date(), "data saved.");
-    }
+  stop = () => {
+    this.events.onMessage.removeListener(this.controller.handleMessage);
+    this.events.onBrowse.removeListener(this.controller.handleBrowse);
   }
-
-  private logTimestamp = (time: Date, message: string) => console.log(`${time.getTime()} ${ message }`)
 }
