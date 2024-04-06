@@ -1,6 +1,6 @@
 import { SyncedCache } from "@bouncer/cache";
 import { Controller } from "@bouncer/controller";
-import { type IBouncerContext, LogsContext, BouncerContext } from "@bouncer/data";
+import { WorkerContext } from "@bouncer/data";
 import { BrowserEvents, type BrowseEvent, type IBrowserEventHandler, type IControllerEventEmitter } from "@bouncer/events";
 import { BrowserControllerMessenger, type FrameMessage, type IControllerMessenger } from "@bouncer/message";
 
@@ -9,39 +9,36 @@ export class Worker<TEvents extends IControllerEventEmitter> {
   
   constructor(
     readonly events: TEvents,
-    private readonly bouncerContext: IBouncerContext,
-    private readonly logsContext: LogsContext,
+    private readonly context: WorkerContext,
     private readonly messenger: IControllerMessenger,
   ) {
     this.controller = new SyncedCache(this.initializeController);
   }
 
   static fromBrowser(): Worker<IControllerEventEmitter & IBrowserEventHandler> {
-    const logsContext = LogsContext.browser();
     return new Worker(
       new BrowserEvents(),
-      BouncerContext.browser(logsContext.fetch()),
-      logsContext,
+      WorkerContext.browser(),
       BrowserControllerMessenger,
     );
   }
 
   private initializeController = async (): Promise<Controller> => {
-    const logs = this.logsContext.fetch();
+    const { logs, guards, activeTabs, guardPostings } = await this.context.fetch();
     logs.logger("Worker").info("initializing controller");
-    return new Controller(this.bouncerContext, this.messenger, logs);
+    return new Controller(guards, guardPostings, activeTabs, this.messenger, logs);
   }
 
   private onMessage = async (message: FrameMessage) => {
     const controller = await this.controller.value();
     controller.handleMessage(message);
-    this.logsContext.commit();
+    this.context.commit();
   }
 
   private onBrowse = async (event: BrowseEvent) => {
     const controller = await this.controller.value();
     controller.handleBrowse(event);
-    this.logsContext.commit();    
+    this.context.commit();    
   }
 
   start = () => {

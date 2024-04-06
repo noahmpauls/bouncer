@@ -1,7 +1,7 @@
 import { MemoryLogs, type ILogs, type ILogsWriter, LogsStorage } from "@bouncer/logs";
 import type { IContext } from "./types";
 
-export class LogsContext {
+export class LogsContext implements IContext<ILogs> {
   // TODO: could we use an interface instead of MemoryLogs directly?
   constructor(
     private readonly logs: MemoryLogs,
@@ -16,7 +16,7 @@ export class LogsContext {
   }
 
   // TODO: we can't implement with IContext, since this is synchronous...
-  fetch = (): ILogs => {
+  fetch = async (): Promise<ILogs> => {
     return this.logs;
   }
 

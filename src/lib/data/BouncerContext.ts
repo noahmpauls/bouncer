@@ -1,7 +1,7 @@
 import { browser } from "@bouncer/browser";
 import { ActiveTabs } from "@bouncer/controller";
 import { GuardPostings } from "@bouncer/controller";
-import { type IGuard, type GuardData, serializeGuard, deserializeGuard } from "@bouncer/guard";
+import { type GuardData, serializeGuard, deserializeGuard } from "@bouncer/guard";
 import { BrowserStorage, type IStorage } from "@bouncer/storage";
 import { StoredContext } from "./StoredContext";
 import { sampleGuards } from "./sampleData";

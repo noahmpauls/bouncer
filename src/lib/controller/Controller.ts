@@ -5,188 +5,181 @@ import { BasicPage, PageAccess, PageActionType, PageEvent } from "@bouncer/page"
 import { Sets } from "@bouncer/utils";
 import { deserializePolicy, serializePolicy } from "@bouncer/policy";
 import type { FrameType } from "@bouncer/matcher";
-import type { IBouncerContext } from "@bouncer/data";
 import type { ILogger, ILogs } from "@bouncer/logs";
+import type { GuardPostings } from "./GuardPostings";
+import type { ActiveTabs } from "./ActiveTabs";
 
 
 export class Controller {
   private readonly logger: ILogger;
   
   constructor(
-    private readonly context: IBouncerContext,
+    private readonly guards: IGuard[],
+    private readonly guardPostings: GuardPostings,
+    private readonly activeTabs: ActiveTabs,
     private readonly messenger: IControllerMessenger,
     logs: ILogs,
   ) {
     this.logger = logs.logger("Controller");
   }
   
-  handleMessage = async (message: FrameMessage) => {
+  handleMessage = (message: FrameMessage) => {
     this.logger.info("handling message");
     switch (message.type) {
       case (ClientMessageType.STATUS):
-        await this.handleStatus(message);
+        this.handleStatus(message);
         break;
       case (ClientMessageType.POLICIES_GET):
-        await this.handlePoliciesGet(message);
+        this.handlePoliciesGet(message);
         break;
       case (ClientMessageType.POLICY_CREATE):
-        await this.handlePolicyCreate(message);
+        this.handlePolicyCreate(message);
         break;
       case (ClientMessageType.POLICY_UPDATE):
-        await this.handlePolicyUpdate(message);
+        this.handlePolicyUpdate(message);
         break;
       case (ClientMessageType.POLICY_DELETE):
-        await this.handlePolicyDelete(message);
+        this.handlePolicyDelete(message);
         break;
       case (ClientMessageType.PAGE_RESET):
-        await this.handlePageReset(message);
+        this.handlePageReset(message);
         break;
       default:
         console.error(`controller: unable to handle message type ${(message as any).type}`);
         break;
     }
-    this.context.commit();
   }
 
-  private handleStatus = async (message: FromFrame<ClientStatusMessage>) => {
-    const { guardPostings } = await this.context.fetch();
+  private handleStatus = (message: FromFrame<ClientStatusMessage>) => {
     const { tabId, frameId } = message;
     const time = new Date(message.time);
-    const guards = guardPostings.frame(tabId, frameId);
+    const guards = this.guardPostings.frame(tabId, frameId);
     if (guards.length > 0) {
       this.enforce(time, guards);
     }
     this.messageFrame(time, tabId, frameId);
   }
 
-  private handlePoliciesGet = async (message: FromFrame<ClientPoliciesGetMessage>) => {
-    const { guards } = await this.context.fetch();
+  private handlePoliciesGet = (message: FromFrame<ClientPoliciesGetMessage>) => {
     const { tabId, frameId } = message;
-    const policies = guards.map(g => ({ id: g.id, policy: serializePolicy(g.policy)}));
+    const policies = this.guards.map(g => ({ id: g.id, policy: serializePolicy(g.policy)}));
     this.messenger.send(tabId, frameId, {
       type: ControllerMessageType.POLICIES_GET,
       policies,
     });
   }
 
-  private handlePolicyCreate = async (message: FromFrame<ClientPolicyCreateMessage>) => {
-    const { guards } = await this.context.fetch();
+  private handlePolicyCreate = (message: FromFrame<ClientPolicyCreateMessage>) => {
     const { tabId, frameId, policy } = message;
     const newGuard = new BasicGuard(crypto.randomUUID(), deserializePolicy(policy), new BasicPage());
-    guards.push(newGuard);
+    this.guards.push(newGuard);
     // TODO: add guard to existing frames? Then I would need to know URL of each frame...
-    const policies = guards.map(g => ({ id: g.id, policy: serializePolicy(g.policy)}));
+    const policies = this.guards.map(g => ({ id: g.id, policy: serializePolicy(g.policy)}));
     this.messenger.send(tabId, frameId, {
       type: ControllerMessageType.POLICIES_GET,
       policies,
     });
   }
 
-  private handlePolicyUpdate = async (message: FromFrame<ClientPolicyUpdateMessage>) => {
-    const { guards } = await this.context.fetch();
+  private handlePolicyUpdate = (message: FromFrame<ClientPolicyUpdateMessage>) => {
     const { tabId, frameId, id, policy } = message;
-    const guard = guards.find(g => g.id === id);
+    const guard = this.guards.find(g => g.id === id);
     if (guard !== undefined) {
       guard.policy = deserializePolicy(policy);
       this.messageGuard(new Date(), guard);
     }
-    const policies = guards.map(g => ({ id: g.id, policy: serializePolicy(g.policy)}));
+    const policies = this.guards.map(g => ({ id: g.id, policy: serializePolicy(g.policy)}));
     this.messenger.send(tabId, frameId, {
       type: ControllerMessageType.POLICIES_GET,
       policies,
     });
   }
 
-  private handlePolicyDelete = async (message: FromFrame<ClientPolicyDeleteMessage>) => {
-    const { guards, guardPostings } = await this.context.fetch();
+  private handlePolicyDelete = (message: FromFrame<ClientPolicyDeleteMessage>) => {
     const { tabId, frameId, id } = message;
-    const guardIndex = guards.findIndex(g => g.id === id);
+    const guardIndex = this.guards.findIndex(g => g.id === id);
     if (guardIndex !== -1) {
-      const guard = guards[guardIndex];
-      guardPostings.dismissGuard(guard);
-      guards.splice(guardIndex, 1);
+      const guard = this.guards[guardIndex];
+      this.guardPostings.dismissGuard(guard);
+      this.guards.splice(guardIndex, 1);
     }
-    const policies = guards.map(g => ({ id: g.id, policy: serializePolicy(g.policy)}));
+    const policies = this.guards.map(g => ({ id: g.id, policy: serializePolicy(g.policy)}));
     this.messenger.send(tabId, frameId, {
       type: ControllerMessageType.POLICIES_GET,
       policies,
     });
   }
 
-  private handlePageReset = async (message: FromFrame<ClientPageResetMessage>) => {
-    const { guards } = await this.context.fetch();
+  private handlePageReset = (message: FromFrame<ClientPageResetMessage>) => {
     const { id } = message;
     const time = new Date();
-    const guard = guards.find(g => g.id === id);
+    const guard = this.guards.find(g => g.id === id);
     if (guard !== undefined) {
       guard.page.recordAction(PageActionType.RESET_METRICS, time);
       guard.page.recordAction(PageActionType.UNBLOCK, time);
     }
   }
 
-  handleBrowse = async (event: BrowseEvent) => {
+  handleBrowse = (event: BrowseEvent) => {
     const { time } = event;
     switch (event.type) {
       case BrowseEventType.NAVIGATE:
-        await this.handleNavigate(time, event);
+        this.handleNavigate(time, event);
         break;
       case BrowseEventType.TAB_ACTIVATE:
-        await this.handleTabActivate(time, event);
+        this.handleTabActivate(time, event);
         break;
       case BrowseEventType.TAB_REMOVE:
-        await this.handleTabRemove(time, event);
+        this.handleTabRemove(time, event);
         break;
     }
-    this.context.commit();
   }
 
-  private handleNavigate = async (time: Date, event: BrowseNavigateEvent) => {
-    const { guards, guardPostings, activeTabs } = await this.context.fetch();
+  private handleNavigate = (time: Date, event: BrowseNavigateEvent) => {
     const { tabId, frameId, url } = event;
     const frameType: FrameType = frameId === 0 ? "ROOT" : "CHILD";
 
-    const oldGuards = new Set(guardPostings.frame(tabId, frameId));
-    const newGuards = new Set(guards.filter(g => g.policy.appliesTo(url, frameType)));
+    const oldGuards = new Set(this.guardPostings.frame(tabId, frameId));
+    const newGuards = new Set(this.guards.filter(g => g.policy.appliesTo(url, frameType)));
     
     const allGuards = Sets.union(oldGuards, newGuards);
     this.enforce(time, [...allGuards]);
 
     const removed = Sets.difference(oldGuards, newGuards);
     for (const guard of removed) {
-      guardPostings.dismiss(tabId, frameId, guard);
-      if (!guardPostings.isGuardingActiveTab(guard, activeTabs)) {
+      this.guardPostings.dismiss(tabId, frameId, guard);
+      if (!this.guardPostings.isGuardingActiveTab(guard, this.activeTabs)) {
         this.applyEvent(time, guard, PageEvent.HIDE);
       }
     }
 
     const added = Sets.difference(newGuards, oldGuards);
     for (const guard of added) {
-      const guardingActiveTab = guardPostings.isGuardingActiveTab(guard, activeTabs);
-      if (!guardingActiveTab && activeTabs.has(tabId)) {
+      const guardingActiveTab = this.guardPostings.isGuardingActiveTab(guard, this.activeTabs);
+      if (!guardingActiveTab && this.activeTabs.has(tabId)) {
         this.applyEvent(time, guard, PageEvent.SHOW);
       }
-      guardPostings.assign(tabId, frameId, guard);
+      this.guardPostings.assign(tabId, frameId, guard);
     }
 
     this.messageTab(time, tabId);
   }
 
-  private handleTabActivate = async (time: Date, event: BrowseTabActivateEvent) => {
-    const { guardPostings, activeTabs } = await this.context.fetch();
+  private handleTabActivate = (time: Date, event: BrowseTabActivateEvent) => {
     const tabId = event.tabId;
     // when popping a tab out of a window, previous tab is same as activated tab
     const previousTabId = tabId !== event.previousTabId ? event.previousTabId : undefined;
     
-    const previousGuards = guardPostings.tab(previousTabId);
-    const newGuards = guardPostings.tab(tabId);
+    const previousGuards = this.guardPostings.tab(previousTabId);
+    const newGuards = this.guardPostings.tab(tabId);
 
     this.enforce(time, [...previousGuards, ...newGuards]);
 
-    activeTabs.add(tabId);
-    activeTabs.remove(previousTabId);
+    this.activeTabs.add(tabId);
+    this.activeTabs.remove(previousTabId);
 
     for (const guard of previousGuards) {
-      if (!guardPostings.isGuardingActiveTab(guard, activeTabs)) {
+      if (!this.guardPostings.isGuardingActiveTab(guard, this.activeTabs)) {
         this.applyEvent(time, guard, PageEvent.HIDE);
       }
     }
@@ -198,17 +191,16 @@ export class Controller {
     this.messageTab(time, tabId);
   }
 
-  private handleTabRemove = async (time: Date, event: BrowseTabRemoveEvent) => {
-    const { guardPostings, activeTabs } = await this.context.fetch();
+  private handleTabRemove = (time: Date, event: BrowseTabRemoveEvent) => {
     const { tabId } = event;
-    const guards = guardPostings.tab(tabId);
+    const guards = this.guardPostings.tab(tabId);
     this.enforce(time, guards);
 
-    activeTabs.remove(tabId);
-    guardPostings.dismissTab(tabId);
+    this.activeTabs.remove(tabId);
+    this.guardPostings.dismissTab(tabId);
 
     for (const guard of guards) {
-      if (!guardPostings.isGuardingActiveTab(guard, activeTabs)) {
+      if (!this.guardPostings.isGuardingActiveTab(guard, this.activeTabs)) {
         this.applyEvent(time, guard, PageEvent.HIDE);
       }
     }
@@ -269,24 +261,21 @@ export class Controller {
   }
 
   private messageTab = async (time: Date, tabId: number) => {
-    const { guardPostings } = await this.context.fetch();
-    const frames = guardPostings.guardedFrames(tabId);
+    const frames = this.guardPostings.guardedFrames(tabId);
     for (const frameId of frames) {
       this.messageFrame(time, tabId, frameId);
     }
   }
 
   private messageGuard = async (time: Date, guard: IGuard) => {
-    const { guardPostings } = await this.context.fetch();
-    const assignments = guardPostings.assignments(guard);
+    const assignments = this.guardPostings.assignments(guard);
     for (const { tabId, frameId } of assignments) {
       this.messageFrame(time, tabId, frameId);
     }
   }
 
   private messageFrame = async (time: Date, tabId: number, frameId: number) => {
-    const { guardPostings } = await this.context.fetch();
-    const guards = guardPostings.frame(tabId, frameId);
+    const guards = this.guardPostings.frame(tabId, frameId);
     const status = this.frameStatus(guards);
     switch (status) {
       case FrameStatus.UNTRACKED:
