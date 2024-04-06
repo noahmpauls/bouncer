@@ -1,17 +1,22 @@
+import type { ILogger, ILogs } from "@bouncer/logs";
+
 /**
  * Represents the set of browser tabs that are currently active; that is, the
  * topmost tab of each window.
  */
 export class ActiveTabs {
   private readonly tabIds = new Set<number>();
+  private readonly logger: ILogger;
   
   /**
    * @param tabIds active tab IDs
    */
-  constructor(tabIds?: number[]) {
+  constructor(tabIds: number[], logs: ILogs) {
+    this.logger = logs.logger("ActiveTabs");
     if (tabIds !== undefined) {
       this.tabIds = new Set(tabIds);
     }
+    this.logger.error("ActiveTabs initialized");
   };
 
   /**
@@ -19,8 +24,8 @@ export class ActiveTabs {
    * 
    * @param obj data representing active tabs
    */
-  static fromObject(obj: number[]): ActiveTabs {
-    return new ActiveTabs(obj);
+  static fromObject(obj: number[], logs: ILogs): ActiveTabs {
+    return new ActiveTabs(obj, logs);
   }
 
   private checkRep() { }

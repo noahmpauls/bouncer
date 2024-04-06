@@ -1,3 +1,5 @@
+import type { ActiveTabs, GuardPostings } from "@bouncer/controller";
+import type { IGuard } from "@bouncer/guard";
 import type { IStorage } from "@bouncer/storage";
 
 /**
@@ -19,6 +21,14 @@ export interface IContext<T> {
    */
   fetch(): Promise<T>;
 }
+
+export type BouncerContextObject = {
+  activeTabs: ActiveTabs,
+  guardPostings: GuardPostings,
+  guards: IGuard[],
+}
+
+export type IBouncerContext = IContext<BouncerContextObject>
 
 /**
  * Represents a transformer capable of serializing/deserializing data.

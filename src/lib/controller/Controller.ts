@@ -5,17 +5,23 @@ import { BasicPage, PageAccess, PageActionType, PageEvent } from "@bouncer/page"
 import { Sets } from "@bouncer/utils";
 import { deserializePolicy, serializePolicy } from "@bouncer/policy";
 import type { FrameType } from "@bouncer/matcher";
-import type { BouncerContext } from "@bouncer/data";
+import type { IBouncerContext } from "@bouncer/data";
+import type { ILogger, ILogs } from "@bouncer/logs";
 
 
 export class Controller {
+  private readonly logger: ILogger;
   
   constructor(
-    private readonly context: BouncerContext,
+    private readonly context: IBouncerContext,
     private readonly messenger: IControllerMessenger,
-  ) { }
+    logs: ILogs,
+  ) {
+    this.logger = logs.logger("Controller");
+  }
   
   handleMessage = async (message: FrameMessage) => {
+    this.logger.info("handling message");
     switch (message.type) {
       case (ClientMessageType.STATUS):
         await this.handleStatus(message);

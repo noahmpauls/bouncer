@@ -5,13 +5,9 @@ import { type IGuard, type GuardData, serializeGuard, deserializeGuard } from "@
 import { BrowserStorage, type IStorage } from "@bouncer/storage";
 import { StoredContext } from "./StoredContext";
 import { sampleGuards } from "./sampleData";
-import type { KeyConfig } from "./types";
+import type { BouncerContextObject, IBouncerContext, KeyConfig } from "./types";
+import type { ILogs } from "@bouncer/logs";
 
-type BouncerContextObject = {
-  activeTabs: ActiveTabs,
-  guardPostings: GuardPostings,
-  guards: IGuard[],
-}
 
 type BouncerContextData = {
   activeTabs: ReturnType<ActiveTabs["toObject"]>,
@@ -30,7 +26,7 @@ type BouncerContextFallbacks = {
   [Property in keyof BouncerContextKeyConfig]: BouncerContextKeyConfig[Property]["fallback"]
 }
 
-const BouncerContextTransformer = {
+const BouncerContextTransformer = (logs: ILogs) => ({
   serialize: (obj: BouncerContextObject): BouncerContextData => {
     return  {
       guards: obj.guards.map(serializeGuard),
@@ -41,11 +37,11 @@ const BouncerContextTransformer = {
 
   deserialize: (data: BouncerContextData): BouncerContextObject => {
     const guards = data.guards.map(deserializeGuard);
-    const activeTabs = ActiveTabs.fromObject(data.activeTabs);
-    const guardPostings = GuardPostings.fromObject(data.guardPostings, guards);
+    const activeTabs = ActiveTabs.fromObject(data.activeTabs, logs);
+    const guardPostings = GuardPostings.fromObject(data.guardPostings, guards, logs);
     return { guards, activeTabs, guardPostings };
   },
-}
+})
 
 const browserBuckets: BouncerContextBuckets = {
   local: BrowserStorage.local(),
@@ -73,12 +69,10 @@ const browserKeyConfig = (fallbacks: BouncerContextFallbacks): BouncerContextKey
   }
 });
 
-export type BouncerContext = StoredContext<BouncerContextObject, BouncerContextData, BouncerContextBuckets>
-
 export const BouncerContext = {
-  new: (buckets: BouncerContextBuckets, fallbacks: BouncerContextFallbacks): BouncerContext => {
-    return new StoredContext(buckets, BouncerContextTransformer, browserKeyConfig(fallbacks));
+  new: (buckets: BouncerContextBuckets, fallbacks: BouncerContextFallbacks, logs: ILogs): IBouncerContext => {
+    return new StoredContext(buckets, BouncerContextTransformer(logs), browserKeyConfig(fallbacks));
   },
 
-  browser: (): BouncerContext => BouncerContext.new(browserBuckets, browserFallbacks)
+  browser: (logs: ILogs): IBouncerContext => BouncerContext.new(browserBuckets, browserFallbacks, logs)
 }

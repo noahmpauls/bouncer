@@ -2,6 +2,7 @@ import type { IGuard } from "@bouncer/guard";
 import { assert } from "@bouncer/utils";
 import type { ActiveTabs } from "./ActiveTabs";
 import { Maps } from "@bouncer/utils";
+import type { ILogger, ILogs } from "@bouncer/logs";
 
 /**
  * Represents the assignment of guards to browser tabs and frames.
@@ -11,11 +12,17 @@ export class GuardPostings {
   private readonly tabsToGuards: Map<number, Map<number, Set<IGuard>>>;
   /** Guard -> Tabs */
   private readonly guardsToTabs: Map<IGuard, Set<number>>;
+  private readonly logger: ILogger;
 
   /**
    * @param postings postings of guards to specific tabs
    */
-  constructor(postings: { tabId: number, frameId: number, guard: IGuard }[]) {
+  constructor(
+    postings: { tabId: number, frameId: number, guard: IGuard }[],
+    logs: ILogs,
+  ) {
+    this.logger = logs.logger("GuardPostings");
+    
     const tabsToGuards = new Map();
     const guardsToTabs = new Map();
 
@@ -32,6 +39,7 @@ export class GuardPostings {
     this.guardsToTabs = guardsToTabs;
 
     this.checkRep();
+    this.logger.info("GuardPostings initialized");
   }
 
   private checkRep() {
@@ -60,7 +68,7 @@ export class GuardPostings {
    * @param obj data representing guard postings
    * @param guards guard objects
    */
-  static fromObject(obj: GuardPostingsData, guards: IGuard[]): GuardPostings {
+  static fromObject(obj: GuardPostingsData, guards: IGuard[], logs: ILogs): GuardPostings {
     const withGuards = obj.map(o => ({
       ...o,
       guard: guards.find(g => g.id === o.guardId),
@@ -69,7 +77,7 @@ export class GuardPostings {
     if (notFound.length > 0) {
       throw new Error(`guard object not found for ids ${notFound.map(o => o.guardId).join(',')}`);
     }
-    return new GuardPostings(withGuards as any);
+    return new GuardPostings(withGuards as any, logs);
   }
 
   /**
@@ -162,6 +170,7 @@ export class GuardPostings {
    * @param guard 
    */
   assign(tabId: number, frameId: number, guard: IGuard): void {
+    this.logger.info(`${tabId}-${frameId} assigned guard ${guard.id}`);
     const tab = Maps.getOrDefault(this.tabsToGuards, tabId, new Map());
     const frame = Maps.getOrDefault(tab, frameId, new Set());
     frame.add(guard);
