@@ -1,5 +1,6 @@
 import { MemoryLogs, type ILogs, type ILogsWriter, LogsStorage } from "@bouncer/logs";
 import type { IContext } from "./types";
+import type { IConfiguration } from "@bouncer/config";
 
 export class LogsContext implements IContext<ILogs> {
   // TODO: could we use an interface instead of MemoryLogs directly?
@@ -8,14 +9,13 @@ export class LogsContext implements IContext<ILogs> {
     private readonly logsStorage: ILogsWriter,
   ) { }
 
-  static browser = (): LogsContext => {
+  static browser = (config: IConfiguration): LogsContext => {
     return new LogsContext(
       MemoryLogs.browser(),
-      LogsStorage.browser(),
+      LogsStorage.browser(config),
     )
   }
 
-  // TODO: we can't implement with IContext, since this is synchronous...
   fetch = async (): Promise<ILogs> => {
     return this.logs;
   }

@@ -2,6 +2,7 @@ import { BrowserStorage, type IStorage } from "@bouncer/storage";
 import type { ILogsReader, ILogsWriter, Log } from "./types";
 import { Period } from "@bouncer/period";
 import { Maps, Synchronizer } from "@bouncer/utils";
+import type { IConfiguration } from "@bouncer/config";
 
 /**
  * Represents a storage container for logs.
@@ -15,13 +16,17 @@ export class LogsStorage implements ILogsReader, ILogsWriter {
   private readonly metaStore: Metadata;
 
   constructor(
+    private readonly config: IConfiguration,
     private readonly storage: IStorage,
   ) {
     this.metaStore = new Metadata(storage);
   }
 
-  static browser = (): LogsStorage => {
-    return new LogsStorage(BrowserStorage.local());
+  static browser = (config: IConfiguration): LogsStorage => {
+    return new LogsStorage(
+      config,
+      BrowserStorage.local()
+    );
   }
 
   logs = async (): Promise<Log[]> => {
@@ -32,7 +37,6 @@ export class LogsStorage implements ILogsReader, ILogsWriter {
   }
 
   write = async (logs: Log[]): Promise<void> => this.sync.sync(async () => {
-    const config = { maxLogs: 5_000 };
     const metadata = await this.metaStore.get();
     const storedBuckets = new Set(metadata.buckets);
 
@@ -51,8 +55,8 @@ export class LogsStorage implements ILogsReader, ILogsWriter {
     metadata.buckets = [...storedBuckets].sort();
     await this.metaStore.set(metadata);
 
-    if (metadata.count > config.maxLogs) {
-      await this.trimOldBuckets(config.maxLogs);
+    if (metadata.count > this.config.maxLogs) {
+      await this.trimOldBuckets(this.config.maxLogs);
     }
   });
 

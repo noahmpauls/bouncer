@@ -5,6 +5,8 @@ import type { ILogs } from "@bouncer/logs";
 import { LogsContext } from "./LogsContext";
 import { SyncedCache } from "@bouncer/cache";
 import { BouncerContext } from "./BouncerContext";
+import { ConfigContext } from "./ConfigContext";
+import type { IConfiguration } from "@bouncer/config";
 
 type WorkerContextObject = {
   guards: IGuard[],
@@ -14,6 +16,7 @@ type WorkerContextObject = {
 }
 
 type ContextCache = {
+  configContext: ConfigContext,
   logsContext: LogsContext,
   bouncerContext: IBouncerContext,
 }
@@ -22,14 +25,18 @@ export class WorkerContext implements IContext<WorkerContextObject> {
   private readonly cache: SyncedCache<ContextCache>;
   
   constructor(
-    private readonly initializeLogsContext: () => LogsContext,
+    private readonly initializeConfigContext: () => ConfigContext,
+    private readonly initializeLogsContext: (config: IConfiguration) => LogsContext,
     private readonly initializeBouncerContext: (logs: ILogs) => IBouncerContext,
   ) {
     this.cache = new SyncedCache(async () => {
-      const logsContext = this.initializeLogsContext();
+      const configContext = this.initializeConfigContext();
+      const config = await configContext.fetch();
+      const logsContext = this.initializeLogsContext(config);
       const logs = await logsContext.fetch();
       const bouncerContext = this.initializeBouncerContext(logs);
       return {
+        configContext,
         logsContext,
         bouncerContext,
       }
@@ -38,7 +45,8 @@ export class WorkerContext implements IContext<WorkerContextObject> {
 
   static browser = (): WorkerContext => {
     return new WorkerContext(
-      () => LogsContext.browser(),
+      () => ConfigContext.browser(),
+      (config) => LogsContext.browser(config),
       logs => BouncerContext.browser(logs),
     )
   }
@@ -54,8 +62,9 @@ export class WorkerContext implements IContext<WorkerContextObject> {
   }
 
   commit = async () => {
-    const { logsContext, bouncerContext } = await this.cache.value();
+    const { logsContext, bouncerContext, configContext } = await this.cache.value();
     await bouncerContext.commit();
     await logsContext.commit();
+    await configContext.commit();
   }
 }
