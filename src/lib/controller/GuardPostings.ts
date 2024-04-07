@@ -189,6 +189,12 @@ export class GuardPostings {
    * @param guard 
    */
   dismiss(tabId: number, frameId: number, guard: IGuard): void {
+    this.dismissTabsToGuards(tabId, frameId, guard);
+    this.dismissGuardsToTabs(tabId, guard);
+    this.checkRep();
+  }
+
+  private dismissTabsToGuards = (tabId: number, frameId: number, guard: IGuard): void => {
     const tab = this.tabsToGuards.get(tabId);
     if (tab === undefined) {
       return;
@@ -206,17 +212,20 @@ export class GuardPostings {
       return;
     }
     this.tabsToGuards.delete(tabId);
+  }
 
+  private dismissGuardsToTabs = (tabId: number, guard: IGuard): void => {
     const guardTabs = this.guardsToTabs.get(guard);
     if (guardTabs === undefined) {
+      this.checkRep();
       return;
     }
     guardTabs.delete(tabId);
     if (guardTabs.size > 0) {
+      this.checkRep();
       return;
     }
     this.guardsToTabs.delete(guard);
-    this.checkRep();
   }
 
   /**
