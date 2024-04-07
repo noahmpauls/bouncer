@@ -148,15 +148,14 @@ export class Controller {
     const removed = Sets.difference(oldGuards, newGuards);
     for (const guard of removed) {
       this.guardPostings.dismiss(tabId, frameId, guard);
-      if (!this.guardPostings.isGuardingActiveTab(guard, this.activeTabs)) {
+      if (!this.isGuardingActiveTab(guard)) {
         this.applyEvent(time, guard, PageEvent.HIDE);
       }
     }
 
     const added = Sets.difference(newGuards, oldGuards);
     for (const guard of added) {
-      const guardingActiveTab = this.guardPostings.isGuardingActiveTab(guard, this.activeTabs);
-      if (!guardingActiveTab && this.activeTabs.has(tabId)) {
+      if (!this.isGuardingActiveTab(guard) && this.activeTabs.has(tabId)) {
         this.applyEvent(time, guard, PageEvent.SHOW);
       }
       this.guardPostings.assign(tabId, frameId, guard);
@@ -179,7 +178,7 @@ export class Controller {
     this.activeTabs.remove(previousTabId);
 
     for (const guard of previousGuards) {
-      if (!this.guardPostings.isGuardingActiveTab(guard, this.activeTabs)) {
+      if (!this.isGuardingActiveTab(guard)) {
         this.applyEvent(time, guard, PageEvent.HIDE);
       }
     }
@@ -200,10 +199,14 @@ export class Controller {
     this.guardPostings.dismissTab(tabId);
 
     for (const guard of guards) {
-      if (!this.guardPostings.isGuardingActiveTab(guard, this.activeTabs)) {
+      if (!this.isGuardingActiveTab(guard)) {
         this.applyEvent(time, guard, PageEvent.HIDE);
       }
     }
+  }
+
+  private isGuardingActiveTab = (guard: IGuard): boolean => {
+    return this.guardPostings.isGuardingActiveTab(guard, this.activeTabs);
   }
 
   private enforce = (time: Date, guards: IGuard[]) => {

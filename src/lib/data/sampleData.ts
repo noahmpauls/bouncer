@@ -10,7 +10,7 @@ import { PeriodicInterval, PeriodicTime } from "@bouncer/period";
 export const sampleGuards = [
   new BasicPolicy(
     "Complex matcher viewtime block",
-    true,
+    false,
     new AndMatcher([
       new FrameTypeMatcher("ROOT"),
       new NotMatcher(new OrMatcher([
@@ -34,12 +34,12 @@ export const sampleGuards = [
     ),
   ),
   new BasicPolicy(
-    "Block HackerNews after 45 seconds",
+    "Block HackerNews after 1 seconds",
     true,
     new ExactHostnameMatcher("news.ycombinator.com"),
     new ScheduledLimit(
       new AlwaysSchedule(),
-      new WindowCooldownLimit(45_000, 10_000)
+      new WindowCooldownLimit(1_000, 1_000)
     ),
   ),
   new BasicPolicy(
