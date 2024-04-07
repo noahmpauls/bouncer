@@ -1,6 +1,6 @@
 import { BrowseEventType, type BrowseEvent, type BrowseNavigateEvent, type BrowseTabActivateEvent, type BrowseTabRemoveEvent } from "@bouncer/events";
 import { BasicGuard, type IGuard } from "@bouncer/guard";
-import { FrameStatus, type IControllerMessenger, type FrameMessage, type ClientStatusMessage, type FromFrame, ClientMessageType, type ClientPolicyCreateMessage, type ClientPoliciesGetMessage, ControllerMessageType, type ClientPolicyDeleteMessage, type ClientPolicyUpdateMessage, type ClientPageResetMessage } from "@bouncer/message";
+import { FrameStatus, type IControllerMessenger, type FrameMessage, type ClientStatusMessage, type FromFrame, ClientMessageType, type ClientPolicyCreateMessage, type ClientPoliciesGetMessage, ControllerMessageType, type ClientPolicyDeleteMessage, type ClientPolicyUpdateMessage, type ClientPageResetMessage, type ClientConfigGetMessage, type ClientConfigUpdateMessage } from "@bouncer/message";
 import { BasicPage, PageAccess, PageActionType, PageEvent } from "@bouncer/page";
 import { Sets } from "@bouncer/utils";
 import { deserializePolicy, serializePolicy } from "@bouncer/policy";
@@ -8,12 +8,14 @@ import type { FrameType } from "@bouncer/matcher";
 import type { ILogger, ILogs } from "@bouncer/logs";
 import type { GuardPostings } from "./GuardPostings";
 import type { ActiveTabs } from "./ActiveTabs";
+import type { IConfiguration } from "@bouncer/config";
 
 
 export class Controller {
   private readonly logger: ILogger;
   
   constructor(
+    private readonly configuration: IConfiguration,
     private readonly guards: IGuard[],
     private readonly guardPostings: GuardPostings,
     private readonly activeTabs: ActiveTabs,
@@ -43,6 +45,12 @@ export class Controller {
         break;
       case (ClientMessageType.PAGE_RESET):
         this.handlePageReset(message);
+        break;
+      case (ClientMessageType.CONFIG_GET):
+        this.handleConfigGet(message);
+        break;
+      case (ClientMessageType.CONFIG_UPDATE):
+        this.handleConfigUpdate(message);
         break;
       default:
         console.error(`controller: unable to handle message type ${(message as any).type}`);
@@ -118,6 +126,25 @@ export class Controller {
       guard.page.recordAction(PageActionType.RESET_METRICS, time);
       guard.page.recordAction(PageActionType.UNBLOCK, time);
     }
+  }
+
+  private handleConfigGet = (message: FromFrame<ClientConfigGetMessage>) => {
+    const { tabId, frameId } = message;
+    this.messenger.send(tabId, frameId, {
+      type: ControllerMessageType.CONFIG_GET,
+      config: this.configuration,
+    });
+  }
+
+  private handleConfigUpdate = (message: FromFrame<ClientConfigUpdateMessage>) => {
+    const { tabId, frameId, config } = message;
+    if (config.maxLogs !== undefined) {
+      this.configuration.maxLogs = config.maxLogs;
+    }
+    this.messenger.send(tabId, frameId, {
+      type: ControllerMessageType.CONFIG_GET,
+      config: this.configuration,
+    });
   }
 
   handleBrowse = (event: BrowseEvent) => {

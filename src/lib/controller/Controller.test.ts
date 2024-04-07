@@ -14,6 +14,7 @@ import { ClientMessageType, type ControllerMessage, type IControllerMessenger, t
 import type { IClock } from "@bouncer/time";
 import { timeGenerator } from "@bouncer/test";
 import { BrowseEventType } from "@bouncer/events";
+import { Configuration } from "@bouncer/config";
 
 class DummyClock implements IClock {
   constructor(
@@ -80,7 +81,8 @@ describe("Controller regressions", () => {
     const messenger = new DummyMessenger();
     const guardPostings = new GuardPostings([], logs);
     const activeTabs = new ActiveTabs([], logs);
-    const controller = new Controller(guards, guardPostings, activeTabs, messenger, logs);
+    const configuration = Configuration.default();
+    const controller = new Controller(configuration, guards, guardPostings, activeTabs, messenger, logs);
 
     controller.handleBrowse({
       type: BrowseEventType.TAB_ACTIVATE,
@@ -192,7 +194,8 @@ describe("Controller regressions", () => {
     const messenger = new DummyMessenger();
     const guardPostings = new GuardPostings([], logs);
     const activeTabs = new ActiveTabs([], logs);
-    const controller = new Controller(guards, guardPostings, activeTabs, messenger, logs);
+    const configuration = Configuration.default();
+    const controller = new Controller(configuration, guards, guardPostings, activeTabs, messenger, logs);
 
     controller.handleBrowse({
       type: BrowseEventType.TAB_ACTIVATE,

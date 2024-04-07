@@ -12,6 +12,7 @@ type WorkerContextObject = {
   guards: IGuard[],
   activeTabs: ActiveTabs,
   guardPostings: GuardPostings,
+  configuration: IConfiguration,
   logs: ILogs,
 }
 
@@ -52,11 +53,13 @@ export class WorkerContext implements IContext<WorkerContextObject> {
   }
 
   fetch = async (): Promise<WorkerContextObject> => {
-    const { logsContext, bouncerContext } = await this.cache.value();
+    const { configContext, logsContext, bouncerContext } = await this.cache.value();
+    const configuration = await configContext.fetch();
     const logs = await logsContext.fetch();
     const bouncer = await bouncerContext.fetch();
     return {
       ...bouncer,
+      configuration,
       logs,
     }
   }

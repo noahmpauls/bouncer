@@ -1,0 +1,20 @@
+{% extends "layouts/base.njk" %}
+
+{% block head %}
+{{ super() }}
+<title>Bouncer Debug</title>
+<script src="/assets/scripts/debug.js" defer></script>
+{% endblock %}
+
+{% block body %}
+<h2>Bouncer Debug</h2>
+<form id="configuration">
+  <div>
+    <label for="max-logs">Max Logs:</label>
+    <input id="max-logs" name="maxLogs" type="text">
+  </div>
+  <div>
+    <button type="submit">Update</button>
+  </div>
+</form>
+{% endblock %}

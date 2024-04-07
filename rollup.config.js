@@ -15,6 +15,10 @@ const files = [
     output: "dist/ui/assets/scripts/blocked.js",
   },
   {
+    input: "src/ui/_assets/scripts/debug.ts",
+    output: "dist/ui/assets/scripts/debug.js",
+  },
+  {
     input: "src/ui/_assets/scripts/settings.ts",
     output: "dist/ui/assets/scripts/settings.js",
   },

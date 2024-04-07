@@ -24,9 +24,9 @@ export class Worker<TEvents extends IControllerEventEmitter> {
   }
 
   private initializeController = async (): Promise<Controller> => {
-    const { logs, guards, activeTabs, guardPostings } = await this.context.fetch();
+    const { logs, guards, activeTabs, guardPostings, configuration } = await this.context.fetch();
     logs.logger("Worker").info("initializing controller");
-    return new Controller(guards, guardPostings, activeTabs, this.messenger, logs);
+    return new Controller(configuration, guards, guardPostings, activeTabs, this.messenger, logs);
   }
 
   private onMessage = async (message: FrameMessage) => {

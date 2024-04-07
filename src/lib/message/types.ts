@@ -1,3 +1,4 @@
+import type { IConfiguration } from "@bouncer/config";
 import type { IPolicy, PolicyData } from "@bouncer/policy";
 
 export interface IClientMessenger {
@@ -13,6 +14,8 @@ export enum ClientMessageType {
   POLICY_UPDATE = "policy:update",
   POLICY_DELETE = "policy:delete",
   PAGE_RESET = "page:reset",
+  CONFIG_GET = "config:get",
+  CONFIG_UPDATE = "config:update",
 }
 
 /**
@@ -25,6 +28,8 @@ export type ClientMessage =
   | ClientPolicyUpdateMessage
   | ClientPolicyDeleteMessage
   | ClientPageResetMessage
+  | ClientConfigGetMessage
+  | ClientConfigUpdateMessage
   ;
 
 export type FromFrame<T> = T & {
@@ -64,6 +69,15 @@ export type ClientPageResetMessage = {
   id: string,
 };
 
+export type ClientConfigGetMessage = {
+  type: ClientMessageType.CONFIG_GET,
+}
+
+export type ClientConfigUpdateMessage = {
+  type: ClientMessageType.CONFIG_UPDATE,
+  config: Partial<IConfiguration>,
+}
+
 export interface IControllerMessenger {
   send(tabId: number, frameId: number, message: ControllerMessage): void;
 }
@@ -71,11 +85,13 @@ export interface IControllerMessenger {
 export enum ControllerMessageType {
   STATUS = "status",
   POLICIES_GET = "policies:get",
+  CONFIG_GET = "config:get",
 }
 
 export type ControllerMessage =
     ControllerStatusMessage
   | ControllerPoliciesGetMessage
+  | ControllerConfigGetMessage
   ;
 
 /** Represents a message sent from Bouncer to a page. */
@@ -92,6 +108,11 @@ export type ControllerStatusMessage = {
 export type ControllerPoliciesGetMessage = {
   type: ControllerMessageType.POLICIES_GET,
   policies: { id: string, policy: PolicyData }[],
+}
+
+export type ControllerConfigGetMessage = {
+  type: ControllerMessageType.CONFIG_GET,
+  config: IConfiguration,
 }
 
 /** 
