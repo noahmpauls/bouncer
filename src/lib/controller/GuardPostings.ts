@@ -39,7 +39,7 @@ export class GuardPostings {
     this.guardsToTabs = guardsToTabs;
 
     this.checkRep();
-    this.logger.info("GuardPostings initialized");
+    this.logger.warning("GuardPostings initialized");
   }
 
   private checkRep() {

@@ -3,6 +3,7 @@
 {% block head %}
 {{ super() }}
 <title>Bouncer Debug</title>
+<link rel="stylesheet" href="/assets/styles/debug.css">
 <script src="/assets/scripts/debug.js" defer></script>
 {% endblock %}
 
@@ -17,4 +18,7 @@
     <button type="submit">Update</button>
   </div>
 </form>
+<hr>
+<button id="refresh-logs">Refresh Logs</button>
+<pre id="logs"></pre>
 {% endblock %}

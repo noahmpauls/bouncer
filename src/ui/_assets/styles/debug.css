@@ -1,0 +1,33 @@
+.log {
+  color: gray;
+
+  > * + * {
+    margin-inline-start: 0.5rem;
+  }
+
+  .category {
+    display: none;
+  }
+
+  .level {
+    display: none;
+  }
+
+  &.info {
+    color: black;
+  }
+
+  &.warning {
+    color: darkorange;
+  }
+
+  &.error {
+    font-weight: bold;
+    color: red;
+  }
+
+  time {
+    font-weight: normal;
+    color: gray;
+  }
+}

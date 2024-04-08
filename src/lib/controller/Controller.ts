@@ -26,7 +26,7 @@ export class Controller {
   }
   
   handleMessage = (message: FrameMessage) => {
-    this.logger.info("handling message");
+    this.logger.debug("handling message");
     switch (message.type) {
       case (ClientMessageType.STATUS):
         this.handleStatus(message);
