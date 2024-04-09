@@ -11,7 +11,7 @@ import type { IConfiguration } from "@bouncer/config";
  * interface in the Worker, and in pages to read the logs via the
  * ILogsReader interface.
  */
-export class LogsStorage implements ILogsReader, ILogsWriter {
+export class LogsStorageWriter implements ILogsWriter {
   private readonly sync: Synchronizer = new Synchronizer();
   private readonly metaStore: Metadata;
 
@@ -22,18 +22,11 @@ export class LogsStorage implements ILogsReader, ILogsWriter {
     this.metaStore = new Metadata(storage);
   }
 
-  static browser = (config: IConfiguration): LogsStorage => {
-    return new LogsStorage(
+  static browser = (config: IConfiguration): LogsStorageWriter => {
+    return new LogsStorageWriter(
       config,
       BrowserStorage.local()
     );
-  }
-
-  logs = async (): Promise<Log[]> => {
-    const metadata = await this.metaStore.get();
-    const buckets = await Promise.all(metadata.buckets.map(b => this.bucket(b).get()));
-    const logs = buckets.flatMap(b => b);
-    return logs;
   }
 
   write = async (logs: Log[]): Promise<void> => this.sync.sync(async () => {
@@ -99,7 +92,32 @@ export class LogsStorage implements ILogsReader, ILogsWriter {
 
     this.metaStore.set(metadata);
   }
+}
 
+export class LogsStorageReader implements ILogsReader {
+  private readonly metaStore: Metadata;
+
+  constructor(
+    private readonly storage: IStorage,
+  ) {
+    this.metaStore = new Metadata(storage);
+  }
+
+  static browser = (): LogsStorageReader => {
+    return new LogsStorageReader(
+      BrowserStorage.local()
+    );
+  }
+
+  logs = async (): Promise<Log[]> => {
+    const metadata = await this.metaStore.get();
+    const buckets = await Promise.all(metadata.buckets.map(b => this.bucket(b).get()));
+    const logs = buckets.flatMap(b => b);
+    return logs;
+  }
+
+  private bucket = (timestamp: number) =>
+    new Bucket(timestamp, this.storage);
 }
 
 class Metadata {

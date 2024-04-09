@@ -1,10 +1,9 @@
-import { Configuration, type IConfiguration } from "@bouncer/config";
-import { LogsStorage, type ILogsReader, type Log } from "@bouncer/logs";
+import { type IConfiguration } from "@bouncer/config";
+import { LogsStorageReader, type ILogsReader, type Log } from "@bouncer/logs";
 import { BrowserClientMessenger, ClientMessageType, ControllerMessageType } from "@bouncer/message";
 
 const messenger = BrowserClientMessenger;
-// TODO: shouldn't need a config object for a logs reader
-const logsReader: ILogsReader = LogsStorage.browser(Configuration.default());
+const logsReader: ILogsReader = LogsStorageReader.browser();
 
 messenger.addReceiver((message) => {
   switch (message.type) {
