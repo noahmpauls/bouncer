@@ -19,6 +19,8 @@ const configForm = document.getElementById("configuration") as HTMLFormElement;
 const logsContainer = document.getElementById("logs") as HTMLPreElement;
 const logsRefresh = document.getElementById("refresh-logs") as HTMLButtonElement;
 const autoReload = document.getElementById("auto-reload") as HTMLInputElement;
+const clearLogs = document.getElementById("clear-logs") as HTMLButtonElement;
+
 
 autoReload.addEventListener("input", () => {
   if (autoReload.checked) {
@@ -41,6 +43,14 @@ configForm.addEventListener("submit", event => {
     type: ClientMessageType.CONFIG_UPDATE,
     config: configUpdate,
   });
+});
+
+let clearTime: Date | undefined = undefined;
+clearLogs.addEventListener("click", () => {
+  clearTime = new Date();
+  const lastCleared = document.getElementById("last-cleared") as HTMLSpanElement;
+  lastCleared.innerHTML = `Last cleared: ${clearTime.toISOString()}`
+  refreshLogs();
 });
 
 logsRefresh.addEventListener("click", refreshLogs);
@@ -66,7 +76,8 @@ async function refreshLogs() {
 }
 
 function refreshLogsDisplay(logs: Log[]) {
-  const formattedLogs = logs.reverse().map(log => formatLog(log));
+  const clearedLogs = logs.filter(log => clearTime === undefined || log.timestamp > clearTime.getTime());
+  const formattedLogs = clearedLogs.reverse().map(log => formatLog(log));
   logsContainer.replaceChildren();
   for (const log of formattedLogs) {
     logsContainer.appendChild(log);
