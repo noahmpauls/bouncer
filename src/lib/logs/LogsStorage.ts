@@ -96,6 +96,7 @@ export class LogsStorageWriter implements ILogsWriter {
 
 export class LogsStorageReader implements ILogsReader {
   private readonly metaStore: Metadata;
+  private subscriber: ((logs: Log[]) => void) | undefined = undefined;
 
   constructor(
     private readonly storage: IStorage,
@@ -116,23 +117,43 @@ export class LogsStorageReader implements ILogsReader {
     return logs;
   }
 
+  subscribe = (callback: (logs: Log[]) => void): void => {
+    const shouldSubscribe = this.subscriber === undefined;
+    this.subscriber = callback;
+    if (shouldSubscribe) {
+      this.storage.subscribe(Metadata.key, this.subscriptionCallback);
+    }
+  }
+
+  unsubscribe = (): void => {
+    this.subscriber = undefined;
+    this.storage.unsubscribe(Metadata.key, this.subscriptionCallback);
+  }
+
+  private subscriptionCallback = async () => {
+    const logs = await this.logs();
+    if (this.subscriber !== undefined) {
+      this.subscriber(logs);
+    }
+  }
+
   private bucket = (timestamp: number) =>
     new Bucket(timestamp, this.storage);
 }
 
 class Metadata {
-  private readonly key: string = `logs-metadata`;
+  static readonly key: string = `logs-metadata`;
 
   constructor(
     private readonly storage: IStorage,
   ) { }
 
   get = async (): Promise<LogsMetadata> => {
-    return await this.storage.get<LogsMetadata>(this.key, { count: 0, buckets: [] });
+    return await this.storage.get<LogsMetadata>(Metadata.key, { count: 0, buckets: [] });
   }
 
   set = async (metadata: LogsMetadata): Promise<void> => {
-    return await this.storage.set(this.key, metadata);
+    return await this.storage.set(Metadata.key, metadata);
   }
 }
 

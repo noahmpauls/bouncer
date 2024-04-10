@@ -16,7 +16,6 @@ export class ActiveTabs {
     if (tabIds !== undefined) {
       this.tabIds = new Set(tabIds);
     }
-    this.logger.error("ActiveTabs initialized");
   };
 
   /**
@@ -46,6 +45,7 @@ export class ActiveTabs {
    * @param tabId 
    */
   add(tabId: number): void {
+    this.logger.info(`activating tab ${tabId}`);
     this.tabIds.add(tabId);
     this.checkRep();
   }
@@ -57,6 +57,7 @@ export class ActiveTabs {
    */
   remove(tabId: number | undefined): void {
     if (tabId !== undefined) {
+      this.logger.info(`deactivating tab ${tabId}`);
       this.tabIds.delete(tabId);
     }
     this.checkRep();

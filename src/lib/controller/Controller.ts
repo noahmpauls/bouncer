@@ -26,7 +26,7 @@ export class Controller {
   }
   
   handleMessage = (message: FrameMessage) => {
-    this.logger.debug("handling message");
+    this.logger.debug(`handling message ${message.type}`);
     switch (message.type) {
       case (ClientMessageType.STATUS):
         this.handleStatus(message);
@@ -148,6 +148,7 @@ export class Controller {
   }
 
   handleBrowse = (event: BrowseEvent) => {
+    this.logger.debug(`handling message ${event.type}`);
     const { time } = event;
     switch (event.type) {
       case BrowseEventType.NAVIGATE:

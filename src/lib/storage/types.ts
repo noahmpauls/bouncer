@@ -1,3 +1,5 @@
+export type ChangeSubscriber<T> = (value: T) => void;
+
 /**
  * Module for interacting with a persistent storage solution.
  */
@@ -34,4 +36,20 @@ export type IStorage = {
    * @param key key to delete value of
    */
   delete(key: string): Promise<void>;
+
+  /**
+   * Subscribe to changes to a particular key in storage.
+   * 
+   * @param key the key to subscribe to
+   * @param callback callback when stored value is updated
+   */
+  subscribe<TValue>(key: string, callback: ChangeSubscriber<TValue>): void;
+
+  /**
+   * Unsubscribe from changes to a particular key in storage.
+   * 
+   * @param key the key to unsubscribe from
+   * @param callback callback currently subscribed to the key
+   */
+  unsubscribe<TValue>(key: string, callback: ChangeSubscriber<TValue>): void;
 }

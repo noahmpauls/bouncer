@@ -33,6 +33,8 @@ configForm.addEventListener("submit", event => {
 
 logsRefresh.addEventListener("click", refreshLogs);
 
+logsReader.subscribe(refreshLogsDisplay);
+
 refreshConfig();
 refreshLogs();
 
@@ -49,6 +51,10 @@ function refreshConfig() {
 
 async function refreshLogs() {
   const logs = await logsReader.logs();
+  refreshLogsDisplay(logs);
+}
+
+function refreshLogsDisplay(logs: Log[]) {
   const formattedLogs = logs.reverse().map(log => formatLog(log));
   logsContainer.replaceChildren();
   for (const log of formattedLogs) {

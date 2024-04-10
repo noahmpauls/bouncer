@@ -43,6 +43,8 @@ export interface ILogs {
 
 export interface ILogsReader {
   logs(): Promise<Log[]>;
+  subscribe(callback: (logs: Log[]) => void): void;
+  unsubscribe(callback: (logs: Log[]) => void): void;
 }
 
 export interface ILogsWriter {

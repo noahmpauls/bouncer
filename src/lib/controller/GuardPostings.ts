@@ -39,7 +39,6 @@ export class GuardPostings {
     this.guardsToTabs = guardsToTabs;
 
     this.checkRep();
-    this.logger.warning("GuardPostings initialized");
   }
 
   private checkRep() {
@@ -170,7 +169,7 @@ export class GuardPostings {
    * @param guard 
    */
   assign(tabId: number, frameId: number, guard: IGuard): void {
-    this.logger.info(`${tabId}-${frameId} assigned guard ${guard.id}`);
+    this.logger.info(`assigning guard ${guard.id.substring(0, 7)} to ${tabId}-${frameId}`);
     const tab = Maps.getOrDefault(this.tabsToGuards, tabId, new Map());
     const frame = Maps.getOrDefault(tab, frameId, new Set());
     frame.add(guard);
@@ -189,6 +188,7 @@ export class GuardPostings {
    * @param guard 
    */
   dismiss(tabId: number, frameId: number, guard: IGuard): void {
+    this.logger.info(`dismissing guard ${guard.id.substring(0, 7)} from ${tabId}-${frameId}`);
     this.dismissTabsToGuards(tabId, frameId, guard);
     this.dismissGuardsToTabs(tabId, guard);
     this.checkRep();
@@ -234,6 +234,7 @@ export class GuardPostings {
    * @param tabId 
    */
   dismissTab(tabId: number): void {
+    this.logger.info(`dismissing all guards from tab ${tabId}`);
     const tabGuards = this.tab(tabId);
     for (const guard of tabGuards) {
       const guardTabs = this.guardsToTabs.get(guard);
@@ -255,6 +256,7 @@ export class GuardPostings {
    * @param guard
    */
   dismissGuard(guard: IGuard): void {
+    this.logger.info(`dismissing guard ${guard.id.substring(0, 7)} from all assigments`);
     const assignments = this.assignments(guard);
 
     for (const { tabId, frameId } of assignments) {
