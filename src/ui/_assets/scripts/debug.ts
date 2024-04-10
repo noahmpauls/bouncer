@@ -18,6 +18,18 @@ messenger.addReceiver((message) => {
 const configForm = document.getElementById("configuration") as HTMLFormElement;
 const logsContainer = document.getElementById("logs") as HTMLPreElement;
 const logsRefresh = document.getElementById("refresh-logs") as HTMLButtonElement;
+const autoReload = document.getElementById("auto-reload") as HTMLInputElement;
+
+autoReload.addEventListener("input", () => {
+  if (autoReload.checked) {
+    logsReader.subscribe(refreshLogsDisplay);
+    logsRefresh.disabled = true;
+    refreshLogs();
+  } else {
+    logsReader.unsubscribe(refreshLogsDisplay);
+    logsRefresh.disabled = false;
+  }
+})
 
 configForm.addEventListener("submit", event => {
   event.preventDefault();
@@ -32,7 +44,6 @@ configForm.addEventListener("submit", event => {
 });
 
 logsRefresh.addEventListener("click", refreshLogs);
-
 logsReader.subscribe(refreshLogsDisplay);
 
 refreshConfig();

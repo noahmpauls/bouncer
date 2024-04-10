@@ -19,6 +19,12 @@
   </div>
 </form>
 <hr>
-<button id="refresh-logs">Refresh Logs</button>
+<div>
+  <button id="refresh-logs" disabled>Refresh Logs</button>
+</div>
+<div>
+  <input type="checkbox" id="auto-reload" checked>
+  <label for="auto-reload">Auto Reload</label>
+</div>
 <pre id="logs"></pre>
 {% endblock %}
