@@ -1,6 +1,6 @@
 import { BrowseEventType, type BrowseEvent, type BrowseNavigateEvent, type BrowseTabActivateEvent, type BrowseTabRemoveEvent } from "@bouncer/events";
 import { BasicGuard, type IGuard } from "@bouncer/guard";
-import { FrameStatus, type IControllerMessenger, type FrameMessage, type ClientStatusMessage, type FromFrame, ClientMessageType, type ClientPolicyCreateMessage, type ClientPoliciesGetMessage, ControllerMessageType, type ClientPolicyDeleteMessage, type ClientPolicyUpdateMessage, type ClientPageResetMessage, type ClientConfigGetMessage, type ClientConfigUpdateMessage } from "@bouncer/message";
+import { FrameStatus, type IControllerMessenger, type FrameMessage, type ClientStatusMessage, type FromFrame, ClientMessageType, type ClientPolicyCreateMessage, type ClientPoliciesGetMessage, ControllerMessageType, type ClientPolicyDeleteMessage, type ClientPolicyUpdateMessage, type ClientPageResetMessage, type ClientConfigGetMessage, type ClientConfigUpdateMessage, BrowserControllerMessenger } from "@bouncer/message";
 import { BasicPage, PageAccess, PageActionType, PageEvent } from "@bouncer/page";
 import { Sets } from "@bouncer/utils";
 import { deserializePolicy, serializePolicy } from "@bouncer/policy";
@@ -23,6 +23,23 @@ export class Controller {
     logs: ILogs,
   ) {
     this.logger = logs.logger("Controller");
+  }
+
+  static browser = (
+    configuration: IConfiguration,
+    guards: IGuard[],
+    guardPostings: GuardPostings,
+    activeTabs: ActiveTabs,
+    logs: ILogs,
+  ): Controller => {
+    return new Controller(
+      configuration,
+      guards,
+      guardPostings,
+      activeTabs,
+      new BrowserControllerMessenger(logs),
+      logs,
+    );
   }
   
   handleMessage = (message: FrameMessage) => {

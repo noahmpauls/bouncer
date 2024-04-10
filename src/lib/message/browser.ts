@@ -1,5 +1,6 @@
 import { browser } from "@bouncer/browser";
 import type { ClientMessage, ControllerMessage, IClientMessenger, IControllerMessenger } from "./types";
+import type { ILogger, ILogs } from "@bouncer/logs";
 
 export const BrowserClientMessenger: IClientMessenger = {
   send: (message: ClientMessage) => {
@@ -15,14 +16,20 @@ export const BrowserClientMessenger: IClientMessenger = {
   }
 }
 
-export const BrowserControllerMessenger: IControllerMessenger = {
-  send: (tabId, frameId, message) => {
+export class BrowserControllerMessenger implements IControllerMessenger {
+  private readonly logger: ILogger;
+
+  constructor(logs: ILogs) {
+    this.logger = logs.logger("ControllerMessenger");
+  }
+
+  send = (tabId: number, frameId: number, message: ControllerMessage) => {
     browser.tabs.sendMessage(tabId, message, { frameId })
       .then(() => {
-        console.log(`successfully messaged ${tabId}-${frameId}`);
+        this.logger.debug(`successfully messaged ${tabId}-${frameId}`);
       })
       .catch(reason => {
-        console.error(`could not send message to ${tabId}-${frameId}: ${reason}`)
+        this.logger.warning(`failed to message ${tabId}-${frameId}: ${reason}`)
       });
-  },
+  }
 }

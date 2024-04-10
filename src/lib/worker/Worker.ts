@@ -2,7 +2,7 @@ import { SyncedCache } from "@bouncer/cache";
 import { Controller } from "@bouncer/controller";
 import { WorkerContext } from "@bouncer/data";
 import { BrowserEvents, type BrowseEvent, type IBrowserEventHandler, type IControllerEventEmitter } from "@bouncer/events";
-import { BrowserControllerMessenger, type FrameMessage, type IControllerMessenger } from "@bouncer/message";
+import { type FrameMessage } from "@bouncer/message";
 
 export class Worker<TEvents extends IControllerEventEmitter> {
   private readonly controller: SyncedCache<Controller>;
@@ -10,23 +10,21 @@ export class Worker<TEvents extends IControllerEventEmitter> {
   constructor(
     readonly events: TEvents,
     private readonly context: WorkerContext,
-    private readonly messenger: IControllerMessenger,
   ) {
     this.controller = new SyncedCache(this.initializeController);
   }
 
-  static fromBrowser(): Worker<IControllerEventEmitter & IBrowserEventHandler> {
+  static browser(): Worker<IControllerEventEmitter & IBrowserEventHandler> {
     return new Worker(
       new BrowserEvents(),
       WorkerContext.browser(),
-      BrowserControllerMessenger,
     );
   }
 
   private initializeController = async (): Promise<Controller> => {
     const { logs, guards, activeTabs, guardPostings, configuration } = await this.context.fetch();
     logs.logger("Worker").info("initializing controller");
-    return new Controller(configuration, guards, guardPostings, activeTabs, this.messenger, logs);
+    return Controller.browser(configuration, guards, guardPostings, activeTabs, logs);
   }
 
   private onMessage = async (message: FrameMessage) => {

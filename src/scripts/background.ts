@@ -1,7 +1,7 @@
 import { browser } from "@bouncer/browser";
 import { Worker } from "@bouncer/worker";
 
-const worker = Worker.fromBrowser();
+const worker = Worker.browser();
 
 browser.tabs.onActivated.addListener(worker.events.handleActivated);
 browser.tabs.onRemoved.addListener(worker.events.handleRemoved);
