@@ -43,7 +43,8 @@ export class Controller {
   }
   
   handleMessage = (message: FrameMessage) => {
-    this.logger.debug(`handling message ${message.type}`);
+    const { tabId, frameId, type } = message;
+    this.logger.info(`message ${type} from ${tabId}-${frameId}`);
     switch (message.type) {
       case (ClientMessageType.STATUS):
         this.handleStatus(message);
@@ -70,7 +71,7 @@ export class Controller {
         this.handleConfigUpdate(message);
         break;
       default:
-        console.error(`controller: unable to handle message type ${(message as any).type}`);
+        this.logger.error(`no handler for message type ${(message as any).type}`);
         break;
     }
   }
@@ -165,7 +166,8 @@ export class Controller {
   }
 
   handleBrowse = (event: BrowseEvent) => {
-    this.logger.debug(`handling message ${event.type}`);
+    const { tabId, type } = event;
+    this.logger.debug(`event ${type} from ${tabId}`);
     const { time } = event;
     switch (event.type) {
       case BrowseEventType.NAVIGATE:
@@ -182,6 +184,7 @@ export class Controller {
 
   private handleNavigate = (time: Date, event: BrowseNavigateEvent) => {
     const { tabId, frameId, url } = event;
+    this.logger.info(`${tabId}-${frameId} nagivates to ${url}`);
     const frameType: FrameType = frameId === 0 ? "ROOT" : "CHILD";
 
     const oldGuards = new Set(this.guardPostings.frame(tabId, frameId));
@@ -210,7 +213,8 @@ export class Controller {
   }
 
   private handleTabActivate = (time: Date, event: BrowseTabActivateEvent) => {
-    const tabId = event.tabId;
+    const { tabId } = event;
+    this.logger.info(`${tabId} activates`);
     // when popping a tab out of a window, previous tab is same as activated tab
     const previousTabId = tabId !== event.previousTabId ? event.previousTabId : undefined;
     
@@ -237,6 +241,7 @@ export class Controller {
 
   private handleTabRemove = (time: Date, event: BrowseTabRemoveEvent) => {
     const { tabId } = event;
+    this.logger.info(`${tabId} deactivates`);
     const guards = this.guardPostings.tab(tabId);
     this.enforce(time, guards);
 
@@ -325,6 +330,7 @@ export class Controller {
   private messageFrame = async (time: Date, tabId: number, frameId: number) => {
     const guards = this.guardPostings.frame(tabId, frameId);
     const status = this.frameStatus(guards);
+    this.logger.info(`sending status ${status} to ${tabId}-${frameId}`);
     switch (status) {
       case FrameStatus.UNTRACKED:
         this.messenger.send(tabId, frameId, {
