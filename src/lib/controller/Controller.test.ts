@@ -1,17 +1,17 @@
 import { ScheduledLimit } from "@bouncer/enforcer";
 import { BasicGuard } from "@bouncer/guard";
-import { AlwaysBlock, WindowCooldownLimit } from "@bouncer/limit";
-import { NotMatcher, ExactHostnameMatcher } from "@bouncer/matcher";
+import { AlwaysBlock, ViewtimeCooldownLimit, WindowCooldownLimit } from "@bouncer/limit";
+import { NotMatcher, ExactHostnameMatcher, AndMatcher, FrameTypeMatcher, OrMatcher } from "@bouncer/matcher";
 import { BasicPage } from "@bouncer/page";
 import { BasicPolicy } from "@bouncer/policy";
-import { AlwaysSchedule } from "@bouncer/schedule";
+import { AlwaysSchedule, MinuteSchedule } from "@bouncer/schedule";
 import { describe, expect, test } from "@jest/globals";
 import { Controller } from "./Controller";
 import { GuardPostings } from "./GuardPostings";
 import { ActiveTabs } from "./ActiveTabs";
 import { MemoryLogs } from "@bouncer/logs";
 import { ClientMessageType, type ControllerMessage, type IControllerMessenger, type ControllerStatusMessage, FrameStatus } from "@bouncer/message";
-import type { IClock } from "@bouncer/time";
+import { MS, type IClock } from "@bouncer/time";
 import { timeGenerator } from "@bouncer/test";
 import { BrowseEventType } from "@bouncer/events";
 import { Configuration } from "@bouncer/config";
@@ -264,6 +264,114 @@ describe("Controller regressions", () => {
       tabId: 1,
       frameId: 0,
       time: clock.time().toISOString(),
+    });
+
+    {
+      const message = messenger.lastMessage?.message as ControllerStatusMessage;
+      expect(message.status).toEqual(FrameStatus.BLOCKED);
+    }
+  });
+
+  test("complex guard working multiple times in a row", () => {
+    const guard = new BasicGuard(
+      "complex",
+      new BasicPolicy(
+        "Complex matcher viewtime block",
+        true,
+        new AndMatcher([
+          new FrameTypeMatcher("ROOT"),
+          new NotMatcher(new OrMatcher([
+            new ExactHostnameMatcher("example.com"),
+            new ExactHostnameMatcher("www.microsoft.com"),
+            new ExactHostnameMatcher("stackoverflow.com"),
+          ]))
+        ]),
+        new ScheduledLimit(
+          new MinuteSchedule(30, 10),
+          new ViewtimeCooldownLimit(10000, 15000),
+        ),
+      ),
+      new BasicPage(),
+    );
+
+    const guards = [guard];
+    const time = timeGenerator(new Date("2024-01-01T00:00:40.000Z"));
+    const clock = new DummyClock(time());
+    const logs = new MemoryLogs(clock);
+    const messenger = new DummyMessenger();
+    const guardPostings = new GuardPostings([], logs);
+    const activeTabs = new ActiveTabs([], logs);
+    const configuration = Configuration.default();
+    const controller = new Controller(configuration, guards, guardPostings, activeTabs, messenger, logs);
+
+    const site = new URL("https://www.cnbc.com");
+    const frame = { tabId: 1, frameId: 0 };
+
+    controller.handleBrowse({
+      type: BrowseEventType.TAB_ACTIVATE,
+      time: clock.time(),
+      ...frame,
+    });
+
+    controller.handleBrowse({
+      type: BrowseEventType.NAVIGATE,
+      time: clock.time(),
+      url: site,
+      ...frame,
+    });
+
+    controller.handleMessage({
+      type: ClientMessageType.STATUS,
+      time: clock.time().toISOString(),
+      ...frame,
+    });
+
+    clock.value = time(MS.SECOND * 11); // 00:00:51
+
+    controller.handleMessage({
+      type: ClientMessageType.STATUS,
+      time: clock.time().toISOString(),
+      ...frame,
+    });
+
+    {
+      const message = messenger.lastMessage?.message as ControllerStatusMessage;
+      expect(message.status).toEqual(FrameStatus.BLOCKED);
+    }
+
+    controller.handleBrowse({
+      type: BrowseEventType.NAVIGATE,
+      time: clock.time(),
+      url: new URL("moz-extension://bouncer/dist/ui/blocked/index.html"),
+      ...frame,
+    });
+
+    clock.value = time(MS.SECOND * 45); // 00:01:25
+
+    controller.handleBrowse({
+      type: BrowseEventType.NAVIGATE,
+      time: clock.time(),
+      url: site,
+      ...frame,
+    });
+
+    controller.handleMessage({
+      type: ClientMessageType.STATUS,
+      time: clock.time().toISOString(),
+      ...frame,
+    });
+
+    {
+      const message = messenger.lastMessage?.message as ControllerStatusMessage;
+      expect(message.status).toEqual(FrameStatus.ALLOWED);
+    }
+
+    clock.value = time(MS.SECOND * 61); // 00:01:41
+
+    controller.handleMessage({
+      type: ClientMessageType.STATUS,
+      time: clock.time().toISOString(),
+      ...frame,
     });
 
     {
