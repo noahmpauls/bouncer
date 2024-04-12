@@ -272,30 +272,28 @@ describe("Controller regressions", () => {
     }
   });
 
-  test("complex guard working multiple times in a row", () => {
+  test("frame type matcher working multiple times in a row", () => {
+    /**
+     * The matcher applies to Bouncer's "blocked" page; the block gets cleared,
+     * but the page never receives a "SHOW" event because from the guard's
+     * perspective, the page never stopped showing.
+     */
     const guard = new BasicGuard(
       "complex",
       new BasicPolicy(
         "Complex matcher viewtime block",
         true,
-        new AndMatcher([
-          new FrameTypeMatcher("ROOT"),
-          new NotMatcher(new OrMatcher([
-            new ExactHostnameMatcher("example.com"),
-            new ExactHostnameMatcher("www.microsoft.com"),
-            new ExactHostnameMatcher("stackoverflow.com"),
-          ]))
-        ]),
+        new FrameTypeMatcher("ROOT"),
         new ScheduledLimit(
-          new MinuteSchedule(30, 10),
-          new ViewtimeCooldownLimit(10000, 15000),
+          new AlwaysSchedule(),
+          new ViewtimeCooldownLimit(1_000, 1_000),
         ),
       ),
       new BasicPage(),
     );
 
     const guards = [guard];
-    const time = timeGenerator(new Date("2024-01-01T00:00:40.000Z"));
+    const time = timeGenerator(new Date("2024-01-01T00:00:00.000Z"));
     const clock = new DummyClock(time());
     const logs = new MemoryLogs(clock);
     const messenger = new DummyMessenger();
@@ -304,7 +302,7 @@ describe("Controller regressions", () => {
     const configuration = Configuration.default();
     const controller = new Controller(configuration, guards, guardPostings, activeTabs, messenger, logs);
 
-    const site = new URL("https://www.cnbc.com");
+    const site = new URL("https://www.wikipedia.com");
     const frame = { tabId: 1, frameId: 0 };
 
     controller.handleBrowse({
@@ -326,7 +324,7 @@ describe("Controller regressions", () => {
       ...frame,
     });
 
-    clock.value = time(MS.SECOND * 11); // 00:00:51
+    clock.value = time(1_001); // 00:00:01.001
 
     controller.handleMessage({
       type: ClientMessageType.STATUS,
@@ -346,7 +344,7 @@ describe("Controller regressions", () => {
       ...frame,
     });
 
-    clock.value = time(MS.SECOND * 45); // 00:01:25
+    clock.value = time(3_000); // 00:00:03
 
     controller.handleBrowse({
       type: BrowseEventType.NAVIGATE,
@@ -364,9 +362,114 @@ describe("Controller regressions", () => {
     {
       const message = messenger.lastMessage?.message as ControllerStatusMessage;
       expect(message.status).toEqual(FrameStatus.ALLOWED);
+      expect(guard.page.isShowing()).toBeTruthy();
     }
 
-    clock.value = time(MS.SECOND * 61); // 00:01:41
+    clock.value = time(4_001); // 00:00:04.001
+
+    controller.handleMessage({
+      type: ClientMessageType.STATUS,
+      time: clock.time().toISOString(),
+      ...frame,
+    });
+
+    {
+      const message = messenger.lastMessage?.message as ControllerStatusMessage;
+      expect(message.status).toEqual(FrameStatus.BLOCKED);
+    }
+  });
+
+  test("not matcher working multiple times in a row", () => {
+    const guard = new BasicGuard(
+      "complex",
+      new BasicPolicy(
+        "not matcher",
+        true,
+        new NotMatcher(
+          new ExactHostnameMatcher("example.com"),
+        ),
+        new ScheduledLimit(
+          new AlwaysSchedule(),
+          new ViewtimeCooldownLimit(1_000, 1_000),
+        ),
+      ),
+      new BasicPage(),
+    );
+
+    const guards = [guard];
+    const time = timeGenerator(new Date("2024-01-01T00:00:00.000Z"));
+    const clock = new DummyClock(time());
+    const logs = new MemoryLogs(clock);
+    const messenger = new DummyMessenger();
+    const guardPostings = new GuardPostings([], logs);
+    const activeTabs = new ActiveTabs([], logs);
+    const configuration = Configuration.default();
+    const controller = new Controller(configuration, guards, guardPostings, activeTabs, messenger, logs);
+
+    const site = new URL("https://www.wikipedia.com");
+    const frame = { tabId: 1, frameId: 0 };
+
+    controller.handleBrowse({
+      type: BrowseEventType.TAB_ACTIVATE,
+      time: clock.time(),
+      ...frame,
+    });
+
+    controller.handleBrowse({
+      type: BrowseEventType.NAVIGATE,
+      time: clock.time(),
+      url: site,
+      ...frame,
+    });
+
+    controller.handleMessage({
+      type: ClientMessageType.STATUS,
+      time: clock.time().toISOString(),
+      ...frame,
+    });
+
+    clock.value = time(1_001); // 00:00:01.001
+
+    controller.handleMessage({
+      type: ClientMessageType.STATUS,
+      time: clock.time().toISOString(),
+      ...frame,
+    });
+
+    {
+      const message = messenger.lastMessage?.message as ControllerStatusMessage;
+      expect(message.status).toEqual(FrameStatus.BLOCKED);
+    }
+
+    controller.handleBrowse({
+      type: BrowseEventType.NAVIGATE,
+      time: clock.time(),
+      url: new URL("moz-extension://bouncer/dist/ui/blocked/index.html"),
+      ...frame,
+    });
+
+    clock.value = time(3_000); // 00:00:03
+
+    controller.handleBrowse({
+      type: BrowseEventType.NAVIGATE,
+      time: clock.time(),
+      url: site,
+      ...frame,
+    });
+
+    controller.handleMessage({
+      type: ClientMessageType.STATUS,
+      time: clock.time().toISOString(),
+      ...frame,
+    });
+
+    {
+      const message = messenger.lastMessage?.message as ControllerStatusMessage;
+      expect(message.status).toEqual(FrameStatus.ALLOWED);
+      expect(guard.page.isShowing()).toBeTruthy();
+    }
+
+    clock.value = time(4_001); // 00:00:04.001
 
     controller.handleMessage({
       type: ClientMessageType.STATUS,
