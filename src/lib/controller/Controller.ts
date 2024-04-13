@@ -212,10 +212,8 @@ export class Controller {
   }
 
   private handleTabActivate = (time: Date, event: BrowseTabActivateEvent) => {
-    const { tabId } = event;
+    const { tabId, previousTabId } = event;
     this.logger.info(`${tabId} activates`);
-    // when popping a tab out of a window, previous tab is same as activated tab
-    const previousTabId = tabId !== event.previousTabId ? event.previousTabId : undefined;
     
     const previousGuards = this.guardPostings.tab(previousTabId);
     const newGuards = this.guardPostings.tab(tabId);

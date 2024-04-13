@@ -71,6 +71,10 @@ export type BrowseTabActivateEvent = {
   time: Date,
   type: BrowseEventType.TAB_ACTIVATE,
   tabId: number,
+  /**
+   * If tab activation results in another tab's deactivation, contains the ID
+   * of the deactivated tab.
+   */
   previousTabId?: number,
 }
 

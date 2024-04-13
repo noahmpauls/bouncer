@@ -50,7 +50,8 @@ export class BrowserEvents implements IControllerEventEmitter, IBrowserEventHand
       time: new Date(),
       type: BrowseEventType.TAB_ACTIVATE,
       tabId: details.tabId,
-      previousTabId: details.previousTabId,
+      // when popping a tab out of a window, previous tab is same as activated tab
+      previousTabId: details.previousTabId !== details.tabId ? details.previousTabId : undefined,
     });
   }
 
