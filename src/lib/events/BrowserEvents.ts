@@ -1,5 +1,6 @@
 import { type ClientMessage, type FrameMessage } from "@bouncer/message";
-import { BrowseEventType, type EventHook, type IControllerEventEmitter, type EventListener, type BrowseEvent, type IBrowserEventHandler, type CommitDetails, type HistoryDetails, type ActivateDetails, type MessageSender } from "./types";
+import { BrowseEventType, type EventHook, type IControllerEventEmitter, type EventListener, type BrowseEvent, type IBrowserEventHandler, type CommitDetails, type HistoryDetails, type ActivateDetails, type MessageSender, FrameContext, type BrowseLocation, PageOwner } from "./types";
+import { browser } from "@bouncer/browser";
 
 /**
  * Translates browser extension events into Bouncer-relevant events.
@@ -13,7 +14,13 @@ export class BrowserEvents implements IControllerEventEmitter, IBrowserEventHand
     browse: [],
   };
 
-  constructor() { }
+  constructor(
+    private readonly extensionUrl: string,
+  ) { }
+  
+  static browser = () => {
+    return new BrowserEvents(browser.runtime.getURL("/"));
+  }
 
   readonly onMessage = this.createHook(this.listeners.message);
   readonly onBrowse = this.createHook(this.listeners.browse);
@@ -22,9 +29,9 @@ export class BrowserEvents implements IControllerEventEmitter, IBrowserEventHand
     this.triggerListeners(this.listeners.browse, {
       time: new Date(details.timeStamp),
       type: BrowseEventType.NAVIGATE,
-      url: new URL(details.url),
       tabId: details.tabId,
       frameId: details.frameId,
+      location: this.location(details.url, details.frameId),
     });
   }
 
@@ -32,9 +39,9 @@ export class BrowserEvents implements IControllerEventEmitter, IBrowserEventHand
     this.triggerListeners(this.listeners.browse, {
       time: new Date(details.timeStamp),
       type: BrowseEventType.NAVIGATE,
-      url: new URL(details.url),
       tabId: details.tabId,
       frameId: details.frameId,
+      location: this.location(details.url, details.frameId),
     });
   }
 
@@ -66,6 +73,12 @@ export class BrowserEvents implements IControllerEventEmitter, IBrowserEventHand
       frameId: sender.frameId,
     });
   }
+
+  private location = (url: string, frameId: number): BrowseLocation => ({
+    url: new URL(url),
+    context: frameId === 0 ? FrameContext.ROOT : FrameContext.EMBED,
+    owner: url.startsWith(this.extensionUrl) ? PageOwner.SELF : PageOwner.WEB,
+  });
 
   private createHook<E>(listeners: EventListener<E>[]): EventHook<E> {
     return {

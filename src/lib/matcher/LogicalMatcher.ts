@@ -1,6 +1,7 @@
 import { assert } from "@bouncer/utils";
 import type { FrameType, IMatcher, MatcherData } from "./types";
 import { deserializeMatcher, serializeMatcher } from ".";
+import type { BrowseLocation } from "@bouncer/events";
 
 export class OrMatcher implements IMatcher {
 
@@ -15,8 +16,8 @@ export class OrMatcher implements IMatcher {
     )
   }
 
-  matches(url: URL, type: FrameType): boolean {
-    return this.matchers.some(m => m.matches(url, type));
+  matches(location: BrowseLocation): boolean {
+    return this.matchers.some(m => m.matches(location));
   }
 
   toObject(): OrMatcherData {
@@ -46,8 +47,8 @@ export class AndMatcher implements IMatcher {
     )
   }
 
-  matches(url: URL, type: FrameType) {
-    return this.matchers.every(m => m.matches(url, type));
+  matches(location: BrowseLocation) {
+    return this.matchers.every(m => m.matches(location));
   }
 
   toObject(): AndMatcherData {
@@ -77,8 +78,8 @@ export class NotMatcher implements IMatcher {
     )
   }
 
-  matches(url: URL, type: FrameType): boolean {
-    return !this.matcher.matches(url, type);
+  matches(location: BrowseLocation): boolean {
+    return !this.matcher.matches(location);
   }
 
   toObject(): NotMatcherData {

@@ -1,5 +1,6 @@
 import { assert } from "@bouncer/utils";
 import { type FrameType, type IMatcher } from "./types";
+import type { BrowseLocation } from "@bouncer/events";
 
 /**
  * Determines whether a URL exactly matches a given hostname.
@@ -28,8 +29,8 @@ export class ExactHostnameMatcher implements IMatcher {
   }
 
   
-  matches(url: URL, type: FrameType): boolean {
-    return url.hostname === this.hostname;
+  matches(location: BrowseLocation): boolean {
+    return location.url.hostname === this.hostname;
   }
   
 

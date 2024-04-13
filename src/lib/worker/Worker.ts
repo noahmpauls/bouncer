@@ -16,7 +16,7 @@ export class Worker<TEvents extends IControllerEventEmitter> {
 
   static browser(): Worker<IControllerEventEmitter & IBrowserEventHandler> {
     return new Worker(
-      new BrowserEvents(),
+      BrowserEvents.browser(),
       WorkerContext.browser(),
     );
   }

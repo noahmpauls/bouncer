@@ -1,19 +1,19 @@
 import { ScheduledLimit } from "@bouncer/enforcer";
 import { BasicGuard } from "@bouncer/guard";
 import { AlwaysBlock, ViewtimeCooldownLimit, WindowCooldownLimit } from "@bouncer/limit";
-import { NotMatcher, ExactHostnameMatcher, AndMatcher, FrameTypeMatcher, OrMatcher } from "@bouncer/matcher";
+import { NotMatcher, ExactHostnameMatcher, FrameContextMatcher, AndMatcher, PageOwnerMatcher } from "@bouncer/matcher";
 import { BasicPage } from "@bouncer/page";
 import { BasicPolicy } from "@bouncer/policy";
-import { AlwaysSchedule, MinuteSchedule } from "@bouncer/schedule";
+import { AlwaysSchedule } from "@bouncer/schedule";
 import { describe, expect, test } from "@jest/globals";
 import { Controller } from "./Controller";
 import { GuardPostings } from "./GuardPostings";
 import { ActiveTabs } from "./ActiveTabs";
 import { MemoryLogs } from "@bouncer/logs";
 import { ClientMessageType, type ControllerMessage, type IControllerMessenger, type ControllerStatusMessage, FrameStatus } from "@bouncer/message";
-import { MS, type IClock } from "@bouncer/time";
+import { type IClock } from "@bouncer/time";
 import { timeGenerator } from "@bouncer/test";
-import { BrowseEventType } from "@bouncer/events";
+import { BrowseEventType, FrameContext, PageOwner } from "@bouncer/events";
 import { Configuration } from "@bouncer/config";
 
 class DummyClock implements IClock {
@@ -95,7 +95,11 @@ describe("Controller regressions", () => {
       tabId: 1,
       frameId: 0,
       time: clock.time(),
-      url: new URL("https://news.ycombinator.com"),
+      location: {
+        url: new URL("https://news.ycombinator.com"),
+        context: FrameContext.ROOT,
+        owner: PageOwner.WEB,
+      },
     });
 
     controller.handleMessage({
@@ -124,7 +128,11 @@ describe("Controller regressions", () => {
       tabId: 1,
       frameId: 0,
       time: clock.time(),
-      url: new URL("moz-extension://bouncer/dist/ui/blocked/index.html"),
+      location: {
+        url: new URL("moz-extension://bouncer/dist/ui/blocked/index.html"),
+        context: FrameContext.ROOT,
+        owner: PageOwner.SELF,
+      },
     });
 
     clock.value = time(3000);
@@ -134,7 +142,11 @@ describe("Controller regressions", () => {
       tabId: 1,
       frameId: 0,
       time: clock.time(),
-      url: new URL("https://news.ycombinator.com"),
+      location: {
+        url: new URL("https://news.ycombinator.com"),
+        context: FrameContext.ROOT,
+        owner: PageOwner.WEB,
+      },
     });
 
     controller.handleMessage({
@@ -208,7 +220,11 @@ describe("Controller regressions", () => {
       tabId: 1,
       frameId: 0,
       time: clock.time(),
-      url: new URL("https://news.ycombinator.com"),
+      location: {
+        url: new URL("https://news.ycombinator.com"),
+        context: FrameContext.ROOT,
+        owner: PageOwner.WEB,
+      },
     });
 
     controller.handleMessage({
@@ -237,7 +253,11 @@ describe("Controller regressions", () => {
       tabId: 1,
       frameId: 0,
       time: clock.time(),
-      url: new URL("moz-extension://bouncer/dist/ui/blocked/index.html"),
+      location: {
+        url: new URL("moz-extension://bouncer/dist/ui/blocked/index.html"),
+        context: FrameContext.ROOT,
+        owner: PageOwner.SELF,
+      },
     });
 
     clock.value = time(3000);
@@ -247,7 +267,11 @@ describe("Controller regressions", () => {
       tabId: 1,
       frameId: 0,
       time: clock.time(),
-      url: new URL("https://news.ycombinator.com"),
+      location: {
+        url: new URL("https://news.ycombinator.com"),
+        context: FrameContext.ROOT,
+        owner: PageOwner.WEB,
+      },
     });
 
     controller.handleMessage({
@@ -272,122 +296,16 @@ describe("Controller regressions", () => {
     }
   });
 
-  test("frame type matcher working multiple times in a row", () => {
-    /**
-     * The matcher applies to Bouncer's "blocked" page; the block gets cleared,
-     * but the page never receives a "SHOW" event because from the guard's
-     * perspective, the page never stopped showing.
-     */
-    const guard = new BasicGuard(
-      "complex",
-      new BasicPolicy(
-        "Complex matcher viewtime block",
-        true,
-        new FrameTypeMatcher("ROOT"),
-        new ScheduledLimit(
-          new AlwaysSchedule(),
-          new ViewtimeCooldownLimit(1_000, 1_000),
-        ),
-      ),
-      new BasicPage(),
-    );
-
-    const guards = [guard];
-    const time = timeGenerator(new Date("2024-01-01T00:00:00.000Z"));
-    const clock = new DummyClock(time());
-    const logs = new MemoryLogs(clock);
-    const messenger = new DummyMessenger();
-    const guardPostings = new GuardPostings([], logs);
-    const activeTabs = new ActiveTabs([], logs);
-    const configuration = Configuration.default();
-    const controller = new Controller(configuration, guards, guardPostings, activeTabs, messenger, logs);
-
-    const site = new URL("https://www.wikipedia.com");
-    const frame = { tabId: 1, frameId: 0 };
-
-    controller.handleBrowse({
-      type: BrowseEventType.TAB_ACTIVATE,
-      time: clock.time(),
-      ...frame,
-    });
-
-    controller.handleBrowse({
-      type: BrowseEventType.NAVIGATE,
-      time: clock.time(),
-      url: site,
-      ...frame,
-    });
-
-    controller.handleMessage({
-      type: ClientMessageType.STATUS,
-      time: clock.time().toISOString(),
-      ...frame,
-    });
-
-    clock.value = time(1_001); // 00:00:01.001
-
-    controller.handleMessage({
-      type: ClientMessageType.STATUS,
-      time: clock.time().toISOString(),
-      ...frame,
-    });
-
-    {
-      const message = messenger.lastMessage?.message as ControllerStatusMessage;
-      expect(message.status).toEqual(FrameStatus.BLOCKED);
-    }
-
-    controller.handleBrowse({
-      type: BrowseEventType.NAVIGATE,
-      time: clock.time(),
-      url: new URL("moz-extension://bouncer/dist/ui/blocked/index.html"),
-      ...frame,
-    });
-
-    clock.value = time(3_000); // 00:00:03
-
-    controller.handleBrowse({
-      type: BrowseEventType.NAVIGATE,
-      time: clock.time(),
-      url: site,
-      ...frame,
-    });
-
-    controller.handleMessage({
-      type: ClientMessageType.STATUS,
-      time: clock.time().toISOString(),
-      ...frame,
-    });
-
-    {
-      const message = messenger.lastMessage?.message as ControllerStatusMessage;
-      expect(message.status).toEqual(FrameStatus.ALLOWED);
-      expect(guard.page.isShowing()).toBeTruthy();
-    }
-
-    clock.value = time(4_001); // 00:00:04.001
-
-    controller.handleMessage({
-      type: ClientMessageType.STATUS,
-      time: clock.time().toISOString(),
-      ...frame,
-    });
-
-    {
-      const message = messenger.lastMessage?.message as ControllerStatusMessage;
-      expect(message.status).toEqual(FrameStatus.BLOCKED);
-    }
-  });
-
-  test("not matcher working multiple times in a row", () => {
+  test("can exclude pages owned by extension from guard", () => {
     const guard = new BasicGuard(
       "complex",
       new BasicPolicy(
         "not matcher",
         true,
-        new NotMatcher(
-          new ExactHostnameMatcher("example.com"),
-        ),
+        new AndMatcher([
+          new NotMatcher(new PageOwnerMatcher(PageOwner.SELF)),          
+          new NotMatcher(new ExactHostnameMatcher("example.com")),
+        ]),
         new ScheduledLimit(
           new AlwaysSchedule(),
           new ViewtimeCooldownLimit(1_000, 1_000),
@@ -418,7 +336,11 @@ describe("Controller regressions", () => {
     controller.handleBrowse({
       type: BrowseEventType.NAVIGATE,
       time: clock.time(),
-      url: site,
+      location: {
+        url: site,
+        context: FrameContext.ROOT,
+        owner: PageOwner.WEB,
+      },
       ...frame,
     });
 
@@ -444,7 +366,11 @@ describe("Controller regressions", () => {
     controller.handleBrowse({
       type: BrowseEventType.NAVIGATE,
       time: clock.time(),
-      url: new URL("moz-extension://bouncer/dist/ui/blocked/index.html"),
+      location: {
+        url: new URL("moz-extension://bouncer/dist/ui/blocked/index.html"),
+        context: FrameContext.ROOT,
+        owner: PageOwner.SELF,
+      },
       ...frame,
     });
 
@@ -453,7 +379,11 @@ describe("Controller regressions", () => {
     controller.handleBrowse({
       type: BrowseEventType.NAVIGATE,
       time: clock.time(),
-      url: site,
+      location: {
+        url: site,
+        context: FrameContext.ROOT,
+        owner: PageOwner.WEB,
+      },
       ...frame,
     });
 

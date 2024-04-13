@@ -183,12 +183,11 @@ export class Controller {
   }
 
   private handleNavigate = (time: Date, event: BrowseNavigateEvent) => {
-    const { tabId, frameId, url } = event;
-    this.logger.info(`${tabId}-${frameId} nagivates to ${url}`);
-    const frameType: FrameType = frameId === 0 ? "ROOT" : "CHILD";
+    const { tabId, frameId, location } = event;
+    this.logger.info(`${tabId}-${frameId} nagivates to ${location.url}`);
 
     const oldGuards = new Set(this.guardPostings.frame(tabId, frameId));
-    const newGuards = new Set(this.guards.filter(g => g.policy.appliesTo(url, frameType)));
+    const newGuards = new Set(this.guards.filter(g => g.policy.appliesTo(location)));
     
     const allGuards = Sets.union(oldGuards, newGuards);
     this.enforce(time, [...allGuards]);

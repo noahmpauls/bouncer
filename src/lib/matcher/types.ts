@@ -1,6 +1,8 @@
+import type { BrowseLocation, PageOwner } from "@bouncer/events";
 import type { ExactHostnameMatcherData } from "./ExactHostnameMatcher";
-import type { FrameTypeMatcherData } from "./FrameTypeMatcher";
+import type { FrameContextMatcherData } from "./FrameContextMatcher";
 import type { AndMatcherData, NotMatcherData, OrMatcherData } from "./LogicalMatcher";
+import type { PageOwnerMatcherData } from "./PageOwnerMatcher";
 
 export type FrameType = "ROOT" | "CHILD";
 
@@ -11,11 +13,10 @@ export type IMatcher = {
   /**
    * Determine whether the pattern applies to a given frame.
    * 
-   * @param url the URL of the frame
-   * @param type the type of the frame
+   * @param location the frame's location
    * @returns whether the frame matches the rule
    */
-  matches(url: URL, type: FrameType): boolean;
+  matches(location: BrowseLocation): boolean;
   
   /**
    * Convert matcher to an object representation. The representation must
@@ -31,7 +32,8 @@ export type IMatcher = {
  */
 export type MatcherData = 
   ExactHostnameMatcherData
-| FrameTypeMatcherData
+| PageOwnerMatcherData
+| FrameContextMatcherData
 | OrMatcherData
 | AndMatcherData
 | NotMatcherData

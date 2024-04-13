@@ -43,12 +43,28 @@ export type BrowseEvent =
   | BrowseTabRemoveEvent
   ;
 
+export enum FrameContext {
+  ROOT = "root",
+  EMBED = "embed",
+}
+
+export enum PageOwner {
+  SELF = "self",
+  WEB = "web",
+}
+
+export type BrowseLocation = {
+  url: URL,
+  context: FrameContext,
+  owner: PageOwner,
+}
+
 export type BrowseNavigateEvent = {
   time: Date,
   type: BrowseEventType.NAVIGATE,
   tabId: number,
   frameId: number,
-  url: URL,
+  location: BrowseLocation,
 }
 
 export type BrowseTabActivateEvent = {

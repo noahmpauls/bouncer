@@ -3,6 +3,7 @@ import { type IMatcher, deserializeMatcher, serializeMatcher, type MatcherData, 
 import { assert } from "@bouncer/utils";
 import { type IPolicy } from "./types";
 import type { IPage } from "@bouncer/page";
+import type { BrowseLocation } from "@bouncer/events";
 
 /**
  * Represents the mapping between a page/set of pages and an enforcement action
@@ -43,8 +44,8 @@ export class BasicPolicy implements IPolicy {
     );
   }
 
-  appliesTo(url: URL, type: FrameType): boolean {
-    return this.matcher.matches(url, type);
+  appliesTo(location: BrowseLocation): boolean {
+    return this.matcher.matches(location);
   }
 
   enforce(time: Date, page: IPage): void {
