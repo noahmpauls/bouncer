@@ -1,5 +1,5 @@
 import type { BasicPageData } from "./BasicPage";
-import type { PageEvent, PageActionType, PageAccess } from "./enums";
+import type { PageAccess, PageActionType, PageEvent } from "./enums";
 
 /**
  * Represents a webpage that can be browsed and blocked.

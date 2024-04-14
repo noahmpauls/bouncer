@@ -1,15 +1,11 @@
-import { type IPageMetrics, type PageAction } from "@bouncer/page";
-import { type ISchedule } from "./types";
+import type { IPageMetrics, PageAction } from "@bouncer/page";
 import { assert } from "@bouncer/utils";
+import type { ISchedule } from "./types";
 
 /**
  * Represents a schedule containing all times.
  */
 export class AlwaysSchedule implements ISchedule {
-
-  constructor() { }
-
-
   /**
    * Convert an object to this type of schedule.
    * 
@@ -21,15 +17,11 @@ export class AlwaysSchedule implements ISchedule {
     return new AlwaysSchedule();
   }
   
-
   actions(from: Date, to: Date, page: IPageMetrics): PageAction[] { return []; }
 
-
   contains(time: Date): boolean { return true; }
-  
 
   nextStart(time: Date): Date | undefined { return undefined; }
-
 
   toObject(): AlwaysScheduleData {
     return { type: "AlwaysSchedule" };

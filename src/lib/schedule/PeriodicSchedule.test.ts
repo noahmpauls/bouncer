@@ -1,8 +1,8 @@
-import { DateTime } from "luxon";
 import { BasicPage, type PageAction, PageActionType } from "@bouncer/page";
-import { describe, test, expect } from "@jest/globals";
-import { PeriodicSchedule } from "@bouncer/schedule";
 import { PeriodicInterval, PeriodicTime } from "@bouncer/period";
+import { PeriodicSchedule } from "@bouncer/schedule";
+import { describe, expect, test } from "@jest/globals";
+import { DateTime } from "luxon";
 
 
 const REFTIME = DateTime.fromISO("2000-01-01T00:00:00.500");
@@ -27,8 +27,8 @@ describe("PeriodicSchedule (minute)", () => {
   test("rejects invalid (overlapping intervals)", () => {
     expect(() => {
       const schedule = new PeriodicSchedule([
-        new PeriodicInterval(PeriodicTime.fromString(`59`), PeriodicTime.fromString(`10`)),
-        new PeriodicInterval(PeriodicTime.fromString(`5`), PeriodicTime.fromString(`12`)),
+        new PeriodicInterval(PeriodicTime.fromString("59"), PeriodicTime.fromString("10")),
+        new PeriodicInterval(PeriodicTime.fromString("5"), PeriodicTime.fromString("12")),
       ])
     }).toThrow();
   })
@@ -41,7 +41,7 @@ describe("PeriodicSchedule (minute)", () => {
     { s: 44, ms: 999, contains: true },
   ])("wrap-around all-inclusive contains $s s, $ms ms: $contains", ({ s, ms, contains }) => {
     const schedule = new PeriodicSchedule([
-      new PeriodicInterval(PeriodicTime.fromString(`45`), PeriodicTime.fromString(`45`)),
+      new PeriodicInterval(PeriodicTime.fromString("45"), PeriodicTime.fromString("45")),
     ]);
 
     const date = new Date(2000, 3, 12, 5, 15, s, ms);
@@ -57,7 +57,7 @@ describe("PeriodicSchedule (minute)", () => {
     { s: 0, ms: 500, contains: false },
   ])("wrap-around gapped contains $s s, $ms ms: $contains", ({ s, ms, contains }) => {
     const schedule = new PeriodicSchedule([
-      new PeriodicInterval(PeriodicTime.fromString(`34`), PeriodicTime.fromString(`35`)),
+      new PeriodicInterval(PeriodicTime.fromString("34"), PeriodicTime.fromString("35")),
     ]);
 
     const date = new Date(2000, 3, 12, 5, 15, s, ms);
@@ -328,7 +328,7 @@ describe("PeriodicSchedule (minute)", () => {
 describe("MinuteSchedule from/toObject", () => {
   test("from/toObject does not mutate", () => {
     const expected = new PeriodicSchedule([
-      new PeriodicInterval(PeriodicTime.fromString(`0`), PeriodicTime.fromString(`59`)),
+      new PeriodicInterval(PeriodicTime.fromString("0"), PeriodicTime.fromString("59")),
     ]).toObject();
     const actual = PeriodicSchedule.fromObject(expected).toObject();
     expect(actual).toStrictEqual(actual);

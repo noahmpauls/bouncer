@@ -18,9 +18,9 @@ export class Synchronizer {
    * @returns asynchronous function return value
    */
   async sync<T>(func: () => Promise<T>): Promise<T> {
-    return new Promise(async (resolve) => {
+    return new Promise((resolve) => {
       this.queue.push(async () => { resolve(await func()) });
-      await this.doQueue();
+      this.doQueue();
     });
   }
 
@@ -28,7 +28,7 @@ export class Synchronizer {
     if (this.ready && this.queue.length > 0) {
       this.ready = false;
       while (this.queue.length > 0) {
-        await (this.queue.shift())!();
+        await this.queue.shift()?.();
       }
       this.ready = true;
     }

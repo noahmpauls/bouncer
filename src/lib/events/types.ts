@@ -1,5 +1,5 @@
-import type Browser from "webextension-polyfill";
 import type { ClientMessage, FrameMessage } from "@bouncer/message";
+import type Browser from "webextension-polyfill";
 
 export type ActivateDetails = Pick<Browser.Tabs.OnActivatedActiveInfoType, "tabId" | "previousTabId">
 export type CommitDetails = Pick<Browser.WebNavigation.OnCommittedDetailsType, "url" | "tabId" | "frameId" | "timeStamp">

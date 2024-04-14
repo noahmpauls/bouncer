@@ -1,9 +1,6 @@
 import type { IPageMetrics, PageAction } from "@bouncer/page";
 import type { AlwaysScheduleData } from "./AlwaysSchedule";
-import type { DayScheduleData } from "./DaySchedule";
-import type { MinuteScheduleData } from "./MinuteSchedule";
 import type { PeriodicScheduleData } from "./PeriodicSchedule";
-import type { WeekScheduleData } from "./WeekSchedule";
 
 /**
  * Represents a specified subset of all times.
@@ -54,8 +51,5 @@ export interface ISchedule {
  */
 export type ScheduleData =
     AlwaysScheduleData
-  | MinuteScheduleData
-  | DayScheduleData
-  | WeekScheduleData
   | PeriodicScheduleData
   ;

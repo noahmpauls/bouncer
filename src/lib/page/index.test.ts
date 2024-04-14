@@ -1,5 +1,5 @@
-import { BasicPage, deserializePage, type IPage, serializePage } from "@bouncer/page";
-import { describe, test, expect } from "@jest/globals";
+import { BasicPage, type IPage, deserializePage, serializePage } from "@bouncer/page";
+import { describe, expect, test } from "@jest/globals";
 
 
 describe("page ser/de", () => {

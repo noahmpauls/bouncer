@@ -1,10 +1,10 @@
-import { Configuration, type IConfiguration } from "@bouncer/config";
-import type { IContext } from "./types";
-import { BrowserStorage, type IStorage } from "@bouncer/storage";
 import { SyncedCache } from "@bouncer/cache";
+import { Configuration, type IConfiguration } from "@bouncer/config";
+import { BrowserStorage, type IStorage } from "@bouncer/storage";
+import type { IContext } from "./types";
 
 export class ConfigContext implements IContext<IConfiguration> {
-  private readonly key = `configuration`;
+  private readonly key = "configuration";
   private readonly cache: SyncedCache<IConfiguration>;
 
   constructor(

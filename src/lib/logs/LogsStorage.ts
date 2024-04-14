@@ -1,8 +1,8 @@
-import { BrowserStorage, type IStorage } from "@bouncer/storage";
-import type { ILogsReader, ILogsWriter, Log } from "./types";
-import { Period } from "@bouncer/period";
-import { Maps, Synchronizer } from "@bouncer/utils";
 import type { IConfiguration } from "@bouncer/config";
+import { Period } from "@bouncer/period";
+import { BrowserStorage, type IStorage } from "@bouncer/storage";
+import { Maps, Synchronizer } from "@bouncer/utils";
+import type { ILogsReader, ILogsWriter, Log } from "./types";
 
 /**
  * Represents a storage container for logs.
@@ -142,7 +142,7 @@ export class LogsStorageReader implements ILogsReader {
 }
 
 class Metadata {
-  static readonly key: string = `logs-metadata`;
+  static readonly key: string = "logs-metadata";
 
   constructor(
     private readonly storage: IStorage,

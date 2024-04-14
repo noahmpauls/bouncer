@@ -1,5 +1,5 @@
 import { BasicPage } from "./BasicPage";
-import type { PageData, IPage } from "./types";
+import type { IPage, PageData } from "./types";
 
 
 /**

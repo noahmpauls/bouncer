@@ -1,5 +1,5 @@
-import { deserializePolicy } from "@bouncer/policy";
 import { BrowserClientMessenger, ClientMessageType } from "@bouncer/message";
+import { deserializePolicy } from "@bouncer/policy";
 
 const messenger = BrowserClientMessenger;
 
@@ -29,9 +29,9 @@ const defaultPolicyValue =
   }
 }`;
 
-const policyCreator = document.getElementById("policy-creator");
+const policyCreator = document.getElementById("policy-creator") as HTMLFormElement;
 
-const textarea = policyCreator?.querySelector("textarea")!;
+const textarea = policyCreator.querySelector("textarea") as HTMLTextAreaElement;
 textarea.value = defaultPolicyValue;
 textarea.rows = Math.max(10, defaultPolicyValue.split("\n").length);
 textarea.addEventListener("input", e => {

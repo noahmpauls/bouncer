@@ -1,6 +1,6 @@
+import type { BrowseLocation, FrameContext } from "@bouncer/events";
 import { assert } from "@bouncer/utils";
 import type { IMatcher } from "./types";
-import type { BrowseLocation, FrameContext } from "@bouncer/events";
 
 /**
  * Matches all frames of a particular type.

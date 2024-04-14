@@ -1,8 +1,8 @@
-import { type ILimit, deserializeLimit, serializeLimit, type LimitData } from "@bouncer/limit";
+import { type ILimit, type LimitData, deserializeLimit, serializeLimit } from "@bouncer/limit";
 import { type IPage, PageAccess } from "@bouncer/page";
-import { type ISchedule, deserializeSchedule, serializeSchedule, type ScheduleData } from "@bouncer/schedule";
+import { type ISchedule, type ScheduleData, deserializeSchedule, serializeSchedule } from "@bouncer/schedule";
 import { assert } from "@bouncer/utils";
-import { type IEnforcer } from "./types";
+import type { IEnforcer } from "./types";
 
 /**
  * Represents a browsing limit that applies on a schedule.
@@ -64,36 +64,36 @@ export class ScheduledLimit implements IEnforcer {
   
   nextViewEvent(time: Date, page: IPage): Date | undefined {
     const scheduleActive = this.schedule.contains(time);
-    if (scheduleActive && page.isShowing()) {
-      const remainingViewtime = this.limit.remainingViewtime(time, page);
-      return remainingViewtime === Infinity
-        ? undefined
-        : new Date(time.getTime() + remainingViewtime);
-    } else {
-      return undefined
+    if (!scheduleActive || !page.isShowing()) {
+      return undefined;
     }
+    const remainingViewtime = this.limit.remainingViewtime(time, page);
+    return remainingViewtime === Number.POSITIVE_INFINITY
+      ? undefined
+      : new Date(time.getTime() + remainingViewtime);
   }
   
   nextTimelineEvent(time: Date, page: IPage): Date | undefined {
     const scheduleActive = this.schedule.contains(time);
     const nextStart = this.schedule.nextStart(time);
-    if (scheduleActive) {
-      const remainingWindow = this.limit.remainingWindow(time, page);
-      const nextWindowEvent = remainingWindow === Infinity
-        ? undefined
-        : new Date(time.getTime() + remainingWindow);
-      // this makes me cringe...
-      if (nextStart !== undefined && nextWindowEvent !== undefined) {
-        return new Date(Math.min(nextStart.getTime(), nextWindowEvent.getTime()));
-      } else if (nextStart !== undefined) {
-        return nextStart
-      } else if (nextWindowEvent !== undefined) {
-        return nextWindowEvent
-      }
-      return undefined;
-    } else {
+    if (!scheduleActive) {
       return nextStart;
     }
+    const remainingWindow = this.limit.remainingWindow(time, page);
+    const nextWindowEvent = remainingWindow === Number.POSITIVE_INFINITY
+      ? undefined
+      : new Date(time.getTime() + remainingWindow);
+    // TODO: this makes me cringe...
+    if (nextStart !== undefined && nextWindowEvent !== undefined) {
+      return new Date(Math.min(nextStart.getTime(), nextWindowEvent.getTime()));
+    }
+    if (nextStart !== undefined) {
+      return nextStart;
+    }
+    if (nextWindowEvent !== undefined) {
+      return nextWindowEvent;
+    }
+    return undefined;
   }
   
   toObject(): ScheduledLimitData {

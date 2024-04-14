@@ -1,7 +1,7 @@
-import type { FrameType } from "@bouncer/matcher";
-import type { BasicPolicyData } from "./BasicPolicy";
-import type { IPage } from "@bouncer/page";
 import type { BrowseLocation } from "@bouncer/events";
+import type { FrameType } from "@bouncer/matcher";
+import type { IPage } from "@bouncer/page";
+import type { BasicPolicyData } from "./BasicPolicy";
 
 /**
  * Represents a policy.

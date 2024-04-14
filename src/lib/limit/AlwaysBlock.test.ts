@@ -1,7 +1,7 @@
-import { describe, test, expect } from "@jest/globals";
 import { AlwaysBlock } from "@bouncer/limit";
 import { BasicPage, type PageAction, PageActionType, PageEvent } from "@bouncer/page";
 import { pageWithMutations } from "@bouncer/test";
+import { describe, expect, test } from "@jest/globals";
 
 
 describe("AlwaysBlock action", () => {
@@ -29,7 +29,7 @@ describe("AlwaysBlock remaining", () => {
     const viewtime = limit.remainingViewtime(time, page);
     const window = limit.remainingWindow(time, page);
     
-    const expected = Infinity;
+    const expected = Number.POSITIVE_INFINITY;
     expect(viewtime).toEqual(expected);
     expect(window).toEqual(expected);
   })
@@ -43,7 +43,7 @@ describe("AlwaysBlock remaining", () => {
     const viewtime = limit.remainingViewtime(checkTime, page);
     const window = limit.remainingWindow(checkTime, page);
 
-    const expected = Infinity;
+    const expected = Number.POSITIVE_INFINITY;
     expect(viewtime).toEqual(expected);
     expect(window).toEqual(expected);
   })
@@ -60,7 +60,7 @@ describe("AlwaysBlock remaining", () => {
     const viewtime = limit.remainingViewtime(checkTime, page);
     const window = limit.remainingWindow(checkTime, page);
     
-    const expected = Infinity;
+    const expected = Number.POSITIVE_INFINITY;
     expect(viewtime).toEqual(expected);
     expect(window).toEqual(expected);
   })
@@ -76,7 +76,7 @@ describe("AlwaysBlock remaining", () => {
     const viewtime = limit.remainingViewtime(checkTime, page);
     const window = limit.remainingWindow(checkTime, page);
     
-    const expected = Infinity;
+    const expected = Number.POSITIVE_INFINITY;
     expect(viewtime).toEqual(expected);
     expect(window).toEqual(expected);
   })

@@ -88,7 +88,7 @@ export class PeriodicInterval {
    */
   contains = (time: Date): boolean => {
     const intervalStart = this.start.prev(time);
-    let intervalEnd = this.end.next(time, false);
+    const intervalEnd = this.end.next(time, false);
     return intervalEnd.getTime() - intervalStart.getTime() <= Period(this.period).ms;
   }
 

@@ -19,7 +19,7 @@ export class SyncedCache<T> {
   /**
    * @returns whether the cache has been initialized
    */
-  get isInitialized(): boolean{
+  get isInitialized(): boolean {
     return !(this.cache === undefined);
   }
 
@@ -27,12 +27,11 @@ export class SyncedCache<T> {
    * @returns the cache value after initialization
    */
   async value(): Promise<T> {
-    if (this.cache === undefined) {
-      await this.initialize();
-      return this.value();
-    } else {
+    if (this.cache !== undefined) {
       return this.cache;
     }
+    await this.initialize();
+    return this.value();
   }
 
   private async initialize(): Promise<void> {

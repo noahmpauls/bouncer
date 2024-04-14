@@ -1,8 +1,8 @@
 import type { IGuard } from "@bouncer/guard";
-import { assert } from "@bouncer/utils";
-import type { ActiveTabs } from "./ActiveTabs";
-import { Maps } from "@bouncer/utils";
 import type { ILogger, ILogs } from "@bouncer/logs";
+import { assert } from "@bouncer/utils";
+import { Maps } from "@bouncer/utils";
+import type { ActiveTabs } from "./ActiveTabs";
 
 /**
  * Represents the assignment of guards to browser tabs and frames.
@@ -68,15 +68,14 @@ export class GuardPostings {
    * @param guards guard objects
    */
   static fromObject(obj: GuardPostingsData, guards: IGuard[], logs: ILogs): GuardPostings {
-    const withGuards = obj.map(o => ({
-      ...o,
-      guard: guards.find(g => g.id === o.guardId),
-    }));
-    const notFound = withGuards.filter(o => o.guard === undefined);
-    if (notFound.length > 0) {
-      throw new Error(`guard object not found for ids ${notFound.map(o => o.guardId).join(',')}`);
-    }
-    return new GuardPostings(withGuards as any, logs);
+    const withGuards = obj.map(o => {
+      const guard = guards.find(g => g.id === o.guardId);
+      if (guard === undefined) {
+        throw new Error(`guard object not found for id ${o.guardId}`);
+      }
+      return  { ...o, guard }
+    });
+    return new GuardPostings(withGuards, logs);
   }
 
   /**

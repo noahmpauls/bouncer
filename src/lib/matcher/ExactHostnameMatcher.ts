@@ -1,6 +1,6 @@
-import { assert } from "@bouncer/utils";
-import { type FrameType, type IMatcher } from "./types";
 import type { BrowseLocation } from "@bouncer/events";
+import { assert } from "@bouncer/utils";
+import type { FrameType, IMatcher } from "./types";
 
 /**
  * Determines whether a URL exactly matches a given hostname.

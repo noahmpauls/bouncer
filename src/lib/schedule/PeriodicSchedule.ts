@@ -1,7 +1,7 @@
-import { assert } from "@bouncer/utils";
-import { type ISchedule } from "./types";
 import { type IPageMetrics, PageAccess, type PageAction, PageActionType } from "@bouncer/page";
-import { PeriodicInterval, type PeriodType, type PeriodicIntervalData } from "@bouncer/period";
+import { type PeriodType, PeriodicInterval, type PeriodicIntervalData } from "@bouncer/period";
+import { assert } from "@bouncer/utils";
+import type { ISchedule } from "./types";
 
 
 /**
@@ -28,14 +28,14 @@ export class PeriodicSchedule implements ISchedule {
   }
 
   private checkRep() {
-    assert(this.intervals.length > 0, `intervals must be non-empty`);
+    assert(this.intervals.length > 0, "intervals must be non-empty");
     let period: PeriodType | undefined = undefined;
     for (const interval of this.intervals) {
       if (period === undefined) {
         period = interval.period;
       } else {
         assert(interval.period === period,
-          `all intervals must have the same period`);
+          "all intervals must have the same period");
       }
       for (const [i, a] of this.intervals.entries()) {
         for (const b of this.intervals.slice(i + 1)) {

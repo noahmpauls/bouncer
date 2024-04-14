@@ -1,4 +1,4 @@
-import { BasicPage, type IPage, type IPageMetrics, PageAccess, PageEvent } from "@bouncer/page"
+import { BasicPage, type IPage, type IPageMetrics, PageAccess, type PageEvent } from "@bouncer/page"
 
 type PageMutation = {
   type: PageEvent,
@@ -52,5 +52,5 @@ export function pageMetrics(metrics: {
 
 
 export function timeGenerator(time: Date = new Date()) {
-  return (offsetMs: number = 0) => new Date(time.getTime() + offsetMs);
+  return (offsetMs = 0) => new Date(time.getTime() + offsetMs);
 }

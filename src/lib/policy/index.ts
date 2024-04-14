@@ -1,5 +1,5 @@
 import { BasicPolicy } from "./BasicPolicy";
-import type { PolicyData, IPolicy } from "./types";
+import type { IPolicy, PolicyData } from "./types";
 
 
 /**

@@ -1,7 +1,7 @@
 import { ViewtimeCooldownLimit } from "@bouncer/limit";
-import { describe, test, expect } from "@jest/globals";
 import { PageAccess, type PageAction, PageActionType } from "@bouncer/page";
 import { pageMetrics, timeGenerator } from "@bouncer/test";
+import { describe, expect, test } from "@jest/globals";
 
 
 describe("ViewtimeCooldownLimit action", () => {
@@ -293,7 +293,7 @@ describe("ViewtimeCooldownLimit action", () => {
 describe("remainingViewtime", () => {
   test("non-zero viewtime", () => {
     const viewtime = 1000;
-    const limit = new ViewtimeCooldownLimit(1000, Infinity);
+    const limit = new ViewtimeCooldownLimit(1000, Number.POSITIVE_INFINITY);
 
     const pageViewtime = 50;
     const page = pageMetrics({

@@ -1,3 +1,3 @@
-globalThis.chrome = { runtime: { id: "jest-test" } } as any;
+import type { Browser } from "webextension-polyfill";
 
-export { }
+globalThis.chrome = { runtime: { id: "jest-test" } } as Browser;

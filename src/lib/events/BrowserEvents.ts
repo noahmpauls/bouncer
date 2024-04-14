@@ -1,6 +1,6 @@
-import { type ClientMessage, type FrameMessage } from "@bouncer/message";
-import { BrowseEventType, type EventHook, type IControllerEventEmitter, type EventListener, type BrowseEvent, type IBrowserEventHandler, type CommitDetails, type HistoryDetails, type ActivateDetails, type MessageSender, FrameContext, type BrowseLocation, PageOwner } from "./types";
 import { browser } from "@bouncer/browser";
+import type { ClientMessage, FrameMessage } from "@bouncer/message";
+import { type ActivateDetails, type BrowseEvent, BrowseEventType, type BrowseLocation, type CommitDetails, type EventHook, type EventListener, FrameContext, type HistoryDetails, type IBrowserEventHandler, type IControllerEventEmitter, type MessageSender, PageOwner } from "./types";
 
 /**
  * Translates browser extension events into Bouncer-relevant events.

@@ -1,6 +1,6 @@
 import { browser } from "@bouncer/browser";
-import type { ClientMessage, ControllerMessage, IClientMessenger, IControllerMessenger } from "./types";
 import type { ILogger, ILogs } from "@bouncer/logs";
+import type { ClientMessage, ControllerMessage, IClientMessenger, IControllerMessenger } from "./types";
 
 export const BrowserClientMessenger: IClientMessenger = {
   send: (message: ClientMessage) => {

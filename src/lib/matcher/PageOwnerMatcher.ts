@@ -1,6 +1,6 @@
 import type { BrowseLocation, PageOwner } from "@bouncer/events";
-import type { IMatcher } from ".";
 import { assert } from "@bouncer/utils";
+import type { IMatcher } from ".";
 
 /**
  * Matches all locations with a particular owner.

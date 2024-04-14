@@ -1,14 +1,11 @@
-import { assert } from "@bouncer/utils";
 import { type IPageMetrics, PageAccess, type PageAction, PageActionType } from "@bouncer/page";
-import { type ILimit } from "./types";
+import { assert } from "@bouncer/utils";
+import type { ILimit } from "./types";
 
 /**
  * Represents a limit that always recommends blocking no matter what.
  */
 export class AlwaysBlock implements ILimit {
-
-  constructor() { }
-
   /**
    * Convert an object to this type of limit.
    * 
@@ -22,21 +19,20 @@ export class AlwaysBlock implements ILimit {
 
 
   actions(time: Date, page: IPageMetrics): PageAction[] {
-    if (page.access() !== PageAccess.BLOCKED) {
-      return [{ type: PageActionType.BLOCK, time }];
-    } else {
+    if (page.access() === PageAccess.BLOCKED) {
       return [];
     }
+    return [{ type: PageActionType.BLOCK, time }];
   }
 
   
   remainingViewtime(time: Date, page: IPageMetrics): number {
-    return Infinity;
+    return Number.POSITIVE_INFINITY;
   }
   
 
   remainingWindow(time: Date, page: IPageMetrics): number {
-    return Infinity;
+    return Number.POSITIVE_INFINITY;
   }
   
 

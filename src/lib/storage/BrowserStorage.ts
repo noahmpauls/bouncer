@@ -1,7 +1,7 @@
-import type Browser from "webextension-polyfill";
-import { type ChangeSubscriber, type IStorage } from "./types";
 import { browser } from "@bouncer/browser";
 import { Maps } from "@bouncer/utils";
+import type Browser from "webextension-polyfill";
+import type { ChangeSubscriber, IStorage } from "./types";
 
 /**
  * Persistent data manipulation through browser local extension storage.

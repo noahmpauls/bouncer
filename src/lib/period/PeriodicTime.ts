@@ -1,7 +1,7 @@
-import { assert } from "@bouncer/utils";
 import { MS } from "@bouncer/time";
-import type { PeriodType } from "./types";
+import { assert } from "@bouncer/utils";
 import { Period } from "./Period";
+import type { PeriodType } from "./types";
 
 type PeriodicTimeFields = {
   day: number,
@@ -52,7 +52,7 @@ export class PeriodicTime {
   private checkRep = () => {
     // at least one time field must be populated
     const fields: (keyof PeriodicTimeFields)[] = ["day", "hour", "minute", "second"];
-    assert(Object.values(this.time).some(v => v !== undefined), `no time fields specified`);
+    assert(Object.values(this.time).some(v => v !== undefined), "no time fields specified");
 
     const fieldBounds: { [Property in keyof PeriodicTimeFields]: [number, number] } = {
       day: [0, 59],
@@ -67,13 +67,13 @@ export class PeriodicTime {
       // all fields of granularity below the period must be populated
       assert(this.time[field] !== undefined, `field ${field} must be defined`);
       // all fields must be inbounds
-      assert(this.inbounds(this.time[field]!, ...fieldBounds[field]),
+      assert(this.inbounds(this.time[field], ...fieldBounds[field]),
         `invalid ${field} value ${this.time[field]}`);
     }
   }
 
-  private inbounds = (test: number, min: number, max: number): boolean =>
-    test >= min && test <= max;
+  private inbounds = (test: number | undefined, min: number, max: number): boolean =>
+    test !== undefined && test >= min && test <= max;
   
   /**
    * The period over which this time repeats.
@@ -87,7 +87,10 @@ export class PeriodicTime {
       second: "minute",
     }
     const largestField = fields.find(f => Object.keys(this.time).includes(f) && this.time[f] !== undefined);
-    return fieldToPeriod[largestField!];
+    if (largestField === undefined) {
+      throw new Error("must have a largest field");
+    }
+    return fieldToPeriod[largestField];
   }
 
   /**
@@ -99,7 +102,7 @@ export class PeriodicTime {
    * @returns the value of the nearest concrete occurrence of this periodic
    *  time before the given time
    */
-  prev = (time: Date, inclusive: boolean = true): Date => {
+  prev = (time: Date, inclusive = true): Date => {
     const p = Period(this.period);
     const periodStart = p.start(time);
     const nextInPeriod = new Date(periodStart.getTime() + this.offset());
@@ -107,9 +110,8 @@ export class PeriodicTime {
     if (requiresShift) {
       // TODO: potential daylight savings bug in this conversion?
       return new Date(nextInPeriod.getTime() - p.ms);
-    } else {
-      return nextInPeriod;
     }
+    return nextInPeriod;
   }
 
   /**
@@ -121,7 +123,7 @@ export class PeriodicTime {
    * @returns the value of the nearest concrete occurrence of this periodic
    *  time after the given time
    */
-  next = (time: Date, inclusive: boolean = true): Date => {
+  next = (time: Date, inclusive = true): Date => {
     const p = Period(this.period);
     const periodStart = p.start(time);
     const nextInPeriod = new Date(periodStart.getTime() + this.offset());
@@ -129,9 +131,8 @@ export class PeriodicTime {
     if (requiresShift) {
       // TODO: potential daylight savings bug in this conversion?
       return new Date(nextInPeriod.getTime() + p.ms);
-    } else {
-      return nextInPeriod;
     }
+    return nextInPeriod;
   }
   
   /**

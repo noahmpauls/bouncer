@@ -1,5 +1,5 @@
-import { describe, expect, test } from "@jest/globals";
 import { AlwaysSchedule } from "@bouncer/schedule";
+import { describe, expect, test } from "@jest/globals";
 
 
 describe("AlwaysSchedule contains", () => {

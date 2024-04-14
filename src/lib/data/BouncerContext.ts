@@ -1,12 +1,12 @@
 import { browser } from "@bouncer/browser";
 import { ActiveTabs } from "@bouncer/controller";
 import { GuardPostings } from "@bouncer/controller";
-import { type GuardData, serializeGuard, deserializeGuard } from "@bouncer/guard";
+import { type GuardData, deserializeGuard, serializeGuard } from "@bouncer/guard";
+import type { ILogs } from "@bouncer/logs";
 import { BrowserStorage, type IStorage } from "@bouncer/storage";
 import { StoredContext } from "./StoredContext";
 import { sampleGuards } from "./sampleData";
 import type { BouncerContextObject, IBouncerContext, KeyConfig } from "./types";
-import type { ILogs } from "@bouncer/logs";
 
 
 type BouncerContextData = {
@@ -49,7 +49,7 @@ const browserBuckets: BouncerContextBuckets = {
 }
 
 const browserFallbacks: BouncerContextFallbacks = {
-  activeTabs: { initialize: async () => (await browser.tabs.query({ active: true })).map(t => t.id!) },
+  activeTabs: { initialize: async () => (await browser.tabs.query({ active: true })).map(t => t.id).filter((id): id is number => id !== undefined) },
   guardPostings: { value: [] },
   guards: { value: sampleGuards.map(serializeGuard) },
 }

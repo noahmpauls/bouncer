@@ -1,5 +1,5 @@
 import { Maps } from "@bouncer/utils";
-import { type ChangeSubscriber, type IStorage } from "./types";
+import type { ChangeSubscriber, IStorage } from "./types";
 
 /**
  * Represents in-memory storage. Useful for testing.
@@ -8,8 +8,6 @@ export class MemoryStorage implements IStorage {
   private readonly storage: Map<string, any> = new Map();
   private readonly subscribers: Map<string, Set<ChangeSubscriber<any>>> = new Map();
 
-  constructor() { }
-  
   async get<TValue>(key: string, fallback: TValue): Promise<TValue> {
     return Promise.resolve((this.storage.get(key) as TValue) ?? fallback);
   }

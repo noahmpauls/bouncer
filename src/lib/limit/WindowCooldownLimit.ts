@@ -1,6 +1,6 @@
-import { assert } from "@bouncer/utils";
 import { type IPageMetrics, type PageAction, PageActionType } from "@bouncer/page";
-import { type ILimit } from "./types";
+import { assert } from "@bouncer/utils";
+import type { ILimit } from "./types";
 
 /**
  * Represents a limit that allows viewing for a specified amount of time after
@@ -50,42 +50,39 @@ export class WindowCooldownLimit implements ILimit {
       return [{ type: PageActionType.UNBLOCK, time }];
     }
     const msSinceInitialVisit = page.msSinceInitialVisit(time) ?? 0;
-    if (msSinceInitialVisit >= this.msWindow) {
-      const blockTime = new Date(time.getTime() - msSinceInitialVisit + this.msWindow);
-      // cooldown not complete
-      if (msSinceInitialVisit < this.msWindow + this.msCooldown) {
-        return [{ type: PageActionType.BLOCK, time: blockTime }];
-        // cooldown complete, reset triggered at end of cooldown
-      } else {
-        const resetTime = new Date(blockTime.getTime() + this.msCooldown);
-        return [{ type: PageActionType.RESET_INITIALVISIT, time: resetTime }];
-      }
+    if (msSinceInitialVisit < this.msWindow) {
+      return [];
     }
-    return [];
+    const blockTime = new Date(time.getTime() - msSinceInitialVisit + this.msWindow);
+    // cooldown not complete
+    if (msSinceInitialVisit < this.msWindow + this.msCooldown) {
+      return [{ type: PageActionType.BLOCK, time: blockTime }];
+      // cooldown complete, reset triggered at end of cooldown
+    }
+    const resetTime = new Date(blockTime.getTime() + this.msCooldown);
+    return [{ type: PageActionType.RESET_INITIALVISIT, time: resetTime }];
   }
   
 
   remainingViewtime(time: Date, page: IPageMetrics): number {
-    return Infinity;
+    return Number.POSITIVE_INFINITY;
   }
 
   
   remainingWindow(time: Date, page: IPageMetrics): number {
-    if (page.msSinceBlock(time) === undefined) {
-      const windowElapsed = page.msSinceInitialVisit(time) ?? 0;
-      const remainingWindow = this.msWindow - windowElapsed;
-      if (remainingWindow > 0) {
-        return remainingWindow;
-      }
-      const remainingCooldown = this.msCooldown + remainingWindow;
-      if (remainingCooldown > 0) {
-        return 0
-      } else {
-        return this.msWindow + remainingCooldown;
-      }
-    } else {
+    if (page.msSinceBlock(time) !== undefined) {
       return 0;
     }
+    const windowElapsed = page.msSinceInitialVisit(time) ?? 0;
+    const remainingWindow = this.msWindow - windowElapsed;
+    if (remainingWindow > 0) {
+      return remainingWindow;
+    }
+    const remainingCooldown = this.msCooldown + remainingWindow;
+    if (remainingCooldown > 0) {
+      return 0
+    }
+    return this.msWindow + remainingCooldown;
   }
   
   toObject(): WindowCooldownData {

@@ -1,5 +1,5 @@
-import { type IConfiguration } from "@bouncer/config";
-import { LogsStorageReader, type ILogsReader, type Log } from "@bouncer/logs";
+import type { IConfiguration } from "@bouncer/config";
+import { type ILogsReader, type Log, LogsStorageReader } from "@bouncer/logs";
 import { BrowserClientMessenger, ClientMessageType, ControllerMessageType } from "@bouncer/message";
 
 const messenger = BrowserClientMessenger;
@@ -60,7 +60,7 @@ refreshConfig();
 refreshLogs();
 
 function setConfigForm(config: IConfiguration) {
-  const maxLogsInput = configForm.querySelector(`#max-logs`) as HTMLInputElement;
+  const maxLogsInput = configForm.querySelector("#max-logs") as HTMLInputElement;
   maxLogsInput.value = String(config.maxLogs);
 }
 

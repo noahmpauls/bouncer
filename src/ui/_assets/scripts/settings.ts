@@ -1,9 +1,9 @@
-import { deserializePolicy, serializePolicy, type PolicyData } from "@bouncer/policy";
 import { BrowserClientMessenger, ClientMessageType, ControllerMessageType } from "@bouncer/message";
+import { type PolicyData, deserializePolicy, serializePolicy } from "@bouncer/policy";
 
 const messenger = BrowserClientMessenger;
 
-const policiesEditor = document.getElementById("policies-editor")!;
+const policiesEditor = document.getElementById("policies-editor") as HTMLDivElement;
 
 messenger.addReceiver(message => {
   switch(message.type) {
@@ -77,7 +77,7 @@ function createPolicyEditor(id: string, policy: PolicyData) {
       });
 
     } catch {
-      console.error(`error: could not parse policy`);
+      console.error("error: could not parse policy");
     }
   });
 

@@ -1,7 +1,7 @@
-import { serializePolicy, type IPolicy, type PolicyData, deserializePolicy } from "@bouncer/policy";
-import type { IGuard } from "./types";
-import { serializePage, type IPage, type PageData, deserializePage } from "@bouncer/page";
+import { type IPage, type PageData, deserializePage, serializePage } from "@bouncer/page";
+import { type IPolicy, type PolicyData, deserializePolicy, serializePolicy } from "@bouncer/policy";
 import { assert } from "@bouncer/utils";
+import type { IGuard } from "./types";
 
 export class BasicGuard implements IGuard {
   readonly id: string;

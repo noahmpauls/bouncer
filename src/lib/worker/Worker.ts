@@ -1,8 +1,8 @@
 import { SyncedCache } from "@bouncer/cache";
 import { Controller } from "@bouncer/controller";
 import { WorkerContext } from "@bouncer/data";
-import { BrowserEvents, type BrowseEvent, type IBrowserEventHandler, type IControllerEventEmitter } from "@bouncer/events";
-import { type FrameMessage } from "@bouncer/message";
+import { type BrowseEvent, BrowserEvents, type IBrowserEventHandler, type IControllerEventEmitter } from "@bouncer/events";
+import type { FrameMessage } from "@bouncer/message";
 
 export class Worker<TEvents extends IControllerEventEmitter> {
   private readonly controller: SyncedCache<Controller>;

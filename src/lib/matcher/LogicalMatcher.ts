@@ -1,7 +1,7 @@
-import { assert } from "@bouncer/utils";
-import type { FrameType, IMatcher, MatcherData } from "./types";
-import { deserializeMatcher, serializeMatcher } from ".";
 import type { BrowseLocation } from "@bouncer/events";
+import { assert } from "@bouncer/utils";
+import { deserializeMatcher, serializeMatcher } from ".";
+import type { FrameType, IMatcher, MatcherData } from "./types";
 
 export class OrMatcher implements IMatcher {
 

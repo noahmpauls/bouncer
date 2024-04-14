@@ -1,12 +1,12 @@
 import { ScheduledLimit } from "@bouncer/enforcer";
+import { FrameContext, PageOwner } from "@bouncer/events";
 import { BasicGuard } from "@bouncer/guard";
-import { ViewtimeCooldownLimit, WindowCooldownLimit, AlwaysBlock } from "@bouncer/limit";
+import { AlwaysBlock, ViewtimeCooldownLimit, WindowCooldownLimit } from "@bouncer/limit";
 import { AndMatcher, ExactHostnameMatcher, FrameContextMatcher, NotMatcher, OrMatcher, PageOwnerMatcher } from "@bouncer/matcher";
 import { BasicPage } from "@bouncer/page";
-import { BasicPolicy } from "@bouncer/policy";
-import { MinuteSchedule, AlwaysSchedule, PeriodicSchedule } from "@bouncer/schedule";
 import { PeriodicInterval, PeriodicTime } from "@bouncer/period";
-import { FrameContext, PageOwner } from "@bouncer/events";
+import { BasicPolicy } from "@bouncer/policy";
+import { AlwaysSchedule, MinuteSchedule, PeriodicSchedule } from "@bouncer/schedule";
 
 export const sampleGuards = [
   new BasicPolicy(

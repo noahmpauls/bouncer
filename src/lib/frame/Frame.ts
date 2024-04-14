@@ -1,4 +1,4 @@
-import { ClientMessageType, type ControllerMessage, FrameStatus, type IClientMessenger, BrowserClientMessenger, ControllerMessageType } from "@bouncer/message";
+import { BrowserClientMessenger, ClientMessageType, type ControllerMessage, ControllerMessageType, FrameStatus, type IClientMessenger } from "@bouncer/message";
 import { BrowserBlocker } from "./BrowerBlocker";
 import type { IBlocker } from "./types";
 

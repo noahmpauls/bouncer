@@ -1,10 +1,10 @@
-import { describe, test, expect } from "@jest/globals";
 import { ScheduledLimit } from "@bouncer/enforcer";
 import { ViewtimeCooldownLimit, WindowCooldownLimit } from "@bouncer/limit";
 import { BasicPage, PageAccess, PageEvent } from "@bouncer/page";
+import { PeriodicInterval, PeriodicTime } from "@bouncer/period";
 import { AlwaysSchedule, PeriodicSchedule } from "@bouncer/schedule";
 import { timeGenerator } from "@bouncer/test";
-import { PeriodicInterval, PeriodicTime } from "@bouncer/period";
+import { describe, expect, test } from "@jest/globals";
 
 
 describe("ScheduledLimit -> WindowCooldownLimit", () => {
@@ -73,7 +73,8 @@ describe("regression tests", () => {
   test("AlwaysSchedule and ViewtimeCooldownLimit produces proper nextViewEvent", () => {
     const schedule = new AlwaysSchedule();
 
-    const duration = 10_000, cooldown = 10_000;
+    const duration = 10_000;
+    const cooldown = 10_000;
     const limit = new ViewtimeCooldownLimit(duration, cooldown);
     const enforcer = new ScheduledLimit(schedule, limit);
 
@@ -98,7 +99,8 @@ describe("regression tests", () => {
   test("AlwaysSchedule and WindowCooldownLimit produces proper nextTimelineEvent", () => {
     const schedule = new AlwaysSchedule();
 
-    const duration = 10_000, cooldown = 10_000;
+    const duration = 10_000;
+    const cooldown = 10_000;
     const limit = new WindowCooldownLimit(duration, cooldown);
     const enforcer = new ScheduledLimit(schedule, limit);
 
@@ -123,7 +125,8 @@ describe("regression tests", () => {
   test("enforcer with PeriodicSchedule and WindowCooldownLimit gives proper timeline events", () => {
     const schedule = new PeriodicSchedule([ new PeriodicInterval(PeriodicTime.fromString("00:00:00"), PeriodicTime.fromString("00:00:00")) ]);
 
-    const duration = 10_000, cooldown = 10_000;
+    const duration = 10_000;
+    const cooldown = 10_000;
     const limit = new WindowCooldownLimit(duration, cooldown);
     const enforcer = new ScheduledLimit(schedule, limit);
 
@@ -134,7 +137,7 @@ describe("regression tests", () => {
 
     page.recordEvent(t(0), PageEvent.SHOW);
 
-    const nextTimelineEvent = enforcer.nextTimelineEvent(startTime, page);
-    expect(nextTimelineEvent!.getTime() - startTime.getTime()).toEqual(duration);
+    const nextTimelineEvent = enforcer.nextTimelineEvent(startTime, page) as Date;
+    expect(nextTimelineEvent.getTime() - startTime.getTime()).toEqual(duration);
   });
 })

@@ -1,9 +1,6 @@
 import { AlwaysSchedule } from "./AlwaysSchedule";
-import { MinuteSchedule } from "./MinuteSchedule";
-import { WeekSchedule } from "./WeekSchedule";
-import { DaySchedule } from "./DaySchedule";
 import { PeriodicSchedule } from "./PeriodicSchedule";
-import type { ScheduleData, ISchedule } from "./types";
+import type { ISchedule, ScheduleData } from "./types";
 
 /**
  * Deserialize a schedule from an object.
@@ -15,12 +12,6 @@ export function deserializeSchedule(obj: ScheduleData): ISchedule {
   switch (obj.type) {
     case "AlwaysSchedule":
       return AlwaysSchedule.fromObject(obj);
-    case "MinuteSchedule":
-      return MinuteSchedule.fromObject(obj);
-    case "DaySchedule":
-      return DaySchedule.fromObject(obj);
-    case "WeekSchedule":
-      return WeekSchedule.fromObject(obj);
     case "PeriodicSchedule":
       return PeriodicSchedule.fromObject(obj);
     default:
@@ -42,7 +33,4 @@ export function serializeSchedule(schedule: ISchedule): ScheduleData {
 
 export * from "./types";
 export { AlwaysSchedule } from "./AlwaysSchedule";
-export { MinuteSchedule } from "./MinuteSchedule";
-export { DaySchedule } from "./DaySchedule";
-export { WeekSchedule } from "./WeekSchedule";
 export { PeriodicSchedule } from "./PeriodicSchedule";

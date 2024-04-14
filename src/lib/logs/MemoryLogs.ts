@@ -1,5 +1,5 @@
-import { LogLevel, type ILogger, type Log, type ILogs } from "./types";
 import { BrowserClock, type IClock } from "@bouncer/time";
+import { type ILogger, type ILogs, type Log, LogLevel } from "./types";
 
 export class MemoryLogs implements ILogs {
   private readonly logs: ArrayLog = new ArrayLog();
@@ -54,8 +54,6 @@ class MemoryLogger implements ILogger {
 
 class ArrayLog {
   private readonly logs: Log[] = [];
-
-  constructor() { }
 
   push = (log: Log) => this.logs.push(log);
 

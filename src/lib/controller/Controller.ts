@@ -1,14 +1,14 @@
-import { BrowseEventType, type BrowseEvent, type BrowseNavigateEvent, type BrowseTabActivateEvent, type BrowseTabRemoveEvent } from "@bouncer/events";
-import { BasicGuard, type IGuard } from "@bouncer/guard";
-import { FrameStatus, type IControllerMessenger, type FrameMessage, type ClientStatusMessage, type FromFrame, ClientMessageType, type ClientPolicyCreateMessage, type ClientPoliciesGetMessage, ControllerMessageType, type ClientPolicyDeleteMessage, type ClientPolicyUpdateMessage, type ClientPageResetMessage, type ClientConfigGetMessage, type ClientConfigUpdateMessage, BrowserControllerMessenger } from "@bouncer/message";
-import { BasicPage, PageAccess, PageActionType, PageEvent } from "@bouncer/page";
-import { Sets } from "@bouncer/utils";
-import { deserializePolicy, serializePolicy } from "@bouncer/policy";
-import type { FrameType } from "@bouncer/matcher";
-import type { ILogger, ILogs } from "@bouncer/logs";
-import type { GuardPostings } from "./GuardPostings";
-import type { ActiveTabs } from "./ActiveTabs";
 import type { IConfiguration } from "@bouncer/config";
+import { type BrowseEvent, BrowseEventType, type BrowseNavigateEvent, type BrowseTabActivateEvent, type BrowseTabRemoveEvent } from "@bouncer/events";
+import { BasicGuard, type IGuard } from "@bouncer/guard";
+import type { ILogger, ILogs } from "@bouncer/logs";
+import type { FrameType } from "@bouncer/matcher";
+import { BrowserControllerMessenger, type ClientConfigGetMessage, type ClientConfigUpdateMessage, ClientMessageType, type ClientPageResetMessage, type ClientPoliciesGetMessage, type ClientPolicyCreateMessage, type ClientPolicyDeleteMessage, type ClientPolicyUpdateMessage, type ClientStatusMessage, ControllerMessageType, type FrameMessage, FrameStatus, type FromFrame, type IControllerMessenger } from "@bouncer/message";
+import { BasicPage, PageAccess, PageActionType, PageEvent } from "@bouncer/page";
+import { deserializePolicy, serializePolicy } from "@bouncer/policy";
+import { Sets } from "@bouncer/utils";
+import type { ActiveTabs } from "./ActiveTabs";
+import type { GuardPostings } from "./GuardPostings";
 
 
 export class Controller {
@@ -289,22 +289,22 @@ export class Controller {
   }
 
   private getViewtimeCheck = (time: Date, guards: IGuard[]) => {
-    let checks = guards
+    const checks = guards
       .filter(g => g.policy.active)
       .map(g => g.policy.nextViewEvent(time, g.page))
-      .filter(d => d !== undefined)
-      .map(d => d!.getTime());
+      .filter((d): d is Date => d !== undefined)
+      .map(d => d.getTime());
     return checks.length > 0
       ? new Date(Math.min(...checks))
       : undefined;
   }
 
   private getTimelineCheck = (time: Date, guards: IGuard[]) => {
-    let checks = guards
+    const checks = guards
       .filter(g => g.policy.active)
       .map(g => g.policy.nextTimelineEvent(time, g.page))
-      .filter(d => d !== undefined)
-      .map(d => d!.getTime());
+      .filter((d): d is Date => d !== undefined)
+      .map(d => d.getTime());
     return checks.length > 0
       ? new Date(Math.min(...checks))
       : undefined;
@@ -335,7 +335,7 @@ export class Controller {
           status: FrameStatus.UNTRACKED
         });
         break;
-      case FrameStatus.ALLOWED:
+      case FrameStatus.ALLOWED: {
         const checkTimes = this.getCheckTimes(time, guards);
         this.messenger.send(tabId, frameId, {
           type: ControllerMessageType.STATUS,
@@ -344,6 +344,7 @@ export class Controller {
           viewtimeCheck: checkTimes.viewtimeCheck?.toISOString(),
         });
         break;
+      }
       case FrameStatus.BLOCKED:
         this.messenger.send(tabId, frameId, {
           type: ControllerMessageType.STATUS,

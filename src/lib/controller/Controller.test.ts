@@ -1,20 +1,20 @@
+import { Configuration } from "@bouncer/config";
 import { ScheduledLimit } from "@bouncer/enforcer";
+import { BrowseEventType, FrameContext, PageOwner } from "@bouncer/events";
 import { BasicGuard } from "@bouncer/guard";
 import { AlwaysBlock, ViewtimeCooldownLimit, WindowCooldownLimit } from "@bouncer/limit";
-import { NotMatcher, ExactHostnameMatcher, FrameContextMatcher, AndMatcher, PageOwnerMatcher } from "@bouncer/matcher";
+import { MemoryLogs } from "@bouncer/logs";
+import { AndMatcher, ExactHostnameMatcher, FrameContextMatcher, NotMatcher, PageOwnerMatcher } from "@bouncer/matcher";
+import { ClientMessageType, type ControllerMessage, type ControllerStatusMessage, FrameStatus, type IControllerMessenger } from "@bouncer/message";
 import { BasicPage } from "@bouncer/page";
 import { BasicPolicy } from "@bouncer/policy";
 import { AlwaysSchedule } from "@bouncer/schedule";
+import { timeGenerator } from "@bouncer/test";
+import type { IClock } from "@bouncer/time";
 import { describe, expect, test } from "@jest/globals";
+import { ActiveTabs } from "./ActiveTabs";
 import { Controller } from "./Controller";
 import { GuardPostings } from "./GuardPostings";
-import { ActiveTabs } from "./ActiveTabs";
-import { MemoryLogs } from "@bouncer/logs";
-import { ClientMessageType, type ControllerMessage, type IControllerMessenger, type ControllerStatusMessage, FrameStatus } from "@bouncer/message";
-import { type IClock } from "@bouncer/time";
-import { timeGenerator } from "@bouncer/test";
-import { BrowseEventType, FrameContext, PageOwner } from "@bouncer/events";
-import { Configuration } from "@bouncer/config";
 
 class DummyClock implements IClock {
   constructor(
@@ -33,15 +33,13 @@ class DummyMessenger implements IControllerMessenger {
     message: ControllerMessage,
   } | undefined;
 
-  constructor() { }
-
   send = (tabId: number, frameId: number, message: ControllerMessage): void => {
     this._lastMessage = { tabId, frameId, message };
   }
 
   get lastMessage() { return this._lastMessage };
 
-  clear = () => this._lastMessage = undefined;
+  clear = () => this._lastMessage === undefined;
 }
 
 describe("Controller regressions", () => {

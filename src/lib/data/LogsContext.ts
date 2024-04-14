@@ -1,6 +1,6 @@
-import { MemoryLogs, type ILogs, type ILogsWriter, LogsStorageWriter } from "@bouncer/logs";
-import type { IContext } from "./types";
 import type { IConfiguration } from "@bouncer/config";
+import { type ILogs, type ILogsWriter, LogsStorageWriter, MemoryLogs } from "@bouncer/logs";
+import type { IContext } from "./types";
 
 export class LogsContext implements IContext<ILogs> {
   // TODO: could we use an interface instead of MemoryLogs directly?
