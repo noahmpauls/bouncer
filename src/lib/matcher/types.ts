@@ -3,6 +3,7 @@ import type { ExactHostnameMatcherData } from "./ExactHostnameMatcher";
 import type { FrameContextMatcherData } from "./FrameContextMatcher";
 import type { AndMatcherData, NotMatcherData, OrMatcherData } from "./LogicalMatcher";
 import type { PageOwnerMatcherData } from "./PageOwnerMatcher";
+import type { DomainMatcherData } from "./DomainMatcher";
 
 export type FrameType = "ROOT" | "CHILD";
 
@@ -32,6 +33,7 @@ export type IMatcher = {
  */
 export type MatcherData = 
   ExactHostnameMatcherData
+| DomainMatcherData
 | PageOwnerMatcherData
 | FrameContextMatcherData
 | OrMatcherData

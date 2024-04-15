@@ -1,3 +1,4 @@
+import { DomainMatcher } from "./DomainMatcher";
 import { ExactHostnameMatcher } from "./ExactHostnameMatcher";
 import { FrameContextMatcher } from "./FrameContextMatcher";
 import { AndMatcher, NotMatcher, OrMatcher } from "./LogicalMatcher";
@@ -13,6 +14,8 @@ import type { IMatcher, MatcherData } from "./types";
  */
 export function deserializeMatcher(obj: MatcherData): IMatcher {
   switch (obj.type) {
+    case "DomainMatcher":
+      return DomainMatcher.fromObject(obj);
     case "ExactHostname":
       return ExactHostnameMatcher.fromObject(obj);
     case "PageOwner":

@@ -3,12 +3,25 @@ import { FrameContext, PageOwner } from "@bouncer/events";
 import { BasicGuard } from "@bouncer/guard";
 import { AlwaysBlock, ViewtimeCooldownLimit, WindowCooldownLimit } from "@bouncer/limit";
 import { AndMatcher, ExactHostnameMatcher, FrameContextMatcher, NotMatcher, OrMatcher, PageOwnerMatcher } from "@bouncer/matcher";
+import { DomainMatcher } from "@bouncer/matcher/DomainMatcher";
 import { BasicPage } from "@bouncer/page";
 import { PeriodicInterval, PeriodicTime } from "@bouncer/period";
 import { BasicPolicy } from "@bouncer/policy";
-import { AlwaysSchedule, MinuteSchedule, PeriodicSchedule } from "@bouncer/schedule";
+import { AlwaysSchedule, PeriodicSchedule } from "@bouncer/schedule";
 
 export const sampleGuards = [
+  new BasicPolicy(
+    "Domain matcher block",
+    true,
+    new DomainMatcher(
+      "google.com",
+      { include: [ "workspace", "adsense", "support" ] }
+    ),
+    new ScheduledLimit(
+      new AlwaysSchedule(),
+      new AlwaysBlock(),
+    )
+  ),
   new BasicPolicy(
     "Complex matcher viewtime block",
     false,
@@ -22,7 +35,10 @@ export const sampleGuards = [
       ]))
     ]),
     new ScheduledLimit(
-      new MinuteSchedule(30, 10),
+      new PeriodicSchedule([new PeriodicInterval(
+        PeriodicTime.fromString("20"),        
+        PeriodicTime.fromString("10"),        
+      )]),
       new ViewtimeCooldownLimit(10000, 15000),
     ),
   ),
@@ -31,7 +47,10 @@ export const sampleGuards = [
     true,
     new ExactHostnameMatcher("en.wikipedia.org"),
     new ScheduledLimit(
-      new MinuteSchedule(30, 10),
+      new PeriodicSchedule([new PeriodicInterval(
+        PeriodicTime.fromString("20"),
+        PeriodicTime.fromString("10"),        
+      )]),
       new WindowCooldownLimit(10000, 15000),
     ),
   ),
