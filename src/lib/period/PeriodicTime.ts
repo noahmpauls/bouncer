@@ -155,7 +155,7 @@ export class PeriodicTime {
 // TODO: find a better way to organize all this...
 
 function parse(time: string): Partial<PeriodicTimeFields> {
-  return parseDayTime(time);
+  return parseDayTime(time.trim());
 }
 
 function parseDayTime(time: string) {
@@ -172,7 +172,7 @@ function parseDayTime(time: string) {
 
 function parseHourTime(time: string) {
   const [hour, ...rest] = time.split(":");
-  if (rest.length > 0) {
+  if (rest.length === 2) {
     return {
       hour: Number.parseInt(hour),
       ...parseMinuteTime(rest.join(":")),
@@ -183,7 +183,7 @@ function parseHourTime(time: string) {
 
 function parseMinuteTime(time: string) {
   const [minute, ...rest] = time.split(":");
-  if (rest.length > 0) {
+  if (rest.length === 1) {
     return {
       minute: Number.parseInt(minute),
       ...parseSecondTime(rest.join(":")),
