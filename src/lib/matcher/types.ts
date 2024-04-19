@@ -1,9 +1,10 @@
-import type { BrowseLocation, PageOwner } from "@bouncer/events";
+import type { BrowseLocation } from "@bouncer/events";
 import type { ExactHostnameMatcherData } from "./ExactHostnameMatcher";
 import type { FrameContextMatcherData } from "./FrameContextMatcher";
 import type { AndMatcherData, NotMatcherData, OrMatcherData } from "./LogicalMatcher";
 import type { PageOwnerMatcherData } from "./PageOwnerMatcher";
 import type { DomainMatcherData } from "./DomainMatcher";
+import type { PathPrefixMatcherData } from "./PathPrefixMatcher";
 
 export type FrameType = "ROOT" | "CHILD";
 
@@ -34,6 +35,7 @@ export type IMatcher = {
 export type MatcherData = 
   ExactHostnameMatcherData
 | DomainMatcherData
+| PathPrefixMatcherData
 | PageOwnerMatcherData
 | FrameContextMatcherData
 | OrMatcherData

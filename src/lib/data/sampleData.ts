@@ -2,14 +2,28 @@ import { ScheduledLimit } from "@bouncer/enforcer";
 import { FrameContext, PageOwner } from "@bouncer/events";
 import { BasicGuard } from "@bouncer/guard";
 import { AlwaysBlock, ViewtimeCooldownLimit, WindowCooldownLimit } from "@bouncer/limit";
-import { AndMatcher, ExactHostnameMatcher, FrameContextMatcher, NotMatcher, OrMatcher, PageOwnerMatcher } from "@bouncer/matcher";
-import { DomainMatcher } from "@bouncer/matcher/DomainMatcher";
+import { AndMatcher, DomainMatcher, ExactHostnameMatcher, FrameContextMatcher, NotMatcher, PathPrefixMatcher, OrMatcher, PageOwnerMatcher } from "@bouncer/matcher";
 import { BasicPage } from "@bouncer/page";
 import { PeriodicInterval, PeriodicTime } from "@bouncer/period";
 import { BasicPolicy } from "@bouncer/policy";
 import { AlwaysSchedule, PeriodicSchedule } from "@bouncer/schedule";
 
 export const sampleGuards = [
+  new BasicPolicy(
+    "Block all of reddit except for MIT and Fujifilm subreddits",
+    true,
+    new AndMatcher([
+      new DomainMatcher("reddit.com", { exclude: [] }),
+      new NotMatcher(new OrMatcher([
+        new PathPrefixMatcher("/r/fujifilm", true),
+        new PathPrefixMatcher("/r/mit", true),
+      ])),
+    ]),
+    new ScheduledLimit(
+      new AlwaysSchedule(),
+      new AlwaysBlock(),
+    ),
+  ),
   new BasicPolicy(
     "Domain matcher block",
     true,
