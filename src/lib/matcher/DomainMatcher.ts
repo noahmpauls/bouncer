@@ -33,7 +33,7 @@ export class DomainMatcher implements IMatcher {
    * @returns matcher
    */
   static fromObject(obj: DomainMatcherData): DomainMatcher {
-    assert(obj.type === "DomainMatcher", `cannot make ExactHostname from data with type ${obj.type}`);
+    assert(obj.type === "Domain", `cannot make ExactHostname from data with type ${obj.type}`);
     return new DomainMatcher(
       obj.data.domain,
       obj.data.subdomains,
@@ -88,7 +88,7 @@ export class DomainMatcher implements IMatcher {
 
   toObject = (): DomainMatcherData => {
     return {
-      type: "DomainMatcher",
+      type: "Domain",
       data: {
         domain: this.domain,
         subdomains: this.subdomains,
@@ -98,7 +98,7 @@ export class DomainMatcher implements IMatcher {
 }
 
 export type DomainMatcherData = {
-  type: "DomainMatcher",
+  type: "Domain",
   data: {
     domain: string,
     subdomains: SubdomainsRule,

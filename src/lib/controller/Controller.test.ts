@@ -4,7 +4,7 @@ import { BrowseEventType, FrameContext, PageOwner } from "@bouncer/events";
 import { BasicGuard } from "@bouncer/guard";
 import { AlwaysBlock, ViewtimeCooldownLimit, WindowCooldownLimit } from "@bouncer/limit";
 import { MemoryLogs } from "@bouncer/logs";
-import { AndMatcher, ExactHostnameMatcher, FrameContextMatcher, NotMatcher, PageOwnerMatcher } from "@bouncer/matcher";
+import { AndMatcher, DomainMatcher, NotMatcher, PageOwnerMatcher } from "@bouncer/matcher";
 import { ClientMessageType, type ControllerMessage, type ControllerStatusMessage, FrameStatus, type IControllerMessenger } from "@bouncer/message";
 import { BasicPage } from "@bouncer/page";
 import { BasicPolicy } from "@bouncer/policy";
@@ -49,7 +49,7 @@ describe("Controller regressions", () => {
       new BasicPolicy(
         "Block HackerNews after 1 seconds",
         true,
-        new ExactHostnameMatcher("news.ycombinator.com"),
+        new DomainMatcher("news.ycombinator.com", { include: [] }),
         new ScheduledLimit(
           new AlwaysSchedule(),
           new WindowCooldownLimit(1_000, 1_000)
@@ -63,7 +63,7 @@ describe("Controller regressions", () => {
         "Complex matcher viewtime block",
         false,
         new NotMatcher(
-          new ExactHostnameMatcher("example.com"),
+          new DomainMatcher("example.com", { include: [] }),
         ),
         new ScheduledLimit(
           new AlwaysSchedule(),
@@ -176,7 +176,7 @@ describe("Controller regressions", () => {
       new BasicPolicy(
         "Block HackerNews after 1 seconds",
         true,
-        new ExactHostnameMatcher("news.ycombinator.com"),
+        new DomainMatcher("news.ycombinator.com", { include: [] }),
         new ScheduledLimit(
           new AlwaysSchedule(),
           new WindowCooldownLimit(1_000, 1_000)
@@ -189,7 +189,7 @@ describe("Controller regressions", () => {
       new BasicPolicy(
         "Block HackerNews after 1 seconds",
         false,
-        new ExactHostnameMatcher("news.ycombinator.com"),
+        new DomainMatcher("news.ycombinator.com", { include: [] }),
         new ScheduledLimit(
           new AlwaysSchedule(),
           new WindowCooldownLimit(1_000, 1_000)
@@ -302,7 +302,7 @@ describe("Controller regressions", () => {
         true,
         new AndMatcher([
           new NotMatcher(new PageOwnerMatcher(PageOwner.SELF)),          
-          new NotMatcher(new ExactHostnameMatcher("example.com")),
+          new NotMatcher(new DomainMatcher("example.com", { include: [] })),
         ]),
         new ScheduledLimit(
           new AlwaysSchedule(),

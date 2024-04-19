@@ -1,5 +1,4 @@
 import type { BrowseLocation } from "@bouncer/events";
-import type { ExactHostnameMatcherData } from "./ExactHostnameMatcher";
 import type { FrameContextMatcherData } from "./FrameContextMatcher";
 import type { AndMatcherData, NotMatcherData, OrMatcherData } from "./LogicalMatcher";
 import type { PageOwnerMatcherData } from "./PageOwnerMatcher";
@@ -33,7 +32,6 @@ export type IMatcher = {
  * Union of all types that represent matchers in their serialized form.
  */
 export type MatcherData = 
-  ExactHostnameMatcherData
 | DomainMatcherData
 | PathPrefixMatcherData
 | PageOwnerMatcherData

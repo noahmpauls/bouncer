@@ -1,5 +1,4 @@
 import { DomainMatcher } from "./DomainMatcher";
-import { ExactHostnameMatcher } from "./ExactHostnameMatcher";
 import { FrameContextMatcher } from "./FrameContextMatcher";
 import { AndMatcher, NotMatcher, OrMatcher } from "./LogicalMatcher";
 import { PageOwnerMatcher } from "./PageOwnerMatcher";
@@ -15,11 +14,9 @@ import type { IMatcher, MatcherData } from "./types";
  */
 export function deserializeMatcher(obj: MatcherData): IMatcher {
   switch (obj.type) {
-    case "DomainMatcher":
+    case "Domain":
       return DomainMatcher.fromObject(obj);
-    case "ExactHostname":
-      return ExactHostnameMatcher.fromObject(obj);
-    case "Path":
+    case "PathPrefix":
       return PathPrefixMatcher.fromObject(obj);
     case "PageOwner":
       return PageOwnerMatcher.fromObject(obj);
@@ -51,7 +48,6 @@ export function serializeMatcher(matcher: IMatcher): MatcherData {
 
 export * from "./types";
 export { DomainMatcher } from "./DomainMatcher";
-export { ExactHostnameMatcher } from "./ExactHostnameMatcher";
 export { PageOwnerMatcher } from "./PageOwnerMatcher";
 export { PathPrefixMatcher } from "./PathPrefixMatcher";
 export { FrameContextMatcher } from "./FrameContextMatcher";

@@ -2,7 +2,7 @@ import { ScheduledLimit } from "@bouncer/enforcer";
 import { FrameContext, PageOwner } from "@bouncer/events";
 import { BasicGuard } from "@bouncer/guard";
 import { AlwaysBlock, ViewtimeCooldownLimit, WindowCooldownLimit } from "@bouncer/limit";
-import { AndMatcher, DomainMatcher, ExactHostnameMatcher, FrameContextMatcher, NotMatcher, PathPrefixMatcher, OrMatcher, PageOwnerMatcher } from "@bouncer/matcher";
+import { AndMatcher, DomainMatcher, FrameContextMatcher, NotMatcher, PathPrefixMatcher, OrMatcher, PageOwnerMatcher } from "@bouncer/matcher";
 import { BasicPage } from "@bouncer/page";
 import { PeriodicInterval, PeriodicTime } from "@bouncer/period";
 import { BasicPolicy } from "@bouncer/policy";
@@ -43,9 +43,9 @@ export const sampleGuards = [
       new FrameContextMatcher(FrameContext.ROOT),
       new NotMatcher(new OrMatcher([
         new PageOwnerMatcher(PageOwner.SELF),
-        new ExactHostnameMatcher("example.com"),
-        new ExactHostnameMatcher("www.microsoft.com"),
-        new ExactHostnameMatcher("stackoverflow.com"),
+        new DomainMatcher("example.com", { include: [] }),
+        new DomainMatcher("www.microsoft.com", { include: [] }),
+        new DomainMatcher("stackoverflow.com", { include: [] }),
       ]))
     ]),
     new ScheduledLimit(
@@ -59,7 +59,7 @@ export const sampleGuards = [
   new BasicPolicy(
     "en.wikipedia.org window block",
     true,
-    new ExactHostnameMatcher("en.wikipedia.org"),
+    new DomainMatcher("en.wikipedia.org", { include: [] }),
     new ScheduledLimit(
       new PeriodicSchedule([new PeriodicInterval(
         PeriodicTime.fromString("20"),
@@ -71,7 +71,7 @@ export const sampleGuards = [
   new BasicPolicy(
     "Block HackerNews after 1 seconds",
     true,
-    new ExactHostnameMatcher("news.ycombinator.com"),
+    new DomainMatcher("news.ycombinator.com", { include: [] }),
     new ScheduledLimit(
       new AlwaysSchedule(),
       new WindowCooldownLimit(1_000, 1_000)
@@ -80,7 +80,7 @@ export const sampleGuards = [
   new BasicPolicy(
     "Limit CNBC during work hours on weekdays",
     true,
-    new ExactHostnameMatcher("www.cnbc.com"),
+    new DomainMatcher("www.cnbc.com", { include: [] }),
     new ScheduledLimit(
       new PeriodicSchedule(
         ["Mon", "Tue", "Wed", "Thu", "Fri"].map(day => new PeriodicInterval(

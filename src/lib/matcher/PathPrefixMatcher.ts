@@ -34,7 +34,7 @@ export class PathPrefixMatcher implements IMatcher {
    * @returns matcher
    */
   static fromObject(obj: PathPrefixMatcherData): PathPrefixMatcher {
-    assert(obj.type === "Path", `cannot make PathMatcher from data with type ${obj.type}`);
+    assert(obj.type === "PathPrefix", `cannot make PathMatcher from data with type ${obj.type}`);
     return new PathPrefixMatcher(
       obj.data.pathPrefix,
       obj.data.matchSubpaths,
@@ -55,7 +55,7 @@ export class PathPrefixMatcher implements IMatcher {
 
   toObject = (): PathPrefixMatcherData => {
     return {
-      type: "Path",
+      type: "PathPrefix",
       data: {
         pathPrefix: this.pathPrefix,
         matchSubpaths: this.matchSubpaths,
@@ -65,7 +65,7 @@ export class PathPrefixMatcher implements IMatcher {
 }
 
 export type PathPrefixMatcherData = {
-  type: "Path",
+  type: "PathPrefix",
   data: {
     pathPrefix: string,
     matchSubpaths: boolean,
