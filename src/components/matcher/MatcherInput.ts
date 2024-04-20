@@ -1,5 +1,4 @@
 import type { MatcherData } from "@bouncer/matcher";
-import { ExactHostnameMatcherInput } from "./ExactHostnameMatcherInput";
 
 export interface IMatcherInput extends HTMLElement {
   value: MatcherData;
