@@ -4,6 +4,7 @@ import type { AndMatcherData, NotMatcherData, OrMatcherData } from "./LogicalMat
 import type { PageOwnerMatcherData } from "./PageOwnerMatcher";
 import type { DomainMatcherData } from "./DomainMatcher";
 import type { PathPrefixMatcherData } from "./PathPrefixMatcher";
+import type { QueryParamsMatcherData } from "./QueryParamsMatcher";
 
 export type FrameType = "ROOT" | "CHILD";
 
@@ -34,6 +35,7 @@ export type IMatcher = {
 export type MatcherData = 
 | DomainMatcherData
 | PathPrefixMatcherData
+| QueryParamsMatcherData
 | PageOwnerMatcherData
 | FrameContextMatcherData
 | OrMatcherData

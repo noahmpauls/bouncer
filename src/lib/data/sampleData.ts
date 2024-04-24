@@ -2,13 +2,25 @@ import { ScheduledLimit } from "@bouncer/enforcer";
 import { FrameContext, PageOwner } from "@bouncer/events";
 import { BasicGuard } from "@bouncer/guard";
 import { AlwaysBlock, ViewtimeCooldownLimit, WindowCooldownLimit } from "@bouncer/limit";
-import { AndMatcher, DomainMatcher, FrameContextMatcher, NotMatcher, PathPrefixMatcher, OrMatcher, PageOwnerMatcher } from "@bouncer/matcher";
+import { AndMatcher, DomainMatcher, FrameContextMatcher, NotMatcher, PathPrefixMatcher, OrMatcher, PageOwnerMatcher, QueryParamsMatcher } from "@bouncer/matcher";
 import { BasicPage } from "@bouncer/page";
 import { PeriodicInterval, PeriodicTime } from "@bouncer/period";
 import { BasicPolicy } from "@bouncer/policy";
 import { AlwaysSchedule, PeriodicSchedule } from "@bouncer/schedule";
 
 export const sampleGuards = [
+  new BasicPolicy(
+    "Block Google searches for \"news\"",
+    true,
+    new AndMatcher([
+      new DomainMatcher("www.google.com", { include: [] }),
+      new QueryParamsMatcher({ q: [ "news" ] }),
+    ]),
+    new ScheduledLimit(
+      new AlwaysSchedule(),
+      new AlwaysBlock(),
+    ),
+  ),
   new BasicPolicy(
     "Block all of reddit except for MIT and Fujifilm subreddits",
     true,

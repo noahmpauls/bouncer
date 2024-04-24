@@ -3,6 +3,7 @@ import { FrameContextMatcher } from "./FrameContextMatcher";
 import { AndMatcher, NotMatcher, OrMatcher } from "./LogicalMatcher";
 import { PageOwnerMatcher } from "./PageOwnerMatcher";
 import { PathPrefixMatcher } from "./PathPrefixMatcher";
+import { QueryParamsMatcher } from "./QueryParamsMatcher";
 import type { IMatcher, MatcherData } from "./types";
 
 
@@ -18,6 +19,8 @@ export function deserializeMatcher(obj: MatcherData): IMatcher {
       return DomainMatcher.fromObject(obj);
     case "PathPrefix":
       return PathPrefixMatcher.fromObject(obj);
+    case "QueryParams":
+      return QueryParamsMatcher.fromObject(obj);
     case "PageOwner":
       return PageOwnerMatcher.fromObject(obj);
     case "FrameContext":
@@ -49,6 +52,7 @@ export function serializeMatcher(matcher: IMatcher): MatcherData {
 export * from "./types";
 export { DomainMatcher } from "./DomainMatcher";
 export { PageOwnerMatcher } from "./PageOwnerMatcher";
+export { QueryParamsMatcher } from "./QueryParamsMatcher";
 export { PathPrefixMatcher } from "./PathPrefixMatcher";
 export { FrameContextMatcher } from "./FrameContextMatcher";
 export { OrMatcher, AndMatcher, NotMatcher } from "./LogicalMatcher";
