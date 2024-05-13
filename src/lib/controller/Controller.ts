@@ -1,14 +1,15 @@
 import type { IConfiguration } from "@bouncer/config";
-import { type BrowseEvent, BrowseEventType, type BrowseNavigateEvent, type BrowseTabActivateEvent, type BrowseTabRemoveEvent } from "@bouncer/events";
+import { type BrowseEvent, BrowseEventType, type BrowseNavigateEvent, type BrowseTabActivateEvent, type BrowseTabRemoveEvent, type SystemEvent, SystemEventType, type SystemHeartbeatEvent } from "@bouncer/events";
 import { BasicGuard, type IGuard } from "@bouncer/guard";
 import type { ILogger, ILogs } from "@bouncer/logs";
-import type { FrameType } from "@bouncer/matcher";
 import { BrowserControllerMessenger, type ClientConfigGetMessage, type ClientConfigUpdateMessage, ClientMessageType, type ClientPageResetMessage, type ClientPoliciesGetMessage, type ClientPolicyCreateMessage, type ClientPolicyDeleteMessage, type ClientPolicyUpdateMessage, type ClientStatusMessage, ControllerMessageType, type FrameMessage, FrameStatus, type FromFrame, type IControllerMessenger } from "@bouncer/message";
 import { BasicPage, PageAccess, PageActionType, PageEvent } from "@bouncer/page";
 import { deserializePolicy, serializePolicy } from "@bouncer/policy";
 import { Sets } from "@bouncer/utils";
 import type { ActiveTabs } from "./ActiveTabs";
 import type { GuardPostings } from "./GuardPostings";
+import type { BrowseActivity } from "./BrowseActivity";
+import { BrowserClock, type IClock } from "@bouncer/time";
 
 
 export class Controller {
@@ -19,10 +20,13 @@ export class Controller {
     private readonly guards: IGuard[],
     private readonly guardPostings: GuardPostings,
     private readonly activeTabs: ActiveTabs,
+    private readonly browseActivity: BrowseActivity,
     private readonly messenger: IControllerMessenger,
+    private readonly clock: IClock,
     logs: ILogs,
   ) {
     this.logger = logs.logger("Controller");
+    this.initializeSession();
   }
 
   static browser = (
@@ -30,6 +34,7 @@ export class Controller {
     guards: IGuard[],
     guardPostings: GuardPostings,
     activeTabs: ActiveTabs,
+    browseActivity: BrowseActivity,
     logs: ILogs,
   ): Controller => {
     return new Controller(
@@ -37,11 +42,31 @@ export class Controller {
       guards,
       guardPostings,
       activeTabs,
+      browseActivity,
       new BrowserControllerMessenger(logs),
+      BrowserClock,
       logs,
     );
   }
-  
+
+  /**
+   * If necessary, initialize a new browsing session by closing any pages left
+   * open at the end of the last session.
+   */
+  private initializeSession = () => {
+    const started = this.browseActivity.started();
+    const lastActivity = this.browseActivity.latest();
+    if ( started || lastActivity === undefined) {
+      return;
+    }
+    const openGuards = this.guards.filter(g => g.page.isShowing());
+    for (const guard of openGuards) {
+      this.logger.info(`closing page for guard ${guard.id} at ${lastActivity} (starting new session)`)
+      guard.page.recordEvent(lastActivity, PageEvent.HIDE);
+    }
+    this.track();
+  }
+
   handleMessage = (message: FrameMessage) => {
     const { tabId, frameId, type } = message;
     this.logger.info(`message ${type} from ${tabId}-${frameId}`);
@@ -74,6 +99,7 @@ export class Controller {
         this.logger.error(`no handler for message type ${(message as any).type}`);
         break;
     }
+    this.track();
   }
 
   private handleStatus = (message: FromFrame<ClientStatusMessage>) => {
@@ -166,9 +192,8 @@ export class Controller {
   }
 
   handleBrowse = (event: BrowseEvent) => {
-    const { tabId, type } = event;
-    this.logger.debug(`event ${type} from ${tabId}`);
-    const { time } = event;
+    const { time, type, tabId } = event;
+    this.logger.debug(`browse event ${type} from ${tabId}`);
     switch (event.type) {
       case BrowseEventType.NAVIGATE:
         this.handleNavigate(time, event);
@@ -180,6 +205,7 @@ export class Controller {
         this.handleTabRemove(time, event);
         break;
     }
+    this.track();
   }
 
   private handleNavigate = (time: Date, event: BrowseNavigateEvent) => {
@@ -352,5 +378,24 @@ export class Controller {
         })
         break;
     }
+  }
+
+  handleSystem = (event: SystemEvent) => {
+    const { type } = event;
+    this.logger.debug(`system event ${type}`);
+    switch (event.type) {
+      case SystemEventType.HEARTBEAT:
+        this.handleHeartbeat(event);
+        break;
+    }
+    this.track();
+  }
+
+  private handleHeartbeat = (event: SystemHeartbeatEvent) => {
+    // pass; the system event handler updates the browser activity
+  }
+
+  private track = () => {
+    this.browseActivity.track(this.clock.time());
   }
 }

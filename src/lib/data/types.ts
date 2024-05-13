@@ -1,4 +1,4 @@
-import type { ActiveTabs, GuardPostings } from "@bouncer/controller";
+import type { ActiveTabs, BrowseActivity, GuardPostings } from "@bouncer/controller";
 import type { IGuard } from "@bouncer/guard";
 import type { IStorage } from "@bouncer/storage";
 
@@ -24,6 +24,7 @@ export interface IContext<T> {
 
 export type BouncerContextObject = {
   activeTabs: ActiveTabs,
+  browseActivity: BrowseActivity,
   guardPostings: GuardPostings,
   guards: IGuard[],
 }

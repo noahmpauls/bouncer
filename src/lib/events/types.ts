@@ -1,27 +1,16 @@
-import type { ClientMessage, FrameMessage } from "@bouncer/message";
-import type Browser from "webextension-polyfill";
-
-export type ActivateDetails = Pick<Browser.Tabs.OnActivatedActiveInfoType, "tabId" | "previousTabId">
-export type CommitDetails = Pick<Browser.WebNavigation.OnCommittedDetailsType, "url" | "tabId" | "frameId" | "timeStamp">
-export type HistoryDetails = Pick<Browser.WebNavigation.OnHistoryStateUpdatedDetailsType, "url" | "tabId" | "frameId" | "timeStamp">
-export type MessageSender = Pick<Browser.Runtime.MessageSender, "frameId"> & {
-  tab?: Pick<Browser.Tabs.Tab, "id">
-}
-
-export interface IBrowserEventHandler {
-  handleCommitted(details: CommitDetails): void;
-  handleHistoryStateUpdated(details: HistoryDetails): void;
-  handleActivated(details: ActivateDetails): void;
-  handleRemoved(tabId: number): void;
-  handleMessage(message: ClientMessage, sender: MessageSender): void;
-}
+import type { FrameMessage } from "@bouncer/message";
 
 /**
  * Emitter of events relevant to Bouncer.
  */
 export interface IControllerEventEmitter {
+  /** Start listening for events. */
+  start(): void;
+  /** Stop listening for events. */
+  stop(): void;
   readonly onMessage: EventHook<FrameMessage>;
   readonly onBrowse: EventHook<BrowseEvent>;
+  readonly onSystem: EventHook<SystemEvent>;
 }
 
 export type EventListener<E> = (event: E) => void;
@@ -82,4 +71,15 @@ export type BrowseTabRemoveEvent = {
   time: Date,
   type: BrowseEventType.TAB_REMOVE,
   tabId: number,
+}
+
+export enum SystemEventType {
+  HEARTBEAT = "heartbeat",
+}
+
+export type SystemEvent = SystemHeartbeatEvent;
+
+export type SystemHeartbeatEvent = {
+  time: Date,
+  type: SystemEventType.HEARTBEAT,
 }

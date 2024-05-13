@@ -1,7 +1,7 @@
 import { SyncedCache } from "@bouncer/cache";
 import { Controller } from "@bouncer/controller";
 import { WorkerContext } from "@bouncer/data";
-import { type BrowseEvent, BrowserEvents, type IBrowserEventHandler, type IControllerEventEmitter } from "@bouncer/events";
+import { type BrowseEvent, BrowserEvents, type IControllerEventEmitter, type SystemEvent } from "@bouncer/events";
 import type { FrameMessage } from "@bouncer/message";
 
 export class Worker<TEvents extends IControllerEventEmitter> {
@@ -14,7 +14,7 @@ export class Worker<TEvents extends IControllerEventEmitter> {
     this.controller = new SyncedCache(this.initializeController);
   }
 
-  static browser(): Worker<IControllerEventEmitter & IBrowserEventHandler> {
+  static browser(): Worker<IControllerEventEmitter> {
     return new Worker(
       BrowserEvents.browser(),
       WorkerContext.browser(),
@@ -22,9 +22,9 @@ export class Worker<TEvents extends IControllerEventEmitter> {
   }
 
   private initializeController = async (): Promise<Controller> => {
-    const { logs, guards, activeTabs, guardPostings, configuration } = await this.context.fetch();
+    const { logs, guards, activeTabs, guardPostings, configuration, browseActivity, } = await this.context.fetch();
     logs.logger("Worker").info("initializing controller");
-    return Controller.browser(configuration, guards, guardPostings, activeTabs, logs);
+    return Controller.browser(configuration, guards, guardPostings, activeTabs, browseActivity, logs);
   }
 
   private onMessage = async (message: FrameMessage) => {
@@ -39,13 +39,23 @@ export class Worker<TEvents extends IControllerEventEmitter> {
     this.context.commit();    
   }
 
+  private onSystem = async (event: SystemEvent) => {
+    const controller = await this.controller.value();
+    controller.handleSystem(event);
+    this.context.commit();
+  }
+
   start = () => {
     this.events.onMessage.addListener(this.onMessage);
     this.events.onBrowse.addListener(this.onBrowse);
+    this.events.onSystem.addListener(this.onSystem);
+    this.events.start();
   }
 
   stop = () => {
+    this.events.stop();
     this.events.onMessage.removeListener(this.onMessage);
     this.events.onBrowse.removeListener(this.onBrowse);
+    this.events.onSystem.removeListener(this.onSystem);
   }
 }

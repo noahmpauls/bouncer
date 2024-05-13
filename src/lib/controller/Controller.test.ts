@@ -1,12 +1,12 @@
 import { Configuration } from "@bouncer/config";
 import { ScheduledLimit } from "@bouncer/enforcer";
-import { BrowseEventType, FrameContext, PageOwner } from "@bouncer/events";
+import { BrowseEventType, FrameContext, PageOwner, SystemEventType } from "@bouncer/events";
 import { BasicGuard } from "@bouncer/guard";
 import { AlwaysBlock, ViewtimeCooldownLimit, WindowCooldownLimit } from "@bouncer/limit";
 import { MemoryLogs } from "@bouncer/logs";
 import { AndMatcher, DomainMatcher, NotMatcher, PageOwnerMatcher } from "@bouncer/matcher";
 import { ClientMessageType, type ControllerMessage, type ControllerStatusMessage, FrameStatus, type IControllerMessenger } from "@bouncer/message";
-import { BasicPage } from "@bouncer/page";
+import { BasicPage, PageAccess } from "@bouncer/page";
 import { BasicPolicy } from "@bouncer/policy";
 import { AlwaysSchedule } from "@bouncer/schedule";
 import { timeGenerator } from "@bouncer/test";
@@ -15,6 +15,7 @@ import { describe, expect, test } from "@jest/globals";
 import { ActiveTabs } from "./ActiveTabs";
 import { Controller } from "./Controller";
 import { GuardPostings } from "./GuardPostings";
+import { BrowseActivity } from "./BrowseActivity";
 
 class DummyClock implements IClock {
   constructor(
@@ -79,8 +80,9 @@ describe("Controller regressions", () => {
     const messenger = new DummyMessenger();
     const guardPostings = new GuardPostings([], logs);
     const activeTabs = new ActiveTabs([], logs);
+    const browseActivity = new BrowseActivity(false, undefined);
     const configuration = Configuration.default();
-    const controller = new Controller(configuration, guards, guardPostings, activeTabs, messenger, logs);
+    const controller = new Controller(configuration, guards, guardPostings, activeTabs, browseActivity, messenger, clock, logs);
 
     controller.handleBrowse({
       type: BrowseEventType.TAB_ACTIVATE,
@@ -204,8 +206,9 @@ describe("Controller regressions", () => {
     const messenger = new DummyMessenger();
     const guardPostings = new GuardPostings([], logs);
     const activeTabs = new ActiveTabs([], logs);
+    const browseActivity = new BrowseActivity(false, undefined);
     const configuration = Configuration.default();
-    const controller = new Controller(configuration, guards, guardPostings, activeTabs, messenger, logs);
+    const controller = new Controller(configuration, guards, guardPostings, activeTabs, browseActivity, messenger, clock, logs);
 
     controller.handleBrowse({
       type: BrowseEventType.TAB_ACTIVATE,
@@ -319,8 +322,9 @@ describe("Controller regressions", () => {
     const messenger = new DummyMessenger();
     const guardPostings = new GuardPostings([], logs);
     const activeTabs = new ActiveTabs([], logs);
+    const browseActivity = new BrowseActivity(false, undefined);
     const configuration = Configuration.default();
-    const controller = new Controller(configuration, guards, guardPostings, activeTabs, messenger, logs);
+    const controller = new Controller(configuration, guards, guardPostings, activeTabs, browseActivity, messenger, clock, logs);
 
     const site = new URL("https://www.wikipedia.com");
     const frame = { tabId: 1, frameId: 0 };
@@ -409,5 +413,200 @@ describe("Controller regressions", () => {
       const message = messenger.lastMessage?.message as ControllerStatusMessage;
       expect(message.status).toEqual(FrameStatus.BLOCKED);
     }
+  });
+
+  test("open pages closed on new session", () => {
+    const guard = new BasicGuard(
+      "guard",
+      new BasicPolicy(
+        "guard",
+        true,
+        new DomainMatcher("wikipedia.com", { exclude: [] }),
+        new ScheduledLimit(
+          new AlwaysSchedule(),
+          new ViewtimeCooldownLimit(60_000, 60_000),
+        ),
+      ),
+      new BasicPage(),
+    );
+
+    const guards = [guard];
+    const time = timeGenerator(new Date("2024-01-01T00:00:00.000Z"));
+    const clock = new DummyClock(time());
+    const logs = new MemoryLogs(clock);
+    const messenger = new DummyMessenger();
+    const guardPostings = new GuardPostings([], logs);
+    const activeTabs = new ActiveTabs([], logs);
+    const configuration = Configuration.default();
+
+    const site = new URL("https://www.wikipedia.com");
+    const frame = { tabId: 1, frameId: 0 };
+
+    const browseActivitySession1 = new BrowseActivity(false, undefined);
+
+    {
+      const controller = new Controller(configuration, guards, guardPostings, activeTabs, browseActivitySession1, messenger, clock, logs);
+
+      controller.handleBrowse({
+        type: BrowseEventType.TAB_ACTIVATE,
+        time: clock.time(),
+        ...frame,
+      });
+
+      controller.handleBrowse({
+        type: BrowseEventType.NAVIGATE,
+        time: clock.time(),
+        location: {
+          url: site,
+          context: FrameContext.ROOT,
+          owner: PageOwner.WEB,
+        },
+        ...frame,
+      });
+
+      controller.handleMessage({
+        type: ClientMessageType.STATUS,
+        time: clock.time().toISOString(),
+        ...frame,
+      });
+
+      clock.value = time(30_000); // 00:00:30
+
+      controller.handleMessage({
+        type: ClientMessageType.STATUS,
+        time: clock.time().toISOString(),
+        ...frame,
+      });
+    }
+
+    clock.value = time(60_001); // 00:00:60.001
+    const browseActivitySession2 = new BrowseActivity(false, browseActivitySession1.latest());
+
+    {
+      const controller = new Controller(configuration, guards, guardPostings, activeTabs, browseActivitySession2, messenger, clock, logs);
+
+      controller.handleBrowse({
+        type: BrowseEventType.TAB_ACTIVATE,
+        time: clock.time(),
+        ...frame,
+      });
+
+      controller.handleBrowse({
+        type: BrowseEventType.NAVIGATE,
+        time: clock.time(),
+        location: {
+          url: site,
+          context: FrameContext.ROOT,
+          owner: PageOwner.WEB,
+        },
+        ...frame,
+      });
+
+      controller.handleMessage({
+        type: ClientMessageType.STATUS,
+        time: clock.time().toISOString(),
+        ...frame,
+      });
+    }
+
+    expect(guard.page.access()).toEqual(PageAccess.ALLOWED);
+    expect(guard.page.msViewtime(clock.time())).toEqual(30_000);
+  });
+
+  test("pages closed at heartbeat time on session start", () => {
+    const guard = new BasicGuard(
+      "guard",
+      new BasicPolicy(
+        "guard",
+        true,
+        new DomainMatcher("wikipedia.com", { exclude: [] }),
+        new ScheduledLimit(
+          new AlwaysSchedule(),
+          new ViewtimeCooldownLimit(60_000, 60_000),
+        ),
+      ),
+      new BasicPage(),
+    );
+
+    const guards = [guard];
+    const time = timeGenerator(new Date("2024-01-01T00:00:00.000Z"));
+    const clock = new DummyClock(time());
+    const logs = new MemoryLogs(clock);
+    const messenger = new DummyMessenger();
+    const guardPostings = new GuardPostings([], logs);
+    const activeTabs = new ActiveTabs([], logs);
+    const configuration = Configuration.default();
+
+    const site = new URL("https://www.wikipedia.com");
+    const frame = { tabId: 1, frameId: 0 };
+
+    const browseActivitySession1 = new BrowseActivity(false, undefined);
+
+    {
+      const controller = new Controller(configuration, guards, guardPostings, activeTabs, browseActivitySession1, messenger, clock, logs);
+      
+      controller.handleBrowse({
+        type: BrowseEventType.TAB_ACTIVATE,
+        time: clock.time(),
+        ...frame,
+      });
+
+      controller.handleBrowse({
+        type: BrowseEventType.NAVIGATE,
+        time: clock.time(),
+        location: {
+          url: site,
+          context: FrameContext.ROOT,
+          owner: PageOwner.WEB,
+        },
+        ...frame,
+      });
+
+      controller.handleMessage({
+        type: ClientMessageType.STATUS,
+        time: clock.time().toISOString(),
+        ...frame,
+      });
+
+      clock.value = time(45_000); // 00:00:45
+
+      controller.handleSystem({
+        type: SystemEventType.HEARTBEAT,
+        time: clock.time(),
+      });
+    }
+
+    clock.value = time(60_001); // 00:00:60.001
+    const browseActivitySession2 = new BrowseActivity(false, browseActivitySession1.latest());
+
+    {
+      const controller = new Controller(configuration, guards, guardPostings, activeTabs, browseActivitySession2, messenger, clock, logs);
+
+      controller.handleBrowse({
+        type: BrowseEventType.TAB_ACTIVATE,
+        time: clock.time(),
+        ...frame,
+      });
+
+      controller.handleBrowse({
+        type: BrowseEventType.NAVIGATE,
+        time: clock.time(),
+        location: {
+          url: site,
+          context: FrameContext.ROOT,
+          owner: PageOwner.WEB,
+        },
+        ...frame,
+      });
+
+      controller.handleMessage({
+        type: ClientMessageType.STATUS,
+        time: clock.time().toISOString(),
+        ...frame,
+      });
+    }
+
+    expect(guard.page.access()).toEqual(PageAccess.ALLOWED);
+    expect(guard.page.msViewtime(clock.time())).toEqual(45_000);
   });
 })

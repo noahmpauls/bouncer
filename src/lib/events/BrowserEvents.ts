@@ -1,17 +1,32 @@
 import { browser } from "@bouncer/browser";
 import type { ClientMessage, FrameMessage } from "@bouncer/message";
-import { type ActivateDetails, type BrowseEvent, BrowseEventType, type BrowseLocation, type CommitDetails, type EventHook, type EventListener, FrameContext, type HistoryDetails, type IBrowserEventHandler, type IControllerEventEmitter, type MessageSender, PageOwner } from "./types";
+import type Browser from "webextension-polyfill";
+import { type IControllerEventEmitter, type BrowseEvent, type SystemEvent, BrowseEventType, SystemEventType, type BrowseLocation, FrameContext, PageOwner, type EventHook, type EventListener } from "./types";
+
+type ActivateDetails = Pick<Browser.Tabs.OnActivatedActiveInfoType, "tabId" | "previousTabId">
+type CommitDetails = Pick<Browser.WebNavigation.OnCommittedDetailsType, "url" | "tabId" | "frameId" | "timeStamp">
+type HistoryDetails = Pick<Browser.WebNavigation.OnHistoryStateUpdatedDetailsType, "url" | "tabId" | "frameId" | "timeStamp">
+type MessageSender = Pick<Browser.Runtime.MessageSender, "frameId"> & {
+  tab?: Pick<Browser.Tabs.Tab, "id">
+}
+type AlarmDetails = Pick<Browser.Alarms.Alarm, "name">
+
+enum Alarms {
+  HEARTBEAT = "heartbeat",
+}
 
 /**
  * Translates browser extension events into Bouncer-relevant events.
  */
-export class BrowserEvents implements IControllerEventEmitter, IBrowserEventHandler {
+export class BrowserEvents implements IControllerEventEmitter {
   private readonly listeners: {
     message: EventListener<FrameMessage>[],
     browse: EventListener<BrowseEvent>[],
+    system: EventListener<SystemEvent>[],
   } = {
     message: [],
     browse: [],
+    system: [],
   };
 
   constructor(
@@ -24,8 +39,31 @@ export class BrowserEvents implements IControllerEventEmitter, IBrowserEventHand
 
   readonly onMessage = this.createHook(this.listeners.message);
   readonly onBrowse = this.createHook(this.listeners.browse);
+  readonly onSystem = this.createHook(this.listeners.system);
 
-  handleCommitted = (details: CommitDetails) => {
+  start = () => {
+    browser.tabs.onActivated.addListener(this.handleActivated);
+    browser.tabs.onRemoved.addListener(this.handleRemoved);
+    browser.webNavigation.onCommitted.addListener(this.handleCommitted);
+    browser.webNavigation.onHistoryStateUpdated.addListener(this.handleHistoryStateUpdated);
+    browser.runtime.onMessage.addListener(this.handleMessage);
+    browser.alarms.onAlarm.addListener(this.handleAlarm);
+
+    browser.alarms.create(Alarms.HEARTBEAT, { periodInMinutes: 0.5 });
+  }
+
+  stop = () => {
+    browser.alarms.clear(Alarms.HEARTBEAT);
+
+    browser.tabs.onActivated.removeListener(this.handleActivated);
+    browser.tabs.onRemoved.removeListener(this.handleRemoved);
+    browser.webNavigation.onCommitted.removeListener(this.handleCommitted);
+    browser.webNavigation.onHistoryStateUpdated.removeListener(this.handleHistoryStateUpdated);
+    browser.runtime.onMessage.removeListener(this.handleMessage);
+    browser.alarms.onAlarm.removeListener(this.handleAlarm);
+  }
+
+  private handleCommitted = (details: CommitDetails) => {
     this.triggerListeners(this.listeners.browse, {
       time: new Date(details.timeStamp),
       type: BrowseEventType.NAVIGATE,
@@ -35,7 +73,7 @@ export class BrowserEvents implements IControllerEventEmitter, IBrowserEventHand
     });
   }
 
-  handleHistoryStateUpdated = (details: HistoryDetails) => {
+  private handleHistoryStateUpdated = (details: HistoryDetails) => {
     this.triggerListeners(this.listeners.browse, {
       time: new Date(details.timeStamp),
       type: BrowseEventType.NAVIGATE,
@@ -45,7 +83,7 @@ export class BrowserEvents implements IControllerEventEmitter, IBrowserEventHand
     });
   }
 
-  handleActivated = (details: ActivateDetails) => {
+  private handleActivated = (details: ActivateDetails) => {
     this.triggerListeners(this.listeners.browse, {
       time: new Date(),
       type: BrowseEventType.TAB_ACTIVATE,
@@ -55,7 +93,7 @@ export class BrowserEvents implements IControllerEventEmitter, IBrowserEventHand
     });
   }
 
-  handleRemoved = (tabId: number) => {
+  private handleRemoved = (tabId: number) => {
     this.triggerListeners(this.listeners.browse, {
       time: new Date(),
       type: BrowseEventType.TAB_REMOVE,
@@ -63,7 +101,7 @@ export class BrowserEvents implements IControllerEventEmitter, IBrowserEventHand
     });
   }
 
-  handleMessage = (message: ClientMessage, sender: MessageSender) => {
+  private handleMessage = (message: ClientMessage, sender: MessageSender) => {
     if (sender.tab?.id === undefined || sender.frameId === undefined) {
       console.warn(`message from tab ${sender.tab?.id}, frame ${sender.frameId}`);
       return;
@@ -73,6 +111,18 @@ export class BrowserEvents implements IControllerEventEmitter, IBrowserEventHand
       tabId: sender.tab.id,
       frameId: sender.frameId,
     });
+  }
+
+  private handleAlarm = (alarm: AlarmDetails): void => {
+    switch (alarm.name) {
+      case Alarms.HEARTBEAT:
+        this.triggerListeners(this.listeners.system, {
+          // TODO: clock provider?
+          time: new Date(),
+          type: SystemEventType.HEARTBEAT,
+        });
+        break;
+    }
   }
 
   private location = (url: string, frameId: number): BrowseLocation => ({

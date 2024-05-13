@@ -1,5 +1,5 @@
 import { browser } from "@bouncer/browser";
-import { ActiveTabs } from "@bouncer/controller";
+import { ActiveTabs, BrowseActivity } from "@bouncer/controller";
 import { GuardPostings } from "@bouncer/controller";
 import { type GuardData, deserializeGuard, serializeGuard } from "@bouncer/guard";
 import type { ILogs } from "@bouncer/logs";
@@ -11,6 +11,8 @@ import type { BouncerContextObject, IBouncerContext, KeyConfig } from "./types";
 
 type BouncerContextData = {
   activeTabs: ReturnType<ActiveTabs["toObject"]>,
+  activityLatest: ReturnType<BrowseActivity["toObject"]>["latest"],
+  activityStarted: ReturnType<BrowseActivity["toObject"]>["started"],
   guardPostings: ReturnType<GuardPostings["toObject"]>,
   guards: GuardData[],
 }
@@ -28,18 +30,25 @@ type BouncerContextFallbacks = {
 
 const BouncerContextTransformer = (logs: ILogs) => ({
   serialize: (obj: BouncerContextObject): BouncerContextData => {
+    const browseActivityData = obj.browseActivity.toObject();
     return  {
-      guards: obj.guards.map(serializeGuard),
+      activityLatest: browseActivityData.latest,
+      activityStarted: browseActivityData.started,
       activeTabs: obj.activeTabs.toObject(),
       guardPostings: obj.guardPostings.toObject(),
+      guards: obj.guards.map(serializeGuard),
     };
   },
 
   deserialize: (data: BouncerContextData): BouncerContextObject => {
-    const guards = data.guards.map(deserializeGuard);
     const activeTabs = ActiveTabs.fromObject(data.activeTabs, logs);
+    const browseActivity = BrowseActivity.fromObject({
+      started: data.activityStarted,
+      latest: data.activityLatest,
+    });
+    const guards = data.guards.map(deserializeGuard);
     const guardPostings = GuardPostings.fromObject(data.guardPostings, guards, logs);
-    return { guards, activeTabs, guardPostings };
+    return { activeTabs, browseActivity, guardPostings, guards, };
   },
 })
 
@@ -50,6 +59,8 @@ const browserBuckets: BouncerContextBuckets = {
 
 const browserFallbacks: BouncerContextFallbacks = {
   activeTabs: { initialize: async () => (await browser.tabs.query({ active: true })).map(t => t.id).filter((id): id is number => id !== undefined) },
+  activityLatest: { value: undefined },
+  activityStarted: { value: false },
   guardPostings: { value: [] },
   guards: { value: sampleGuards.map(serializeGuard) },
 }
@@ -59,6 +70,14 @@ const browserKeyConfig = (fallbacks: BouncerContextFallbacks): BouncerContextKey
     bucket: "session",
     fallback: fallbacks.activeTabs,
   },
+  activityLatest: {
+    bucket: "session",
+    fallback: fallbacks.activityLatest,
+  },
+  activityStarted: {
+    bucket: "local",
+    fallback: fallbacks.activityStarted,
+  },
   guardPostings: {
     bucket: "session",
     fallback: fallbacks.guardPostings,
@@ -66,7 +85,7 @@ const browserKeyConfig = (fallbacks: BouncerContextFallbacks): BouncerContextKey
   guards: {
     bucket: "local",
     fallback: fallbacks.guards,
-  }
+  },
 });
 
 export const BouncerContext = {

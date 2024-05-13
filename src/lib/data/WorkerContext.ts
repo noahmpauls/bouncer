@@ -1,17 +1,12 @@
 import { SyncedCache } from "@bouncer/cache";
 import type { IConfiguration } from "@bouncer/config";
-import type { ActiveTabs, GuardPostings } from "@bouncer/controller";
-import type { IGuard } from "@bouncer/guard";
 import type { ILogs } from "@bouncer/logs";
 import { BouncerContext } from "./BouncerContext";
 import { ConfigContext } from "./ConfigContext";
 import { LogsContext } from "./LogsContext";
-import type { IBouncerContext, IContext } from "./types";
+import type { BouncerContextObject, IBouncerContext, IContext } from "./types";
 
-type WorkerContextObject = {
-  guards: IGuard[],
-  activeTabs: ActiveTabs,
-  guardPostings: GuardPostings,
+type WorkerContextObject = BouncerContextObject & {
   configuration: IConfiguration,
   logs: ILogs,
 }

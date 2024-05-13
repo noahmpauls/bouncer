@@ -9,7 +9,7 @@ import type { IContext, ITransformer, KeyConfig } from "./types";
  * @typeParam TData stored data type
  * @typeParam TBuckets storage bucket lookup type
  */
-export class StoredContext<TObject, TData extends Record<string, object>, TBuckets extends Record<string, IStorage>> implements IContext<TObject> {
+export class StoredContext<TObject, TData extends Record<string, unknown>, TBuckets extends Record<string, IStorage>> implements IContext<TObject> {
   private cache: TObject | undefined = undefined;
   private readonly sync: Synchronizer = new Synchronizer();
   
@@ -59,7 +59,7 @@ export class StoredContext<TObject, TData extends Record<string, object>, TBucke
       if (this.cache !== undefined) {
         return;
       }
-      // time to play typescropt pretend
+      // time to play typescript pretend
       const data = {} as TData;
       for (const k of Object.keys(this.keyConfig)) {
         const key = k as Extract<keyof TData, string>
