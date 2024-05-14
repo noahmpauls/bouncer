@@ -8,6 +8,12 @@ export class MemoryStorage implements IStorage {
   private readonly storage: Map<string, any> = new Map();
   private readonly subscribers: Map<string, Set<ChangeSubscriber<any>>> = new Map();
 
+  clear = async () => {
+    for (const key of this.storage.keys()) {
+      await this.delete(key);
+    }
+  }
+
   async get<TValue>(key: string, fallback: TValue): Promise<TValue> {
     return Promise.resolve((this.storage.get(key) as TValue) ?? fallback);
   }

@@ -28,4 +28,8 @@ export class ConfigContext implements IContext<IConfiguration> {
     const config = await this.cache.value();
     this.storage.set(this.key, config);
   }
+
+  clear = async () => {
+    await this.cache.clear();
+  }
 }

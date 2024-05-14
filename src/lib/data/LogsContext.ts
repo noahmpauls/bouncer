@@ -23,4 +23,8 @@ export class LogsContext implements IContext<ILogs> {
   commit = async () => {
     await this.logsStorage.write(this.logs.flush());
   }
+
+  clear = async () => {
+    const _ = this.logs.flush();
+  }
 }

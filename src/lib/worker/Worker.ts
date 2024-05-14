@@ -10,39 +10,41 @@ export class Worker<TEvents extends IControllerEventEmitter> {
   constructor(
     readonly events: TEvents,
     private readonly context: WorkerContext,
+    private readonly initializeController: (context: WorkerContext) => Promise<Controller>,
   ) {
-    this.controller = new SyncedCache(this.initializeController);
+    this.controller = new SyncedCache(this.createController);
   }
 
   static browser(): Worker<IControllerEventEmitter> {
     return new Worker(
       BrowserEvents.browser(),
       WorkerContext.browser(),
+      async (context) => {
+        const { logs, guards, activeTabs, guardPostings, configuration, browseActivity, } = await context.fetch();
+        return Controller.browser(configuration, guards, guardPostings, activeTabs, browseActivity, logs);
+      }
     );
   }
 
-  private initializeController = async (): Promise<Controller> => {
-    const { logs, guards, activeTabs, guardPostings, configuration, browseActivity, } = await this.context.fetch();
-    logs.logger("Worker").info("initializing controller");
-    return Controller.browser(configuration, guards, guardPostings, activeTabs, browseActivity, logs);
-  }
+  private createController = async (): Promise<Controller> =>
+    this.initializeController(this.context);
 
   private onMessage = async (message: FrameMessage) => {
     const controller = await this.controller.value();
     controller.handleMessage(message);
-    this.context.commit();
+    await this.context.commit();
   }
 
   private onBrowse = async (event: BrowseEvent) => {
     const controller = await this.controller.value();
     controller.handleBrowse(event);
-    this.context.commit();    
+    await this.context.commit();    
   }
 
   private onSystem = async (event: SystemEvent) => {
     const controller = await this.controller.value();
     controller.handleSystem(event);
-    this.context.commit();
+    await this.context.commit();
   }
 
   start = () => {
@@ -57,5 +59,10 @@ export class Worker<TEvents extends IControllerEventEmitter> {
     this.events.onMessage.removeListener(this.onMessage);
     this.events.onBrowse.removeListener(this.onBrowse);
     this.events.onSystem.removeListener(this.onSystem);
+  }
+
+  clear = async () => {
+    await this.context.clear();
+    await this.controller.clear();
   }
 }

@@ -103,4 +103,4 @@ export const sampleGuards = [
       new AlwaysBlock(),
     ),
   ),
-].map(policy => new BasicGuard(crypto.randomUUID(), policy, new BasicPage()));
+].map((policy, index) => new BasicGuard(String(index), policy, new BasicPage()));

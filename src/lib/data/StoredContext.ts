@@ -46,6 +46,12 @@ export class StoredContext<TObject, TData extends Record<string, unknown>, TBuck
     return await this.fetch();
   }
 
+  clear = async (): Promise<void> => {
+    await this.sync.sync(async () => {
+      this.cache = undefined;
+    });
+  }
+
   /**
    * Initialize the context cache with data from storage.
    */

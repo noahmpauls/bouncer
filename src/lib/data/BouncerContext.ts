@@ -52,10 +52,10 @@ const BouncerContextTransformer = (logs: ILogs) => ({
   },
 })
 
-const browserBuckets: BouncerContextBuckets = {
+const browserBuckets = (): BouncerContextBuckets => ({
   local: BrowserStorage.local(),
   session: BrowserStorage.session(),
-}
+});
 
 const browserFallbacks: BouncerContextFallbacks = {
   activeTabs: { initialize: async () => (await browser.tabs.query({ active: true })).map(t => t.id).filter((id): id is number => id !== undefined) },
@@ -93,5 +93,5 @@ export const BouncerContext = {
     return new StoredContext(buckets, BouncerContextTransformer(logs), browserKeyConfig(fallbacks));
   },
 
-  browser: (logs: ILogs): IBouncerContext => BouncerContext.new(browserBuckets, browserFallbacks, logs)
+  browser: (logs: ILogs): IBouncerContext => BouncerContext.new(browserBuckets(), browserFallbacks, logs)
 }

@@ -1,7 +1,7 @@
-import { browser } from "@bouncer/browser";
 import type { ClientMessage, FrameMessage } from "@bouncer/message";
-import type Browser from "webextension-polyfill";
 import { type IControllerEventEmitter, type BrowseEvent, type SystemEvent, BrowseEventType, SystemEventType, type BrowseLocation, FrameContext, PageOwner, type EventHook, type EventListener } from "./types";
+import type Browser from "webextension-polyfill";
+import type { IClock } from "@bouncer/time";
 
 type ActivateDetails = Pick<Browser.Tabs.OnActivatedActiveInfoType, "tabId" | "previousTabId">
 type CommitDetails = Pick<Browser.WebNavigation.OnCommittedDetailsType, "url" | "tabId" | "frameId" | "timeStamp">
@@ -18,7 +18,7 @@ enum Alarms {
 /**
  * Translates browser extension events into Bouncer-relevant events.
  */
-export class BrowserEvents implements IControllerEventEmitter {
+export class DummyEvents implements IControllerEventEmitter {
   private readonly listeners: {
     message: EventListener<FrameMessage>[],
     browse: EventListener<BrowseEvent>[],
@@ -30,40 +30,24 @@ export class BrowserEvents implements IControllerEventEmitter {
   };
 
   constructor(
+    private readonly clock: IClock,
     private readonly extensionUrl: string,
+    private enabled: boolean = true,
   ) { }
   
-  static browser = () => {
-    return new BrowserEvents(browser.runtime.getURL("/"));
-  }
-
   readonly onMessage = this.createHook(this.listeners.message);
   readonly onBrowse = this.createHook(this.listeners.browse);
   readonly onSystem = this.createHook(this.listeners.system);
 
   start = () => {
-    browser.tabs.onActivated.addListener(this.handleActivated);
-    browser.tabs.onRemoved.addListener(this.handleRemoved);
-    browser.webNavigation.onCommitted.addListener(this.handleCommitted);
-    browser.webNavigation.onHistoryStateUpdated.addListener(this.handleHistoryStateUpdated);
-    browser.runtime.onMessage.addListener(this.handleMessage);
-    browser.alarms.onAlarm.addListener(this.handleAlarm);
-
-    browser.alarms.create(Alarms.HEARTBEAT, { periodInMinutes: 0.5 });
+    this.enabled = true;
   }
 
   stop = () => {
-    browser.alarms.clear(Alarms.HEARTBEAT);
-
-    browser.tabs.onActivated.removeListener(this.handleActivated);
-    browser.tabs.onRemoved.removeListener(this.handleRemoved);
-    browser.webNavigation.onCommitted.removeListener(this.handleCommitted);
-    browser.webNavigation.onHistoryStateUpdated.removeListener(this.handleHistoryStateUpdated);
-    browser.runtime.onMessage.removeListener(this.handleMessage);
-    browser.alarms.onAlarm.removeListener(this.handleAlarm);
+    this.enabled = false;
   }
 
-  private handleCommitted = async (details: CommitDetails) => {
+  triggerCommitted = async (details: CommitDetails) => {
     await this.triggerListeners(this.listeners.browse, {
       time: new Date(details.timeStamp),
       type: BrowseEventType.NAVIGATE,
@@ -73,7 +57,7 @@ export class BrowserEvents implements IControllerEventEmitter {
     });
   }
 
-  private handleHistoryStateUpdated = async (details: HistoryDetails) => {
+  triggerHistoryStateUpdated = async (details: HistoryDetails) => {
     await this.triggerListeners(this.listeners.browse, {
       time: new Date(details.timeStamp),
       type: BrowseEventType.NAVIGATE,
@@ -83,9 +67,9 @@ export class BrowserEvents implements IControllerEventEmitter {
     });
   }
 
-  private handleActivated = async (details: ActivateDetails) => {
+  triggerActivated = async (details: ActivateDetails) => {
     await this.triggerListeners(this.listeners.browse, {
-      time: new Date(),
+      time: this.clock.time(),
       type: BrowseEventType.TAB_ACTIVATE,
       tabId: details.tabId,
       // when popping a tab out of a window, previous tab is same as activated tab
@@ -93,15 +77,15 @@ export class BrowserEvents implements IControllerEventEmitter {
     });
   }
 
-  private handleRemoved = async (tabId: number) => {
+  triggerRemoved = async (tabId: number) => {
     await this.triggerListeners(this.listeners.browse, {
-      time: new Date(),
+      time: this.clock.time(),
       type: BrowseEventType.TAB_REMOVE,
       tabId: tabId,
     });
   }
 
-  private handleMessage = async (message: ClientMessage, sender: MessageSender) => {
+  triggerMessage = async (message: ClientMessage, sender: MessageSender) => {
     if (sender.tab?.id === undefined || sender.frameId === undefined) {
       console.warn(`message from tab ${sender.tab?.id}, frame ${sender.frameId}`);
       return;
@@ -113,12 +97,11 @@ export class BrowserEvents implements IControllerEventEmitter {
     });
   }
 
-  private handleAlarm = async (alarm: AlarmDetails) => {
+  triggerAlarm = async (alarm: AlarmDetails) => {
     switch (alarm.name) {
       case Alarms.HEARTBEAT:
         await this.triggerListeners(this.listeners.system, {
-          // TODO: clock provider?
-          time: new Date(),
+          time: this.clock.time(),
           type: SystemEventType.HEARTBEAT,
         });
         break;
@@ -150,9 +133,10 @@ export class BrowserEvents implements IControllerEventEmitter {
   }
 
   private async triggerListeners<E>(listeners: EventListener<E>[], event: E) {
+    if (!this.enabled) {
+      return;
+    }
     await Promise.all(listeners.map(l => l(event)));
-    // for (const listener of listeners) {
-    //   listener(event);
-    // }
   }
 }
+

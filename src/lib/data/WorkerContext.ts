@@ -65,4 +65,8 @@ export class WorkerContext implements IContext<WorkerContextObject> {
     await logsContext.commit();
     await configContext.commit();
   }
+
+  clear = async () => {
+    await this.cache.clear();
+  }
 }

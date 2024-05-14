@@ -34,6 +34,15 @@ export class SyncedCache<T> {
     return this.value();
   }
 
+  /**
+   * Clear the cache contents.
+   */
+  clear = async (): Promise<void> => {
+    await this.sync.sync(async () => {
+      this.cache = undefined;
+    });
+  }
+
   private async initialize(): Promise<void> {
     if (this.cache !== undefined) {
       return;

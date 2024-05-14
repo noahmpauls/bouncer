@@ -20,6 +20,11 @@ export interface IContext<T> {
    * @returns runtime object
    */
   fetch(): Promise<T>;
+
+  /**
+   * Clear all data from the context cache.
+   */
+  clear(): Promise<void>;
 }
 
 export type BouncerContextObject = {

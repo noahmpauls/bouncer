@@ -13,7 +13,7 @@ export interface IControllerEventEmitter {
   readonly onSystem: EventHook<SystemEvent>;
 }
 
-export type EventListener<E> = (event: E) => void;
+export type EventListener<E> = (event: E) => Promise<void>;
 
 export type EventHook<E> = {
   addListener(listener: EventListener<E>): void;
