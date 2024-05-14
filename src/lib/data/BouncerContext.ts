@@ -71,11 +71,11 @@ const browserKeyConfig = (fallbacks: BouncerContextFallbacks): BouncerContextKey
     fallback: fallbacks.activeTabs,
   },
   activityLatest: {
-    bucket: "session",
+    bucket: "local",
     fallback: fallbacks.activityLatest,
   },
   activityStarted: {
-    bucket: "local",
+    bucket: "session",
     fallback: fallbacks.activityStarted,
   },
   guardPostings: {
