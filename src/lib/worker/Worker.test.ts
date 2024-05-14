@@ -30,7 +30,7 @@ describe("Worker", () => {
     const clock = new DummyClock(new Date("2024-05-01T00:00:00Z"));
 
     const buckets = {
-      local: new MemoryStorage(),
+      durable: new MemoryStorage(),
       session: new MemoryStorage(),
     }
 
@@ -64,10 +64,10 @@ describe("Worker", () => {
     }
 
     const workerContext = new WorkerContext(
-      () => new ConfigContext(buckets.local),
+      () => new ConfigContext(buckets.durable),
       (config) => new LogsContext(
         logs,
-        new LogsStorageWriter(config, buckets.local),
+        new LogsStorageWriter(config, buckets.durable),
       ),
       (logs) => BouncerContext.new(buckets, fallbacks, logs)
     );

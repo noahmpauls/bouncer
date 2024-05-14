@@ -18,7 +18,7 @@ type BouncerContextData = {
 }
 
 type BouncerContextBuckets = {
-  local: IStorage,
+  durable: IStorage,
   session: IStorage,
 }
 
@@ -28,7 +28,7 @@ type BouncerContextFallbacks = {
   [Property in keyof BouncerContextKeyConfig]: BouncerContextKeyConfig[Property]["fallback"]
 }
 
-const BouncerContextTransformer = (logs: ILogs) => ({
+const transformer = (logs: ILogs) => ({
   serialize: (obj: BouncerContextObject): BouncerContextData => {
     const browseActivityData = obj.browseActivity.toObject();
     return  {
@@ -52,26 +52,13 @@ const BouncerContextTransformer = (logs: ILogs) => ({
   },
 })
 
-const browserBuckets = (): BouncerContextBuckets => ({
-  local: BrowserStorage.local(),
-  session: BrowserStorage.session(),
-});
-
-const browserFallbacks: BouncerContextFallbacks = {
-  activeTabs: { initialize: async () => (await browser.tabs.query({ active: true })).map(t => t.id).filter((id): id is number => id !== undefined) },
-  activityLatest: { value: undefined },
-  activityStarted: { value: false },
-  guardPostings: { value: [] },
-  guards: { value: sampleGuards.map(serializeGuard) },
-}
-
-const browserKeyConfig = (fallbacks: BouncerContextFallbacks): BouncerContextKeyConfig => ({
+const keyConfig = (fallbacks: BouncerContextFallbacks): BouncerContextKeyConfig => ({
   activeTabs: {
     bucket: "session",
     fallback: fallbacks.activeTabs,
   },
   activityLatest: {
-    bucket: "local",
+    bucket: "durable",
     fallback: fallbacks.activityLatest,
   },
   activityStarted: {
@@ -79,19 +66,36 @@ const browserKeyConfig = (fallbacks: BouncerContextFallbacks): BouncerContextKey
     fallback: fallbacks.activityStarted,
   },
   guardPostings: {
-    bucket: "session",
+    bucket: "durable",
     fallback: fallbacks.guardPostings,
   },
   guards: {
-    bucket: "local",
+    bucket: "durable",
     fallback: fallbacks.guards,
   },
 });
 
 export const BouncerContext = {
   new: (buckets: BouncerContextBuckets, fallbacks: BouncerContextFallbacks, logs: ILogs): IBouncerContext => {
-    return new StoredContext(buckets, BouncerContextTransformer(logs), browserKeyConfig(fallbacks));
+    return new StoredContext(
+      buckets,
+      transformer(logs),
+      keyConfig(fallbacks)
+    );
   },
 
-  browser: (logs: ILogs): IBouncerContext => BouncerContext.new(browserBuckets(), browserFallbacks, logs)
+  browser: (logs: ILogs): IBouncerContext => {
+    const buckets: BouncerContextBuckets = {
+      durable: BrowserStorage.local(),
+      session: BrowserStorage.session(),
+    };
+    const fallbacks: BouncerContextFallbacks = {
+      activeTabs: { initialize: async () => (await browser.tabs.query({ active: true })).map(t => t.id).filter((id): id is number => id !== undefined) },
+      activityLatest: { value: undefined },
+      activityStarted: { value: false },
+      guardPostings: { value: [] },
+      guards: { value: sampleGuards.map(serializeGuard) },
+    };
+    return BouncerContext.new(buckets, fallbacks, logs);
+  }
 }
