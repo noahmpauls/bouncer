@@ -16,7 +16,7 @@ export class Frame {
     this.blocker = blocker;
   }
 
-  static fromBrowser(): Frame {
+  static browser(): Frame {
     return new Frame(BrowserClientMessenger, BrowserBlocker);
   }
 

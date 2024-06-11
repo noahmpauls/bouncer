@@ -1,4 +1,4 @@
 import { Frame } from "@bouncer/frame";
 
-const frame = Frame.fromBrowser();
+const frame = Frame.browser();
 frame.start();
