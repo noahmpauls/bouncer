@@ -151,8 +151,5 @@ export class BrowserEvents implements IControllerEventEmitter {
 
   private async triggerListeners<E>(listeners: EventListener<E>[], event: E) {
     await Promise.all(listeners.map(l => l(event)));
-    // for (const listener of listeners) {
-    //   listener(event);
-    // }
   }
 }

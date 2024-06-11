@@ -1,4 +1,4 @@
-import type { BrowseLocation, FrameContext } from "@bouncer/events";
+import { parseFrameContext, type BrowseLocation, type FrameContext } from "@bouncer/events";
 import { assert } from "@bouncer/utils";
 import type { IMatcher } from "./types";
 
@@ -22,7 +22,7 @@ export class FrameContextMatcher implements IMatcher {
    */
   static fromObject(obj: FrameContextMatcherData): FrameContextMatcher {
     assert(obj.type === "FrameContext", `cannot make FrameContext from data with type ${obj.type}`);
-    return new FrameContextMatcher(obj.data.type);
+    return new FrameContextMatcher(parseFrameContext(obj.data.type));
   }
 
   matches(location: BrowseLocation): boolean {
@@ -42,6 +42,6 @@ export class FrameContextMatcher implements IMatcher {
 export type FrameContextMatcherData = {
   type: "FrameContext",
   data: {
-    type: FrameContext,
+    type: string,
   }
 }

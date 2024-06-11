@@ -1,4 +1,4 @@
-import type { BrowseLocation, PageOwner } from "@bouncer/events";
+import { parsePageOwner, type BrowseLocation, type PageOwner } from "@bouncer/events";
 import { assert } from "@bouncer/utils";
 import type { IMatcher } from ".";
 
@@ -21,7 +21,7 @@ export class PageOwnerMatcher implements IMatcher {
    */
   static fromObject(obj: PageOwnerMatcherData): PageOwnerMatcher {
     assert(obj.type === "PageOwner", `cannot make PageOwner from data with type ${obj.type}`);
-    return new PageOwnerMatcher(obj.data.owner);
+    return new PageOwnerMatcher(parsePageOwner(obj.data.owner));
   }
 
   matches = (location: BrowseLocation): boolean => {
@@ -41,6 +41,6 @@ export class PageOwnerMatcher implements IMatcher {
 export type PageOwnerMatcherData = {
   type: "PageOwner",
   data: {
-    owner: PageOwner,
+    owner: string,
   },
 }
