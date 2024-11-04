@@ -7,6 +7,30 @@ import { DateTime } from "luxon";
 
 const REFTIME = DateTime.fromISO("2000-01-01T00:00:00.500");
 
+describe("PeriodicSchedule regression", () => {
+  /**
+   * FIXME: DST bug
+   *
+   * If the start/end of DST happens during a period, the rest of the period
+   * gets screwed up by the offset. So if DST ends at the start of a week (as
+   * it did in 2024), the whole week's schedule gets bumped back by an hour.
+   * Need to detect when DST starts/ends and compensate during that period.
+   */
+  test("DST ends", () => {
+    const schedule = new PeriodicSchedule([
+      new PeriodicInterval(PeriodicTime.fromString("08:00:00"), PeriodicTime.fromString("16:00:00")),
+    ]);
+
+    // DST ends on Nov 3rd, 2024.
+
+    const date1 = new Date("2024-11-03T06.59.59.999");
+    const date2 = new Date("2024-11-03T07:00:00.000");
+
+    expect(schedule.contains(date1)).toBeFalsy();
+    expect(schedule.contains(date2)).toBeFalsy();
+  });
+});
+
 describe("PeriodicSchedule (minute)", () => {
   test("rejects invalid (empty intervals)", () => {
     expect(() => {
