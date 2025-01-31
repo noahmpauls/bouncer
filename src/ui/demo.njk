@@ -1,0 +1,90 @@
+{% extends "layouts/main.njk" %}
+
+{% block head %}
+{{ super() }}
+<title>Demo - Bouncer</title>
+<link rel="stylesheet" href="/assets/styles/demo.css">
+{% endblock %}
+
+{% block main %}
+<h2>Create a Policy</h2>
+<form>
+  <h3>Match Sites</h3>
+  <details>
+    <summary>
+      <input type="text" value="reddit.com"> and subdomains, except for some paths
+    </summary>
+    <div>
+      <p>Subdomains:
+        <select>
+          <option>all</option>
+          <option>none</option>
+          <option selected>include</option>
+          <option>exclude</option>
+        </select>
+      </p>
+      <ul>
+        <li><span contenteditable>www</span>.reddit.com</li>
+        <li><span contenteditable>old</span>.reddit.com</li>
+        <button>+ Add another</button>
+      </ul>
+    </div>
+    <div>
+      <p>Pages:
+        <select>
+          <option>all</option>
+          <option>include</option>
+          <option selected>exclude</option>
+        </select>
+      </p>
+      <ul>
+        <li>
+          <input type="text" value="/r/fujifilm">
+          <select>
+            <option selected>and all subpages</option>
+            <option>exactly</option>
+          </select>
+        </li>
+        <li><input type="text" value="/r/mit">
+          <select>
+            <option selected>and all subpages</option>
+            <option selected>exactly</option>
+          </select>
+        </li>
+        <li><input type="text" value="/r/rustlang">
+          <select>
+            <option>and all subpages</option>
+            <option>exactly</option>
+          </select>
+        </li>
+        <button>+ Add another</button>
+      </ul>
+    </div>
+  </details>
+  <details>
+    <summary>
+      <input type="text" value="cnbc.com"> and subdomains
+    </summary>
+    <div>
+      <p>Domains:
+        <select>
+          <option selected>all</option>
+          <option>none</option>
+          <option>include</option>
+          <option>exclude</option>
+        </select>
+      </p>
+    </div>
+    <div>
+      <p>Pages:
+        <select>
+          <option selected>all</option>
+          <option>include</option>
+          <option>exclude</option>
+        </select>
+      </p>
+    </div>
+  </details>
+</form>
+{% endblock %}
+

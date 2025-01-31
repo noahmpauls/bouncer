@@ -10,7 +10,7 @@
     "dev:scripts": "node esbuild.js --watch",
     "dev:types": "tsc --watch",
     "dev:ui": "eleventy --watch --quiet",
-    "dev:webext": "web-ext run --devtools --start-url about:addons",
+    "dev:webext": "web-ext run --devtools --start-url about:addons --firefox deved",
     "build": "run-s -l build:types build:scripts build:ui",
     "build:scripts": "node esbuild.js",
     "build:types": "tsc",

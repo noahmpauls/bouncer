@@ -1,0 +1,46 @@
+:root {
+  --color-subtext: #4f4f4f;
+  --color-select-background: hsl(58, 49%, 93%);
+}
+
+form > * + * {
+  margin-block-start: 1rem;
+}
+
+details {
+  padding: 0.3rem;
+
+  &[open] { 
+    border: 1px solid var(--color-subtext);
+  }
+
+  & > :not(summary) {
+    margin-inline-start: 2rem;
+  }
+}
+
+select {
+  border: none;
+  background: none;
+
+  border-block-end: 1px solid var(--color-subtext);
+  color: var(--color-subtext);
+  background-color: var(--color-select-background);
+
+  font-size: 1rem;
+}
+
+input[type="text"],
+span[contenteditable] {
+  border: none;
+  background: none;
+
+  border-block-end: 1px solid var(--color-subtext);
+  background-color: var(--color-select-background);
+
+  font-size: 1rem;
+}
+
+ul > * + * {
+  margin-block-start: 0.5rem;
+}
